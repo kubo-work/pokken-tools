@@ -1,0 +1,14 @@
+[
+  {
+    "attackerMoveId": "lucario_duel_236a",
+    "defenderMoveId": "pikachu_duel_5y",
+    "action": "exclude",
+    "note": "先端当て時はノックバックで弱攻撃が届かない"
+  },
+  {
+    "attackerMoveId": "pikachu_duel_5x",
+    "defenderMoveId": "lucario_duel_5y",
+    "action": "hit",
+    "note": "至近距離ガード時は1F不利でも反撃が間に合う"
+  }
+]

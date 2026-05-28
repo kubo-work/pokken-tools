@@ -1,0 +1,21 @@
+name = "pokken"
+main = ".open-next/worker.js"
+compatibility_date = "2026-05-27"
+compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+# `wrangler kv namespace create FRAME_DATA_KV` で取得した id を貼る。
+# 本番投入前に必ず実 ID へ書き換える。
+[[kv_namespaces]]
+binding = "FRAME_DATA_KV"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+# `wrangler d1 create pokken-db` で取得した id を貼る。
+[[d1_databases]]
+binding = "DB"
+database_name = "pokken-db"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "migrations"

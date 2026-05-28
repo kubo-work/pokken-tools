@@ -1,0 +1,121 @@
+{
+  "id": "lucario",
+  "name": "ルカリオ",
+  "title": "はどうポケモン",
+  "fieldMoves": [
+    {
+      "id": "lucario_field_y",
+      "name": "ホーミング攻撃",
+      "command": "Y",
+      "category": "attack",
+      "guardLevels": ["mid"],
+      "startup": 20,
+      "active": 3,
+      "blockAdvantage": -7,
+      "hitAdvantage": 3,
+      "damage": 45,
+      "strength": "medium"
+    },
+    {
+      "id": "lucario_field_x",
+      "name": "はどうだん",
+      "command": "X",
+      "category": "attack",
+      "guardLevels": ["high"],
+      "startup": 22,
+      "active": 2,
+      "blockAdvantage": -3,
+      "hitAdvantage": 4,
+      "damage": 35,
+      "strength": "weak"
+    }
+  ],
+  "duelMoves": [
+    {
+      "id": "lucario_duel_5y",
+      "name": "弱攻撃",
+      "command": "Y",
+      "category": "attack",
+      "guardLevels": ["mid"],
+      "startup": 7,
+      "active": 2,
+      "blockAdvantage": -3,
+      "hitAdvantage": 2,
+      "damage": 20,
+      "strength": "weak"
+    },
+    {
+      "id": "lucario_duel_2b",
+      "name": "下段足払い",
+      "command": "↓B",
+      "category": "attack",
+      "guardLevels": ["low"],
+      "startup": 11,
+      "active": 3,
+      "blockAdvantage": -7,
+      "hitAdvantage": 1,
+      "damage": 35,
+      "strength": "medium"
+    },
+    {
+      "id": "lucario_duel_236a",
+      "name": "グランドアッパー",
+      "command": "236A",
+      "category": "attack",
+      "guardLevels": ["mid", "low"],
+      "startup": 16,
+      "active": 4,
+      "blockAdvantage": -9,
+      "hitAdvantage": 3,
+      "damage": 50,
+      "strength": "medium",
+      "note": "中下段。先端当てでガード硬直差が改善する",
+      "resonance": {
+        "startup": 14,
+        "blockAdvantage": -6,
+        "damage": 58
+      }
+    },
+    {
+      "id": "lucario_duel_grab",
+      "name": "つかみ",
+      "command": "Y+B",
+      "category": "grab",
+      "guardLevels": ["mid"],
+      "startup": 13,
+      "active": 2,
+      "blockAdvantage": 0,
+      "hitAdvantage": 0,
+      "damage": 65,
+      "strength": "medium"
+    },
+    {
+      "id": "lucario_duel_counter",
+      "name": "ブロック攻撃",
+      "command": "A",
+      "category": "block",
+      "guardLevels": ["high"],
+      "startup": 18,
+      "active": 4,
+      "blockAdvantage": -12,
+      "hitAdvantage": 6,
+      "damage": 55,
+      "strength": "strong"
+    },
+    {
+      "id": "lucario_duel_burst",
+      "name": "はどうのとう",
+      "command": "L+R",
+      "category": "attack",
+      "guardLevels": ["mid"],
+      "startup": 16,
+      "active": 5,
+      "blockAdvantage": -16,
+      "hitAdvantage": 30,
+      "damage": 130,
+      "strength": "strong",
+      "resonanceOnly": true,
+      "note": "共鳴中のみ使用可能なバーストアタック"
+    }
+  ]
+}

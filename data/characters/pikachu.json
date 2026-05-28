@@ -1,0 +1,133 @@
+{
+  "id": "pikachu",
+  "name": "ピカチュウ",
+  "title": "でんきねずみポケモン",
+  "fieldMoves": [
+    {
+      "id": "pikachu_field_y",
+      "name": "ホーミング攻撃",
+      "command": "Y",
+      "category": "attack",
+      "guardLevels": ["mid"],
+      "startup": 18,
+      "active": 3,
+      "blockAdvantage": -8,
+      "hitAdvantage": 2,
+      "damage": 40,
+      "strength": "medium"
+    },
+    {
+      "id": "pikachu_field_x",
+      "name": "10まんボルト",
+      "command": "X",
+      "category": "attack",
+      "guardLevels": ["high"],
+      "startup": 24,
+      "active": 2,
+      "blockAdvantage": -4,
+      "hitAdvantage": 4,
+      "damage": 30,
+      "strength": "weak"
+    },
+    {
+      "id": "pikachu_field_grab",
+      "name": "つかみ",
+      "command": "Y+B",
+      "category": "grab",
+      "guardLevels": ["mid"],
+      "startup": 16,
+      "active": 2,
+      "blockAdvantage": 0,
+      "hitAdvantage": 0,
+      "damage": 60,
+      "strength": "medium"
+    }
+  ],
+  "duelMoves": [
+    {
+      "id": "pikachu_duel_5y",
+      "name": "弱攻撃",
+      "command": "Y",
+      "category": "attack",
+      "guardLevels": ["mid"],
+      "startup": 6,
+      "active": 2,
+      "blockAdvantage": -2,
+      "hitAdvantage": 3,
+      "damage": 18,
+      "strength": "weak"
+    },
+    {
+      "id": "pikachu_duel_2y",
+      "name": "しゃがみ弱",
+      "command": "↓Y",
+      "category": "attack",
+      "guardLevels": ["low"],
+      "startup": 8,
+      "active": 2,
+      "blockAdvantage": -4,
+      "hitAdvantage": 1,
+      "damage": 20,
+      "strength": "weak"
+    },
+    {
+      "id": "pikachu_duel_5x",
+      "name": "中攻撃",
+      "command": "X",
+      "category": "attack",
+      "guardLevels": ["high"],
+      "startup": 12,
+      "active": 3,
+      "blockAdvantage": -6,
+      "hitAdvantage": 2,
+      "damage": 40,
+      "strength": "medium",
+      "resonance": {
+        "startup": 11,
+        "blockAdvantage": -4,
+        "damage": 48
+      }
+    },
+    {
+      "id": "pikachu_duel_grab",
+      "name": "つかみ",
+      "command": "Y+B",
+      "category": "grab",
+      "guardLevels": ["mid"],
+      "startup": 14,
+      "active": 2,
+      "blockAdvantage": 0,
+      "hitAdvantage": 0,
+      "damage": 60,
+      "strength": "medium"
+    },
+    {
+      "id": "pikachu_duel_counter",
+      "name": "ブロック攻撃",
+      "command": "A",
+      "category": "block",
+      "guardLevels": ["high"],
+      "startup": 20,
+      "active": 4,
+      "blockAdvantage": -10,
+      "hitAdvantage": 5,
+      "damage": 50,
+      "strength": "strong"
+    },
+    {
+      "id": "pikachu_duel_burst",
+      "name": "ボルテッカー",
+      "command": "L+R",
+      "category": "attack",
+      "guardLevels": ["mid"],
+      "startup": 18,
+      "active": 5,
+      "blockAdvantage": -14,
+      "hitAdvantage": 30,
+      "damage": 120,
+      "strength": "strong",
+      "resonanceOnly": true,
+      "note": "共鳴中のみ使用可能なバーストアタック"
+    }
+  ]
+}

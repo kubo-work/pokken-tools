@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# OpenNext build
+.open-next/
+
+# Wrangler local state (ローカルKV/D1のSQLiteファイル等。チームで共有しない)
+.wrangler/
+
+# Cloudflare 型定義 (auto-generated)
+cloudflare-env.d.ts
+
+# Env files
+.env
+.env.local
+.env*.local
+.dev.vars
+
+# 個人情報を含む seed (メールアドレス等)。`*.example.sql` をコピーして使う。
+scripts/*.local.sql
+
+# OS
+.DS_Store
+
+# Editor
+.idea/
+.vscode/

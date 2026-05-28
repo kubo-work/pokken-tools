@@ -1,0 +1,40 @@
+{
+  "name": "pokken",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
+    "db:seed:local": "wrangler d1 execute DB --local --file=scripts/seed-allowlist.local.sql",
+    "db:seed:remote": "wrangler d1 execute DB --remote --file=scripts/seed-allowlist.local.sql",
+    "kv:seed:local": "tsx scripts/seed-kv.ts --local",
+    "kv:seed:remote": "tsx scripts/seed-kv.ts --remote"
+  },
+  "dependencies": {
+    "@mantine/core": "9.2.1",
+    "@mantine/hooks": "9.2.1",
+    "@opennextjs/cloudflare": "1.10.0",
+    "next": "16.2.6",
+    "next-auth": "5.0.0-beta.31",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@locator/runtime": "^0.5.1",
+    "@locator/webpack-loader": "^0.5.1",
+    "@types/node": "22.10.0",
+    "@types/react": "19.2.15",
+    "@types/react-dom": "19.2.3",
+    "babel-plugin-react-compiler": "1.0.0",
+    "tsx": "4.20.0",
+    "typescript": "6.0.3",
+    "wrangler": "4.50.0"
+  }
+}
