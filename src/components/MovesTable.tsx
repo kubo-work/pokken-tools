@@ -1,12 +1,12 @@
 import type { Move } from "@/types/move";
 import { CategoryBadge, GuardBadges } from "@/components/badges";
-import { FrameNumber } from "@/components/FrameNumber";
+import { ATTACK_TYPE_META, SPECIAL_ATTRIBUTE_META } from "@/lib/meta";
 
 /**
  * 技一覧テーブル。共鳴差分は同じ行の下に小さく注記する。
  * 共鳴専用技は別途バッジを付与。
  */
-export function MovesTable({ moves }: { moves: Move[] }) {
+export const MovesTable = ({ moves }: { moves: Move[] }) => {
   if (moves.length === 0) {
     return <div className="empty">登録されている技がありません。</div>;
   }
@@ -17,12 +17,11 @@ export function MovesTable({ moves }: { moves: Move[] }) {
           <th>分類</th>
           <th>技名</th>
           <th>コマンド</th>
-          <th>ガード</th>
+          <th>判定</th>
+          <th>攻撃属性</th>
+          <th>特殊</th>
           <th className="num">発生</th>
-          <th className="num">持続</th>
-          <th className="num">ガード差</th>
-          <th className="num">ヒット差</th>
-          <th className="num">威力</th>
+          <th className="num">硬直F</th>
         </tr>
       </thead>
       <tbody>
@@ -46,29 +45,35 @@ export function MovesTable({ moves }: { moves: Move[] }) {
             <td>
               <GuardBadges levels={move.guardLevels} />
             </td>
+            <td>
+              {move.attackType === undefined
+                ? "-"
+                : ATTACK_TYPE_META[move.attackType].label}
+            </td>
+            <td>
+              {move.specialAttributes === undefined ||
+              move.specialAttributes.length === 0
+                ? "-"
+                : move.specialAttributes
+                    .map((attr) => SPECIAL_ATTRIBUTE_META[attr].label)
+                    .join(" / ")}
+            </td>
             <td className="num">
               {move.startup}
               {move.resonance?.startup !== undefined && (
-                <span style={{ color: "#f59e0b" }}> →{move.resonance.startup}</span>
-              )}
-            </td>
-            <td className="num">{move.active}</td>
-            <td className="num">
-              <FrameNumber value={move.blockAdvantage} />
-              {move.resonance?.blockAdvantage !== undefined && (
                 <span style={{ color: "#f59e0b" }}>
-                  {" → "}
-                  <FrameNumber value={move.resonance.blockAdvantage} />
+                  {" "}
+                  →{move.resonance.startup}
                 </span>
               )}
             </td>
             <td className="num">
-              <FrameNumber value={move.hitAdvantage} />
-            </td>
-            <td className="num">
-              {move.damage}
-              {move.resonance?.damage !== undefined && (
-                <span style={{ color: "#f59e0b" }}> →{move.resonance.damage}</span>
+              {move.recovery}
+              {move.resonance?.recovery !== undefined && (
+                <span style={{ color: "#f59e0b" }}>
+                  {" "}
+                  →{move.resonance.recovery}
+                </span>
               )}
             </td>
           </tr>
@@ -76,4 +81,4 @@ export function MovesTable({ moves }: { moves: Move[] }) {
       </tbody>
     </table>
   );
-}
+};

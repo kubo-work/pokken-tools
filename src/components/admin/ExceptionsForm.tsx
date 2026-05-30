@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import {
   Affix,
   Alert,
   Button,
   Card,
   Group,
+  NumberInput,
   Select,
   SimpleGrid,
   Stack,
@@ -14,89 +14,40 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
-import { PHASE_META } from "@/lib/meta";
 import type { Character } from "@/types/character";
-import type { Phase, PunishException } from "@/types/move";
+import type { PunishException } from "@/types/move";
+import { asEnumValue } from "@/lib/optionGuards";
+import { useExceptionsForm } from "./useExceptionsForm";
 
-const PHASES: Phase[] = ["duel", "field"];
+const ACTION_VALUES = ["exclude", "hit"] as const satisfies readonly PunishException["action"][];
 
-const ACTION_OPTIONS = [
+const ACTION_OPTIONS: { value: PunishException["action"]; label: string }[] = [
   { value: "exclude", label: "除外（確定でも表示しない）" },
-  { value: "hit", label: "強制表示（不利でも表示）" },
+  { value: "hit", label: "強制表示（先端当てなど）" },
 ];
 
-interface MoveOption {
-  value: string;
-  label: string;
-}
+const toNumberOrUndefined = (value: number | string): number | undefined =>
+  value === "" || typeof value !== "number" ? undefined : value;
 
-function buildMoveOptions(characters: Character[]): MoveOption[] {
-  const options: MoveOption[] = [];
-  for (const character of characters) {
-    for (const phase of PHASES) {
-      const moves = phase === "field" ? character.fieldMoves : character.duelMoves;
-      for (const move of moves) {
-        options.push({
-          value: move.id,
-          label: `${character.name} / ${move.name}（${move.command}）[${PHASE_META[phase].shortLabel}]`,
-        });
-      }
-    }
-  }
-  return options;
-}
-
-export function ExceptionsForm({
-  characters,
-  initialExceptions,
-}: {
+export interface ExceptionsFormProps {
   characters: Character[];
   initialExceptions: PunishException[];
-}) {
-  const moveOptions = buildMoveOptions(characters);
-  const [exceptions, setExceptions] = useState<PunishException[]>(initialExceptions);
-  const [saving, setSaving] = useState(false);
-  const [feedback, setFeedback] = useState<
-    { ok: boolean; message: string } | undefined
-  >(undefined);
+}
 
-  function updateException(index: number, patch: Partial<PunishException>) {
-    setExceptions((current) =>
-      current.map((entry, position) =>
-        position === index ? { ...entry, ...patch } : entry,
-      ),
-    );
-  }
-
-  function addException() {
-    const firstMoveId = moveOptions.at(0)?.value ?? "";
-    setExceptions((current) => [
-      ...current,
-      { attackerMoveId: firstMoveId, defenderMoveId: firstMoveId, action: "exclude" },
-    ]);
-  }
-
-  function removeException(index: number) {
-    setExceptions((current) =>
-      current.filter((_entry, position) => position !== index),
-    );
-  }
-
-  async function handleSave() {
-    setSaving(true);
-    setFeedback(undefined);
-    const response = await fetch("/api/admin/exceptions", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(exceptions),
-    });
-    setSaving(false);
-    setFeedback(
-      response.ok
-        ? { ok: true, message: "保存しました" }
-        : { ok: false, message: "保存に失敗しました" },
-    );
-  }
+export const ExceptionsForm = ({
+  characters,
+  initialExceptions,
+}: ExceptionsFormProps) => {
+  const {
+    exceptions,
+    moveOptions,
+    saving,
+    feedback,
+    addException,
+    updateException,
+    removeException,
+    save,
+  } = useExceptionsForm({ characters, initialExceptions });
 
   return (
     <Stack gap="lg">
@@ -110,6 +61,7 @@ export function ExceptionsForm({
       <Text size="sm" c="dimmed">
         フレーム計算では表現できないノックバック・先端当てを上書きします。登録したペアにのみ適用され、
         既定は「除外」です。「強制表示」はフレーム上不利でも反撃として表示します。
+        先端当ては「強制表示」を選び、硬直Fを上書き入力してください。
       </Text>
 
       {exceptions.length === 0 ? (
@@ -143,13 +95,29 @@ export function ExceptionsForm({
                     allowDeselect={false}
                     data={ACTION_OPTIONS}
                     value={entry.action}
+                    onChange={(value) => {
+                      const action = asEnumValue(value, ACTION_VALUES, "exclude");
+                      updateException(index, {
+                        action,
+                        recoveryOverride:
+                          action === "hit" ? entry.recoveryOverride : undefined,
+                      });
+                    }}
+                  />
+                </SimpleGrid>
+                {entry.action === "hit" && (
+                  <NumberInput
+                    label="硬直F（先端当て時の上書き）"
+                    description="空欄なら技の通常硬直Fを使用"
+                    min={0}
+                    value={entry.recoveryOverride ?? ""}
                     onChange={(value) =>
                       updateException(index, {
-                        action: (value ?? "exclude") as PunishException["action"],
+                        recoveryOverride: toNumberOrUndefined(value),
                       })
                     }
                   />
-                </SimpleGrid>
+                )}
                 <Group align="flex-end" gap="sm">
                   <TextInput
                     label="備考"
@@ -186,11 +154,11 @@ export function ExceptionsForm({
               {feedback.message}
             </Alert>
           )}
-          <Button size="md" onClick={handleSave} loading={saving}>
+          <Button size="md" onClick={save} loading={saving}>
             保存
           </Button>
         </Group>
       </Affix>
     </Stack>
   );
-}
+};

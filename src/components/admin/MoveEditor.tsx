@@ -1,6 +1,8 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import {
+  ActionIcon,
   Button,
   Card,
   Checkbox,
@@ -13,32 +15,42 @@ import {
   Text,
   TextInput,
 } from "@mantine/core";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { IconGripVertical } from "@tabler/icons-react";
 import {
+  ATTACK_TYPE_META,
   CATEGORY_META,
   GUARD_LEVELS,
   GUARD_LEVEL_META,
+  MOVE_ATTACK_TYPES,
   MOVE_CATEGORIES,
+  MOVE_SPECIAL_ATTRIBUTES,
   MOVE_STRENGTHS,
+  SPECIAL_ATTRIBUTE_META,
   STRENGTH_META,
 } from "@/lib/meta";
+import {
+  asEnumValue,
+  asOptionalEnumValue,
+  pickEnumValues,
+} from "@/lib/optionGuards";
 import type {
-  GuardLevel,
   Move,
-  MoveCategory,
   MoveStrength,
   ResonanceOverride,
 } from "@/types/move";
 
-type ResonanceNumberField =
-  | "startup"
-  | "active"
-  | "blockAdvantage"
-  | "hitAdvantage"
-  | "damage";
+type ResonanceNumberField = "startup" | "recovery";
 
 const CATEGORY_OPTIONS = MOVE_CATEGORIES.map((category) => ({
   value: category,
   label: CATEGORY_META[category].label,
+}));
+
+const ATTACK_TYPE_OPTIONS = MOVE_ATTACK_TYPES.map((attackType) => ({
+  value: attackType,
+  label: ATTACK_TYPE_META[attackType].label,
 }));
 
 const STRENGTH_OPTIONS = MOVE_STRENGTHS.map((strength) => ({
@@ -52,35 +64,48 @@ const RESONANCE_NUMBER_FIELDS: {
   negative: boolean;
 }[] = [
   { key: "startup", label: "発生", negative: false },
-  { key: "active", label: "持続", negative: false },
-  { key: "blockAdvantage", label: "ガード硬直差", negative: true },
-  { key: "hitAdvantage", label: "ヒット硬直差", negative: true },
-  { key: "damage", label: "ダメージ", negative: false },
+  { key: "recovery", label: "硬直F", negative: false },
 ];
 
-function toNumber(value: number | string): number {
-  return typeof value === "number" ? value : 0;
-}
+const toNumber = (value: number | string): number =>
+  typeof value === "number" ? value : 0;
 
-export function MoveEditor({
-  move,
-  index,
-  onChange,
-  onRemove,
-}: {
+export interface MoveEditorProps {
   move: Move;
   index: number;
   onChange: (move: Move) => void;
   onRemove: () => void;
-}) {
-  function update<Key extends keyof Move>(key: Key, value: Move[Key]) {
-    onChange({ ...move, [key]: value });
-  }
+}
 
-  function updateResonanceField(
+export const MoveEditor = ({
+  move,
+  index,
+  onChange,
+  onRemove,
+}: MoveEditorProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: move.id });
+
+  const sortableStyle: CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+  };
+  const update = <Key extends keyof Move>(key: Key, value: Move[Key]): void => {
+    onChange({ ...move, [key]: value });
+  };
+
+  const updateResonanceField = (
     key: ResonanceNumberField,
     value: number | string,
-  ) {
+  ): void => {
     const next: ResonanceOverride = { ...move.resonance };
     if (value === "") {
       delete next[key];
@@ -88,26 +113,45 @@ export function MoveEditor({
       next[key] = toNumber(value);
     }
     onChange({ ...move, resonance: next });
-  }
+  };
 
-  function updateResonanceStrength(value: string | null) {
+  const updateResonanceStrength = (value: string | null): void => {
     const next: ResonanceOverride = { ...move.resonance };
-    if (value === null) {
+    const strength = asOptionalEnumValue(value, MOVE_STRENGTHS);
+    if (strength === undefined) {
       delete next.strength;
     } else {
-      next.strength = value as MoveStrength;
+      next.strength = strength;
     }
     onChange({ ...move, resonance: next });
-  }
+  };
 
   const hasResonance = move.resonance !== undefined;
 
   return (
-    <Card withBorder padding="md">
+    <Card ref={setNodeRef} style={sortableStyle} withBorder padding="md">
       <Stack gap="sm">
         <Group justify="space-between">
-          <Text fw={700}>#{index + 1}</Text>
-          <Button variant="subtle" color="red" size="compact-sm" onClick={onRemove}>
+          <Group gap="xs">
+            <ActionIcon
+              ref={setActivatorNodeRef}
+              variant="subtle"
+              size="sm"
+              aria-label="ドラッグして並び替え"
+              style={{ cursor: isDragging ? "grabbing" : "grab" }}
+              {...attributes}
+              {...listeners}
+            >
+              <IconGripVertical size={16} />
+            </ActionIcon>
+            <Text fw={700}>#{index + 1}</Text>
+          </Group>
+          <Button
+            variant="subtle"
+            color="red"
+            size="compact-sm"
+            onClick={onRemove}
+          >
             技を削除
           </Button>
         </Group>
@@ -125,33 +169,43 @@ export function MoveEditor({
           />
         </SimpleGrid>
 
-        <SimpleGrid cols={{ base: 1, sm: 3 }}>
+        <SimpleGrid cols={{ base: 1, sm: 2 }}>
           <Select
             label="分類"
             data={CATEGORY_OPTIONS}
             value={move.category}
             allowDeselect={false}
             onChange={(value) =>
-              update("category", (value ?? "attack") as MoveCategory)
+              update("category", asEnumValue(value, MOVE_CATEGORIES, "attack"))
             }
           />
+          <Select
+            label="攻撃属性"
+            placeholder="つかみは任意"
+            clearable
+            data={ATTACK_TYPE_OPTIONS}
+            value={move.attackType ?? null}
+            onChange={(value) =>
+              update("attackType", asOptionalEnumValue(value, MOVE_ATTACK_TYPES))
+            }
+          />
+        </SimpleGrid>
+
+        <SimpleGrid cols={{ base: 1, sm: 2 }}>
           <Select
             label="強度"
             data={STRENGTH_OPTIONS}
             value={move.strength}
             allowDeselect={false}
             onChange={(value) =>
-              update("strength", (value ?? "weak") as MoveStrength)
+              update("strength", asEnumValue(value, MOVE_STRENGTHS, "weak"))
             }
           />
           <Checkbox.Group
-            label="ガード（複数可）"
+            label="判定（複数可）"
             value={move.guardLevels}
             onChange={(value) =>
-              update(
-                "guardLevels",
-                GUARD_LEVELS.filter((level) => value.includes(level)) as GuardLevel[],
-              )
+              update("guardLevels", pickEnumValues(value, GUARD_LEVELS))
             }
           >
             <Group gap="md" mt={6}>
@@ -166,7 +220,29 @@ export function MoveEditor({
           </Checkbox.Group>
         </SimpleGrid>
 
-        <SimpleGrid cols={{ base: 2, sm: 5 }}>
+        <Checkbox.Group
+          label="特殊属性（複数可・なくても可）"
+          value={move.specialAttributes ?? []}
+          onChange={(value) => {
+            const filtered = pickEnumValues(value, MOVE_SPECIAL_ATTRIBUTES);
+            update(
+              "specialAttributes",
+              filtered.length === 0 ? undefined : filtered,
+            );
+          }}
+        >
+          <Group gap="md" mt={6}>
+            {MOVE_SPECIAL_ATTRIBUTES.map((attr) => (
+              <Checkbox
+                key={attr}
+                value={attr}
+                label={SPECIAL_ATTRIBUTE_META[attr].label}
+              />
+            ))}
+          </Group>
+        </Checkbox.Group>
+
+        <SimpleGrid cols={{ base: 2, sm: 2 }}>
           <NumberInput
             label="発生"
             min={0}
@@ -174,26 +250,10 @@ export function MoveEditor({
             onChange={(value) => update("startup", toNumber(value))}
           />
           <NumberInput
-            label="持続"
+            label="硬直F"
             min={0}
-            value={move.active}
-            onChange={(value) => update("active", toNumber(value))}
-          />
-          <NumberInput
-            label="ガード硬直差"
-            value={move.blockAdvantage}
-            onChange={(value) => update("blockAdvantage", toNumber(value))}
-          />
-          <NumberInput
-            label="ヒット硬直差"
-            value={move.hitAdvantage}
-            onChange={(value) => update("hitAdvantage", toNumber(value))}
-          />
-          <NumberInput
-            label="ダメージ"
-            min={0}
-            value={move.damage}
-            onChange={(value) => update("damage", toNumber(value))}
+            value={move.recovery}
+            onChange={(value) => update("recovery", toNumber(value))}
           />
         </SimpleGrid>
 
@@ -203,27 +263,32 @@ export function MoveEditor({
           onChange={(event) =>
             update(
               "note",
-              event.currentTarget.value === "" ? undefined : event.currentTarget.value,
+              event.currentTarget.value === ""
+                ? undefined
+                : event.currentTarget.value,
             )
+          }
+        />
+        <Checkbox
+          label="共鳴で性能が変化する"
+          checked={hasResonance}
+          onChange={(event) =>
+            onChange({
+              ...move,
+              resonance: event.currentTarget.checked ? {} : undefined,
+            })
           }
         />
 
         <Group gap="lg">
           <Checkbox
-            label="共鳴専用技（通常状態では使用不可）"
+            label="共鳴時"
             checked={move.resonanceOnly === true}
             onChange={(event) =>
-              update("resonanceOnly", event.currentTarget.checked ? true : undefined)
-            }
-          />
-          <Checkbox
-            label="共鳴で性能が変化する"
-            checked={hasResonance}
-            onChange={(event) =>
-              onChange({
-                ...move,
-                resonance: event.currentTarget.checked ? {} : undefined,
-              })
+              update(
+                "resonanceOnly",
+                event.currentTarget.checked ? true : undefined,
+              )
             }
           />
         </Group>
@@ -257,4 +322,4 @@ export function MoveEditor({
       </Stack>
     </Card>
   );
-}
+};

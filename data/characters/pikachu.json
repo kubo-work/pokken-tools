@@ -1,19 +1,16 @@
 {
   "id": "pikachu",
   "name": "ピカチュウ",
-  "title": "でんきねずみポケモン",
   "fieldMoves": [
     {
       "id": "pikachu_field_y",
       "name": "ホーミング攻撃",
       "command": "Y",
       "category": "attack",
+      "attackType": "strike",
       "guardLevels": ["mid"],
       "startup": 18,
-      "active": 3,
-      "blockAdvantage": -8,
-      "hitAdvantage": 2,
-      "damage": 40,
+      "recovery": 20,
       "strength": "medium"
     },
     {
@@ -21,12 +18,10 @@
       "name": "10まんボルト",
       "command": "X",
       "category": "attack",
+      "attackType": "strike",
       "guardLevels": ["high"],
       "startup": 24,
-      "active": 2,
-      "blockAdvantage": -4,
-      "hitAdvantage": 4,
-      "damage": 30,
+      "recovery": 20,
       "strength": "weak"
     },
     {
@@ -36,10 +31,7 @@
       "category": "grab",
       "guardLevels": ["mid"],
       "startup": 16,
-      "active": 2,
-      "blockAdvantage": 0,
-      "hitAdvantage": 0,
-      "damage": 60,
+      "recovery": 20,
       "strength": "medium"
     }
   ],
@@ -49,12 +41,10 @@
       "name": "弱攻撃",
       "command": "Y",
       "category": "attack",
+      "attackType": "strike",
       "guardLevels": ["mid"],
       "startup": 6,
-      "active": 2,
-      "blockAdvantage": -2,
-      "hitAdvantage": 3,
-      "damage": 18,
+      "recovery": 20,
       "strength": "weak"
     },
     {
@@ -62,12 +52,10 @@
       "name": "しゃがみ弱",
       "command": "↓Y",
       "category": "attack",
+      "attackType": "strike",
       "guardLevels": ["low"],
       "startup": 8,
-      "active": 2,
-      "blockAdvantage": -4,
-      "hitAdvantage": 1,
-      "damage": 20,
+      "recovery": 20,
       "strength": "weak"
     },
     {
@@ -75,17 +63,13 @@
       "name": "中攻撃",
       "command": "X",
       "category": "attack",
+      "attackType": "strike",
       "guardLevels": ["high"],
       "startup": 12,
-      "active": 3,
-      "blockAdvantage": -6,
-      "hitAdvantage": 2,
-      "damage": 40,
+      "recovery": 20,
       "strength": "medium",
       "resonance": {
-        "startup": 11,
-        "blockAdvantage": -4,
-        "damage": 48
+        "startup": 11
       }
     },
     {
@@ -95,10 +79,7 @@
       "category": "grab",
       "guardLevels": ["mid"],
       "startup": 14,
-      "active": 2,
-      "blockAdvantage": 0,
-      "hitAdvantage": 0,
-      "damage": 60,
+      "recovery": 20,
       "strength": "medium"
     },
     {
@@ -106,12 +87,10 @@
       "name": "ブロック攻撃",
       "command": "A",
       "category": "block",
+      "attackType": "strike",
       "guardLevels": ["high"],
       "startup": 20,
-      "active": 4,
-      "blockAdvantage": -10,
-      "hitAdvantage": 5,
-      "damage": 50,
+      "recovery": 20,
       "strength": "strong"
     },
     {
@@ -119,12 +98,10 @@
       "name": "ボルテッカー",
       "command": "L+R",
       "category": "attack",
+      "attackType": "strike",
       "guardLevels": ["mid"],
       "startup": 18,
-      "active": 5,
-      "blockAdvantage": -14,
-      "hitAdvantage": 30,
-      "damage": 120,
+      "recovery": 20,
       "strength": "strong",
       "resonanceOnly": true,
       "note": "共鳴中のみ使用可能なバーストアタック"
