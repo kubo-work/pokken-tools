@@ -49,10 +49,14 @@ pokken/
 
 ## 初回セットアップ
 
+### 0. 前提
+
+パッケージマネージャ / ランタイムに [bun](https://bun.sh/)（`packageManager` で `bun@1.2.15` を指定）を使う。
+
 ### 1. 依存インストール
 
 ```bash
-npm install
+bun install
 ```
 
 ### 2. Cloudflare リソース作成
@@ -61,11 +65,11 @@ npm install
 
 ```bash
 # KV
-npx wrangler kv namespace create FRAME_DATA_KV
+bunx wrangler kv namespace create FRAME_DATA_KV
 # → wrangler.toml の [[kv_namespaces]] の id を書き換える
 
 # D1
-npx wrangler d1 create pokken-db
+bunx wrangler d1 create pokken-db
 # → wrangler.toml の [[d1_databases]] の database_id を書き換える
 ```
 
@@ -73,10 +77,10 @@ npx wrangler d1 create pokken-db
 
 ```bash
 # ローカル開発用
-npm run db:migrate:local
+bun run db:migrate:local
 
 # 本番デプロイ前に
-npm run db:migrate:remote
+bun run db:migrate:remote
 ```
 
 ### 4. allowlist seed（自分のメールを登録）
@@ -87,8 +91,8 @@ npm run db:migrate:remote
 cp scripts/seed-allowlist.example.sql scripts/seed-allowlist.local.sql
 # scripts/seed-allowlist.local.sql を編集して自分のメールに置き換える
 
-npm run db:seed:local
-npm run db:seed:remote
+bun run db:seed:local
+bun run db:seed:remote
 ```
 
 空のままだと誰もログインできず管理画面に永久に入れなくなるので必須。
@@ -96,8 +100,8 @@ npm run db:seed:remote
 ### 5. KV seed（キャラ・例外データ投入）
 
 ```bash
-npm run kv:seed:local
-npm run kv:seed:remote
+bun run kv:seed:local
+bun run kv:seed:remote
 ```
 
 ### 6. Google OAuth クライアント作成
@@ -118,15 +122,15 @@ cp .dev.vars.example .dev.vars
 ### 8. 本番シークレット
 
 ```bash
-npx wrangler secret put AUTH_SECRET
-npx wrangler secret put AUTH_GOOGLE_ID
-npx wrangler secret put AUTH_GOOGLE_SECRET
+bunx wrangler secret put AUTH_SECRET
+bunx wrangler secret put AUTH_GOOGLE_ID
+bunx wrangler secret put AUTH_GOOGLE_SECRET
 ```
 
 ## 開発
 
 ```bash
-npm run dev
+bun run dev
 ```
 
 [http://localhost:3000](http://localhost:3000) で起動。`next dev` 経由でローカル KV/D1 (Miniflare) に接続される。
@@ -134,7 +138,7 @@ npm run dev
 ### 本番ビルド動作確認
 
 ```bash
-npm run preview
+bun run preview
 ```
 
 OpenNext でビルドして `wrangler dev` で起動する。デプロイ前の最終確認用。
@@ -142,7 +146,7 @@ OpenNext でビルドして `wrangler dev` で起動する。デプロイ前の�
 ## デプロイ
 
 ```bash
-npm run deploy
+bun run deploy
 ```
 
 ## 主要 URL
@@ -171,11 +175,11 @@ npm run deploy
 
 1. `registry.ts` にエントリ追加
 2. `data/characters/{id}.json` を作成（空でも可）
-3. KV へ投入: `npm run kv:seed:remote`
+3. KV へ投入: `bun run kv:seed:remote`
 
 ## トラブルシュート
 
-- **管理画面に入れない**: D1 の `allowed_emails` に自分のメールが登録されているか `npx wrangler d1 execute DB --remote --command "SELECT * FROM allowed_emails"` で確認
+- **管理画面に入れない**: D1 の `allowed_emails` に自分のメールが登録されているか `bunx wrangler d1 execute DB --remote --command "SELECT * FROM allowed_emails"` で確認
 - **OAuth リダイレクトエラー**: Google Cloud Console の Authorized redirect URIs が本番ドメインを含んでいるか確認
-- **ローカルD1の中身が消えた**: `.wrangler/state` を消したか確認。再度 `npm run db:migrate:local && npm run db:seed:local` を実行
+- **ローカルD1の中身が消えた**: `.wrangler/state` を消したか確認。再度 `bun run db:migrate:local && bun run db:seed:local` を実行
 - **KV書き込みが反映されない**: KV は最大60秒の結果整合性あり。少し待つ

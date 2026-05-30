@@ -2,8 +2,8 @@
  * data/ 配下の JSON を Cloudflare KV に投入する seed スクリプト。
  *
  * 使い方:
- *   npx tsx scripts/seed-kv.ts --local   # .wrangler/state 配下のローカルKV
- *   npx tsx scripts/seed-kv.ts --remote  # 本番KV
+ *   bun scripts/seed-kv.ts --local   # .wrangler/state 配下のローカルKV
+ *   bun scripts/seed-kv.ts --remote  # 本番KV
  *
  * 内部で wrangler kv key put を呼ぶ。wrangler が認証済みである必要がある。
  */
@@ -19,13 +19,13 @@ function parseFlag(): "--local" | "--remote" {
   if (arg === "--local" || arg === "--remote") {
     return arg;
   }
-  console.error("Usage: tsx scripts/seed-kv.ts --local | --remote");
+  console.error("Usage: bun scripts/seed-kv.ts --local | --remote");
   process.exit(1);
 }
 
 function putKv(target: "--local" | "--remote", key: string, value: string): void {
   const result = spawnSync(
-    "npx",
+    "bunx",
     ["wrangler", "kv", "key", "put", "--binding", BINDING, target, key, value],
     { stdio: "inherit" },
   );
