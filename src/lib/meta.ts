@@ -1,9 +1,11 @@
 import type {
   GuardLevel,
+  MoveAttackType,
   MoveCategory,
   MoveStrength,
   Phase,
   ResonanceState,
+  SpecialAttribute,
 } from "@/types/move";
 
 export const CATEGORY_META: Record<
@@ -13,6 +15,22 @@ export const CATEGORY_META: Record<
   attack: { label: "攻撃", shortLabel: "攻", color: "#ef4444" },
   block: { label: "ブロック", shortLabel: "ブ", color: "#3b82f6" },
   grab: { label: "つかみ", shortLabel: "つ", color: "#22c55e" },
+};
+
+export const ATTACK_TYPE_META: Record<
+  MoveAttackType,
+  { label: string; shortLabel: string }
+> = {
+  strike: { label: "打撃", shortLabel: "打" },
+  projectile: { label: "弾", shortLabel: "弾" },
+};
+
+export const SPECIAL_ATTRIBUTE_META: Record<
+  SpecialAttribute,
+  { label: string; shortLabel: string }
+> = {
+  blockPiercing: { label: "ブロック貫通", shortLabel: "貫" },
+  armor: { label: "アーマー", shortLabel: "鎧" },
 };
 
 export const STRENGTH_META: Record<MoveStrength, { label: string }> = {
@@ -38,6 +56,11 @@ export const RESONANCE_META: Record<ResonanceState, { label: string }> = {
 };
 
 export const MOVE_CATEGORIES: MoveCategory[] = ["attack", "block", "grab"];
+export const MOVE_ATTACK_TYPES: MoveAttackType[] = ["strike", "projectile"];
+export const MOVE_SPECIAL_ATTRIBUTES: SpecialAttribute[] = [
+  "blockPiercing",
+  "armor",
+];
 export const MOVE_STRENGTHS: MoveStrength[] = ["weak", "medium", "strong"];
 export const GUARD_LEVELS: GuardLevel[] = ["high", "mid", "low"];
-export const PHASES: Phase[] = ["field", "duel"];
+export const PHASES: Phase[] = ["duel", "field"];
