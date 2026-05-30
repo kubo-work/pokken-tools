@@ -23,9 +23,6 @@ export default async function CharacterPage({ params }: { params: Params }) {
       <div className="page-head" style={{ display: "flex", gap: 16, alignItems: "center" }}>
         <div style={{ flex: 1 }}>
           <h1 className="page-title">{character.name}</h1>
-          {character.title !== undefined && (
-            <p className="page-lead">{character.title}</p>
-          )}
         </div>
         <Link
           href={`/characters/${id}/punish`}
