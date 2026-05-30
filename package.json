@@ -2,6 +2,7 @@
   "name": "pokken",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "bun@1.2.15",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -13,8 +14,8 @@
     "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
     "db:seed:local": "wrangler d1 execute DB --local --file=scripts/seed-allowlist.local.sql",
     "db:seed:remote": "wrangler d1 execute DB --remote --file=scripts/seed-allowlist.local.sql",
-    "kv:seed:local": "tsx scripts/seed-kv.ts --local",
-    "kv:seed:remote": "tsx scripts/seed-kv.ts --remote"
+    "kv:seed:local": "bun scripts/seed-kv.ts --local",
+    "kv:seed:remote": "bun scripts/seed-kv.ts --remote"
   },
   "dependencies": {
     "@mantine/core": "9.2.1",
@@ -33,7 +34,6 @@
     "@types/react": "19.2.15",
     "@types/react-dom": "19.2.3",
     "babel-plugin-react-compiler": "1.0.0",
-    "tsx": "4.20.0",
     "typescript": "6.0.3",
     "wrangler": "4.50.0"
   }
