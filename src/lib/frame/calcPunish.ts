@@ -15,6 +15,13 @@ export const resolveMove = (move: Move, state: ResonanceState): Move => {
 export const isMoveAvailable = (move: Move, state: ResonanceState): boolean =>
   !(move.resonanceOnly === true && state === "normal");
 
+/**
+ * ため・派生は反撃時に咄嗟に出せない想定なので防御側候補から除外する。
+ * variant 未設定は通常技扱い。
+ */
+const isDefenderCandidate = (move: Move): boolean =>
+  move.variant === undefined || move.variant === "normal";
+
 export interface PunishResult {
   defenderMove: Move;
   /** 攻撃側硬直F - 防御側発生。0 以上で確定反撃が成立。 */
@@ -46,6 +53,9 @@ export const searchPunishes = (params: SearchPunishParams): PunishResult[] => {
 
   const results: PunishResult[] = [];
   for (const candidate of defenderMoves) {
+    if (!isDefenderCandidate(candidate)) {
+      continue;
+    }
     if (!isMoveAvailable(candidate, defenderState)) {
       continue;
     }

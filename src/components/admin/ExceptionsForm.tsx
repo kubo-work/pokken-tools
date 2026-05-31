@@ -17,7 +17,7 @@ import {
 import type { Character } from "@/types/character";
 import type { PunishException } from "@/types/move";
 import { asEnumValue } from "@/lib/optionGuards";
-import { useExceptionsForm } from "./useExceptionsForm";
+import { useExceptionsForm } from "@/hooks/admin/useExceptionsForm";
 
 const ACTION_VALUES = ["exclude", "hit"] as const satisfies readonly PunishException["action"][];
 

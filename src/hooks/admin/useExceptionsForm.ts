@@ -4,15 +4,11 @@ import { useMemo, useState } from "react";
 import { PHASES, PHASE_META } from "@/lib/meta";
 import type { Character } from "@/types/character";
 import type { PunishException } from "@/types/move";
+import type { Feedback } from "@/lib/feedback";
 
 export interface MoveOption {
   value: string;
   label: string;
-}
-
-export interface Feedback {
-  ok: boolean;
-  message: string;
 }
 
 const buildMoveOptions = (characters: Character[]): MoveOption[] => {
