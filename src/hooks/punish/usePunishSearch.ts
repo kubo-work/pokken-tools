@@ -8,7 +8,7 @@ import type {
   PunishException,
   ResonanceState,
 } from "@/types/move";
-import { PHASES, PHASE_META } from "@/lib/meta";
+import { MOVE_VARIANT_META, PHASES, PHASE_META } from "@/lib/meta";
 import { searchPunishes, type PunishResult } from "@/lib/frame/calcPunish";
 
 export interface MoveOption {
@@ -24,16 +24,41 @@ export interface AttackerContext {
   move: Move;
 }
 
+const buildLabel = (
+  characterName: string,
+  move: Move,
+  parent: Move | undefined,
+  phaseShort: string,
+): string => {
+  const variantTag =
+    move.variant !== undefined && move.variant !== "normal"
+      ? `［${MOVE_VARIANT_META[move.variant].label}］`
+      : "";
+  const command =
+    parent !== undefined ? `${parent.command} > ${move.command}` : move.command;
+  return `${characterName} / ${move.name}${variantTag}（${command}）[${phaseShort}]`;
+};
+
 const buildMoveOptions = (characters: Character[]): MoveOption[] => {
   const options: MoveOption[] = [];
   for (const character of characters) {
     for (const phase of PHASES) {
       const moves =
         phase === "field" ? character.fieldMoves : character.duelMoves;
+      const movesById = new Map(moves.map((entry) => [entry.id, entry]));
       for (const move of moves) {
+        const parent =
+          move.parentMoveId !== undefined
+            ? movesById.get(move.parentMoveId)
+            : undefined;
         options.push({
           value: move.id,
-          label: `${character.name} / ${move.name}（${move.command}）[${PHASE_META[phase].shortLabel}]`,
+          label: buildLabel(
+            character.name,
+            move,
+            parent,
+            PHASE_META[phase].shortLabel,
+          ),
           characterId: character.id,
           phase,
         });

@@ -32,5 +32,6 @@ scripts/*.local.sql
 .idea/
 .vscode/
 
-# Claude Code 個人用コマンド (main で管理。各ブランチで誤って add しない保険)
+# Claude Code 個人用コマンド・スキル (main で管理。各ブランチで誤って add しない保険)
 .claude/commands/review-code-quality.md
+.claude/skills/review-code-quality/SKILL.md
