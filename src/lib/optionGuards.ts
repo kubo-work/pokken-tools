@@ -25,6 +25,18 @@ export const asOptionalEnumValue = <T extends string>(
     : undefined;
 
 /**
+ * undefined ではなく null を「未設定」として扱うフィールド向け。
+ * 例: Move.guardLevel が `GuardLevel | null` のとき。
+ */
+export const asNullableEnumValue = <T extends string>(
+  value: string | null,
+  options: readonly T[],
+): T | null =>
+  value !== null && (options as readonly string[]).includes(value)
+    ? (value as T)
+    : null;
+
+/**
  * Checkbox.Group の onChange (string[]) を enum リテラル配列に絞り込む。
  * options に含まれない値は捨てて元 options 並び順を維持する。
  */
