@@ -3,8 +3,8 @@
 import type { Character } from "@/types/character";
 import type { PunishException, ResonanceState } from "@/types/move";
 import { FrameNumber } from "@/components/FrameNumber";
-import { CategoryBadge, GuardBadges } from "@/components/badges";
-import { usePunishSearch } from "./usePunishSearch";
+import { CategoryBadge, GuardBadge } from "@/components/badges";
+import { usePunishSearch } from "@/hooks/punish/usePunishSearch";
 
 const RESONANCE_OPTIONS: { value: ResonanceState; label: string }[] = [
   { value: "normal", label: "通常" },
@@ -126,7 +126,7 @@ export const PunishSearch = ({
                     </td>
                     <td>{result.defenderMove.command}</td>
                     <td>
-                      <GuardBadges levels={result.defenderMove.guardLevels} />
+                      <GuardBadge level={result.defenderMove.guardLevel} />
                     </td>
                     <td className="num">{result.defenderMove.startup}</td>
                     <td style={{ fontSize: 12, color: "#9095a0" }}>
