@@ -8,10 +8,10 @@
       "command": "Y",
       "category": "attack",
       "attackType": "strike",
-      "guardLevels": ["mid"],
       "startup": 20,
       "recovery": 20,
-      "strength": "medium"
+      "strength": "medium",
+      "guardLevel": "mid"
     },
     {
       "id": "lucario_field_x",
@@ -19,10 +19,10 @@
       "command": "X",
       "category": "attack",
       "attackType": "strike",
-      "guardLevels": ["high"],
       "startup": 22,
       "recovery": 20,
-      "strength": "weak"
+      "strength": "weak",
+      "guardLevel": "high"
     }
   ],
   "duelMoves": [
@@ -32,10 +32,10 @@
       "command": "Y",
       "category": "attack",
       "attackType": "strike",
-      "guardLevels": ["mid"],
       "startup": 7,
       "recovery": 20,
-      "strength": "weak"
+      "strength": "weak",
+      "guardLevel": "mid"
     },
     {
       "id": "lucario_duel_2b",
@@ -43,10 +43,10 @@
       "command": "↓B",
       "category": "attack",
       "attackType": "strike",
-      "guardLevels": ["low"],
       "startup": 11,
       "recovery": 20,
-      "strength": "medium"
+      "strength": "medium",
+      "guardLevel": "low"
     },
     {
       "id": "lucario_duel_236a",
@@ -54,24 +54,24 @@
       "command": "236A",
       "category": "attack",
       "attackType": "strike",
-      "guardLevels": ["mid", "low"],
       "startup": 16,
       "recovery": 20,
       "strength": "medium",
       "note": "中下段。先端当てでガード硬直差が改善する",
       "resonance": {
         "startup": 14
-      }
+      },
+      "guardLevel": "mid_low"
     },
     {
       "id": "lucario_duel_grab",
       "name": "つかみ",
       "command": "Y+B",
       "category": "grab",
-      "guardLevels": ["mid"],
       "startup": 13,
       "recovery": 20,
-      "strength": "medium"
+      "strength": "medium",
+      "guardLevel": "mid"
     },
     {
       "id": "lucario_duel_counter",
@@ -79,10 +79,10 @@
       "command": "A",
       "category": "block",
       "attackType": "strike",
-      "guardLevels": ["high"],
       "startup": 18,
       "recovery": 20,
-      "strength": "strong"
+      "strength": "strong",
+      "guardLevel": "high"
     },
     {
       "id": "lucario_duel_burst",
@@ -90,12 +90,12 @@
       "command": "L+R",
       "category": "attack",
       "attackType": "strike",
-      "guardLevels": ["mid"],
       "startup": 16,
       "recovery": 20,
       "strength": "strong",
       "resonanceOnly": true,
-      "note": "共鳴中のみ使用可能なバーストアタック"
+      "note": "共鳴中のみ使用可能なバーストアタック",
+      "guardLevel": "mid"
     }
   ]
 }

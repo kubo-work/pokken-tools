@@ -3,6 +3,7 @@ import type {
   MoveAttackType,
   MoveCategory,
   MoveStrength,
+  MoveVariant,
   Phase,
   ResonanceState,
   SpecialAttribute,
@@ -33,15 +34,30 @@ export const SPECIAL_ATTRIBUTE_META: Record<
   armor: { label: "アーマー", shortLabel: "鎧" },
 };
 
+export const MOVE_VARIANT_META: Record<
+  MoveVariant,
+  { label: string; shortLabel: string }
+> = {
+  normal: { label: "通常", shortLabel: "" },
+  charge: { label: "ため", shortLabel: "た" },
+  derivative: { label: "派生", shortLabel: "派" },
+};
+
 export const STRENGTH_META: Record<MoveStrength, { label: string }> = {
   weak: { label: "弱" },
   medium: { label: "中" },
   strong: { label: "強" },
 };
 
-export const GUARD_LEVEL_META: Record<GuardLevel, { label: string; shortLabel: string }> = {
+export const GUARD_LEVEL_META: Record<
+  GuardLevel,
+  { label: string; shortLabel: string }
+> = {
   high: { label: "上段", shortLabel: "上" },
-  mid: { label: "中段", shortLabel: "中" },
+  mid_high: { label: "中上段", shortLabel: "中上" },
+  mid: { label: "通常中段", shortLabel: "中" },
+  special_mid: { label: "特殊中段", shortLabel: "特中" },
+  mid_low: { label: "中下段", shortLabel: "中下" },
   low: { label: "下段", shortLabel: "下" },
 };
 
@@ -62,5 +78,18 @@ export const MOVE_SPECIAL_ATTRIBUTES: SpecialAttribute[] = [
   "armor",
 ];
 export const MOVE_STRENGTHS: MoveStrength[] = ["weak", "medium", "strong"];
-export const GUARD_LEVELS: GuardLevel[] = ["high", "mid", "low"];
+export const GUARD_LEVELS: GuardLevel[] = [
+  "high",
+  "mid_high",
+  "mid",
+  "special_mid",
+  "mid_low",
+  "low",
+];
 export const PHASES: Phase[] = ["duel", "field"];
+export const MOVE_VARIANTS: MoveVariant[] = ["normal", "charge", "derivative"];
+/** ため/派生など、親技にぶら下がる variant。 */
+export const CHILD_MOVE_VARIANTS: Exclude<MoveVariant, "normal">[] = [
+  "charge",
+  "derivative",
+];

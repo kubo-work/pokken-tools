@@ -8,10 +8,10 @@
       "command": "Y",
       "category": "attack",
       "attackType": "strike",
-      "guardLevels": ["mid"],
       "startup": 18,
       "recovery": 20,
-      "strength": "medium"
+      "strength": "medium",
+      "guardLevel": "mid"
     },
     {
       "id": "pikachu_field_x",
@@ -19,20 +19,20 @@
       "command": "X",
       "category": "attack",
       "attackType": "strike",
-      "guardLevels": ["high"],
       "startup": 24,
       "recovery": 20,
-      "strength": "weak"
+      "strength": "weak",
+      "guardLevel": "high"
     },
     {
       "id": "pikachu_field_grab",
       "name": "つかみ",
       "command": "Y+B",
       "category": "grab",
-      "guardLevels": ["mid"],
       "startup": 16,
       "recovery": 20,
-      "strength": "medium"
+      "strength": "medium",
+      "guardLevel": "mid"
     }
   ],
   "duelMoves": [
@@ -42,10 +42,23 @@
       "command": "Y",
       "category": "attack",
       "attackType": "strike",
-      "guardLevels": ["mid"],
       "startup": 6,
       "recovery": 20,
-      "strength": "weak"
+      "strength": "weak",
+      "guardLevel": "mid"
+    },
+    {
+      "id": "pikachu_duel_5y_drv_x",
+      "name": "弱>中派生",
+      "command": ">X",
+      "category": "attack",
+      "attackType": "strike",
+      "startup": 10,
+      "recovery": 24,
+      "strength": "medium",
+      "variant": "derivative",
+      "parentMoveId": "pikachu_duel_5y",
+      "guardLevel": "mid"
     },
     {
       "id": "pikachu_duel_2y",
@@ -53,10 +66,10 @@
       "command": "↓Y",
       "category": "attack",
       "attackType": "strike",
-      "guardLevels": ["low"],
       "startup": 8,
       "recovery": 20,
-      "strength": "weak"
+      "strength": "weak",
+      "guardLevel": "low"
     },
     {
       "id": "pikachu_duel_5x",
@@ -64,23 +77,40 @@
       "command": "X",
       "category": "attack",
       "attackType": "strike",
-      "guardLevels": ["high"],
       "startup": 12,
       "recovery": 20,
       "strength": "medium",
       "resonance": {
         "startup": 11
-      }
+      },
+      "guardLevel": "high"
+    },
+    {
+      "id": "pikachu_duel_5x_chg_full",
+      "name": "中攻撃ため",
+      "command": "X(ため)",
+      "category": "attack",
+      "attackType": "strike",
+      "startup": 26,
+      "recovery": 28,
+      "strength": "strong",
+      "specialAttributes": [
+        "armor"
+      ],
+      "variant": "charge",
+      "parentMoveId": "pikachu_duel_5x",
+      "note": "フルチャージでアーマー付与",
+      "guardLevel": "high"
     },
     {
       "id": "pikachu_duel_grab",
       "name": "つかみ",
       "command": "Y+B",
       "category": "grab",
-      "guardLevels": ["mid"],
       "startup": 14,
       "recovery": 20,
-      "strength": "medium"
+      "strength": "medium",
+      "guardLevel": "mid"
     },
     {
       "id": "pikachu_duel_counter",
@@ -88,10 +118,10 @@
       "command": "A",
       "category": "block",
       "attackType": "strike",
-      "guardLevels": ["high"],
       "startup": 20,
       "recovery": 20,
-      "strength": "strong"
+      "strength": "strong",
+      "guardLevel": "high"
     },
     {
       "id": "pikachu_duel_burst",
@@ -99,12 +129,12 @@
       "command": "L+R",
       "category": "attack",
       "attackType": "strike",
-      "guardLevels": ["mid"],
       "startup": 18,
       "recovery": 20,
       "strength": "strong",
       "resonanceOnly": true,
-      "note": "共鳴中のみ使用可能なバーストアタック"
+      "note": "共鳴中のみ使用可能なバーストアタック",
+      "guardLevel": "mid"
     }
   ]
 }
