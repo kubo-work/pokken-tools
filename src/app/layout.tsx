@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { mantineHtmlProps } from "@mantine/core";
 import "./globals.css";
+import { DevTools } from "@/components/DevTools";
 
 export const metadata: Metadata = {
   title: "ポッ拳フレーム表",
@@ -25,7 +26,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja" {...mantineHtmlProps}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <DevTools />
+      </body>
     </html>
   );
 }
