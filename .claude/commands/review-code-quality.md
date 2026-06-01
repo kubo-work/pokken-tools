@@ -55,6 +55,20 @@
   ```
 
 ### 4. 関数の設計
+- **アロー関数**: `function` 宣言ではなくアロー関数を基本としているか（コンポーネント・フック・ユーティリティ・コールバックすべて統一）
+  ```typescript
+  // ❌ Bad
+  function formatDate(date: Date) {
+    return dayjs(date).format('YYYY/MM/DD')
+  }
+  const MyComponent = function() {
+    return <div />
+  }
+
+  // ✅ Good
+  const formatDate = (date: Date) => dayjs(date).format('YYYY/MM/DD')
+  const MyComponent = () => <div />
+  ```
 - **単一責任**: 関数が1つの責任のみを持っているか
 - **関数の長さ**: 関数が50行以内に収まっているか
 - **引数の数**: 引数が3つ以内に収まっているか（多い場合はオブジェクトで渡す）
