@@ -1,6 +1,8 @@
 /**
  * 詳細ページ・編集画面のインラインスタイルで使う色とサイズのトークン。
- * CSS 変数化はせず、TypeScript 定数で集約する。
+ * 飽和アクセント色（resonance / variant / accent）はライト・ダーク両方で可読なため固定値。
+ * 背景に依存する文字色（mute / description）は、ライト/ダーク切替に追従させるため
+ * globals.css がテーマごとに定義する CSS 変数を参照する。
  */
 export const UI_COLORS = {
   /** 共鳴差分（→ 値の並記、共鳴専用バッジ）。 */
@@ -9,10 +11,10 @@ export const UI_COLORS = {
   variant: "#c084fc",
   /** リンクや「説明」サマリーのアクセント青。 */
   accent: "#6ea8fe",
-  /** 補助テキスト（備考など）のグレー。 */
-  mute: "#9095a0",
-  /** 展開した説明本文の文字色。 */
-  description: "#cdd2db",
+  /** 補助テキスト（備考など）のグレー。テーマ追従。 */
+  mute: "var(--text-dim)",
+  /** 展開した説明本文の文字色。テーマ追従。 */
+  description: "var(--text)",
 } as const;
 
 export const UI_SIZES = {
