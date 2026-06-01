@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { mantineHtmlProps } from "@mantine/core";
 import "./globals.css";
 import { DevTools } from "@/components/DevTools";
+import { THEME, THEME_STORAGE_KEY } from "@/lib/theme";
 
 export const metadata: Metadata = {
   title: "ポッ拳フレーム表",
@@ -12,6 +13,21 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
 };
+
+/**
+ * 公開側テーマ（data-theme 属性）を描画前に確定させるスクリプト。
+ * localStorage の選択を最優先し、未選択なら OS の prefers-color-scheme を既定にする。
+ * <head> でブロッキング実行することで、初回描画時のテーマのチラつき（FOUC）を防ぐ。
+ */
+const themeInitScript = `(function () {
+  try {
+    const stored = localStorage.getItem("${THEME_STORAGE_KEY}");
+    const theme = stored || (matchMedia("(prefers-color-scheme: light)").matches ? "${THEME.LIGHT}" : "${THEME.DARK}");
+    document.documentElement.dataset.theme = theme;
+  } catch {
+    // localStorage 不可（プライベートモード等）の場合は CSS 既定（ダーク）にフォールバックする
+  }
+})();`;
 
 /**
  * 最小限のルートレイアウト。
@@ -26,6 +42,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja" {...mantineHtmlProps}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body>
         {children}
         <DevTools />
