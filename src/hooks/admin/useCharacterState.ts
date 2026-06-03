@@ -52,7 +52,8 @@ export interface UseCharacterStateResult {
   replaceCharacter: (next: Character) => void;
   setCharacterName: (name: string) => void;
   updateMove: (phase: Phase, index: number, move: Move) => void;
-  addParentMove: (phase: Phase) => void;
+  /** 追加した親技の id を返す（呼び出し側が直後に選択できるようにするため）。 */
+  addParentMove: (phase: Phase) => string;
   addChildMove: (
     phase: Phase,
     parentMoveId: string,
@@ -110,13 +111,16 @@ export const useCharacterState = (
     );
   };
 
-  const addParentMove = (phase: Phase): void => {
+  const addParentMove = (phase: Phase): string => {
+    // id は character.id 由来（変更不可）なので closure 経由で生成して差し支えない
+    const created = createMove(character.id, phase);
     setCharacter((current) =>
       withPhaseMoves(current, phase, [
         ...getPhaseMoves(current, phase),
-        createMove(current.id, phase),
+        created,
       ]),
     );
+    return created.id;
   };
 
   const addChildMove = (

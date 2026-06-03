@@ -1,13 +1,9 @@
 "use client";
 
-import type { CSSProperties } from "react";
-import { ActionIcon, Badge, Button, Card, Group, Stack, Text } from "@mantine/core";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { IconGripVertical } from "@tabler/icons-react";
+import type { CSSProperties, ReactNode, Ref } from "react";
+import { Badge, Button, Card, Group, Stack, Text } from "@mantine/core";
 import { MOVE_VARIANT_META } from "@/lib/meta";
 import type { Move } from "@/types/move";
-import { ChildMoveList } from "./ChildMoveList";
 import { MoveFields } from "./MoveFields";
 import { MoveResonancePanel } from "./MoveResonancePanel";
 import { MoveTextFields } from "./MoveTextFields";
@@ -16,76 +12,50 @@ import { MoveTimingFields } from "./MoveTimingFields";
 export interface MoveEditorProps {
   move: Move;
   index: number;
+  isChild: boolean;
   onChange: (move: Move) => void;
   onRemove: () => void;
-  /** 子（ため・派生）描画用。親 MoveEditor からのみ渡す。 */
-  childMoves?: Move[];
-  onChildChange?: (childId: string, move: Move) => void;
-  onChildRemove?: (childId: string) => void;
-  onAddCharge?: () => void;
-  onAddDerivative?: () => void;
+  /** ドラッグ用ハンドル。並び替え対象のときだけ渡す（詳細表示の親には渡さない）。 */
+  dragHandle?: ReactNode;
+  /** sortable のとき dnd-kit から渡す ref。 */
+  rootRef?: Ref<HTMLDivElement>;
+  /** sortable の transform など、カードに載せる追加スタイル。 */
+  rootStyle?: CSSProperties;
+  /** カード背景（サーフェストークン）。 */
+  rootBg?: string;
+  /** ため・派生リストなどの入れ子スロット。 */
+  children?: ReactNode;
 }
 
+/**
+ * 1 技分の編集フォーム（プレゼンテーション専用）。
+ * ドラッグ並び替えの状態は持たず、必要な場合は dragHandle / rootRef / rootStyle を
+ * 親（SortableMoveEditor など）から受け取る。これにより「並び替え対象の子」と
+ * 「詳細表示の親」で同じ見た目を再利用しつつ、sortable 依存を呼び出し側に分離できる。
+ */
 export const MoveEditor = ({
   move,
   index,
+  isChild,
   onChange,
   onRemove,
-  childMoves,
-  onChildChange,
-  onChildRemove,
-  onAddCharge,
-  onAddDerivative,
+  dragHandle,
+  rootRef,
+  rootStyle,
+  rootBg,
+  children,
 }: MoveEditorProps) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    setActivatorNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: move.id });
-
-  const sortableStyle: CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.6 : 1,
-  };
-
-  const isChild = move.variant !== undefined && move.variant !== "normal";
-  const variantLabel = isChild
-    ? MOVE_VARIANT_META[move.variant!].label
-    : undefined;
-  const hasChildSlot =
-    childMoves !== undefined &&
-    onChildChange !== undefined &&
-    onChildRemove !== undefined &&
-    onAddCharge !== undefined &&
-    onAddDerivative !== undefined;
+  const variantLabel =
+    isChild && move.variant !== undefined
+      ? MOVE_VARIANT_META[move.variant].label
+      : undefined;
 
   return (
-    <Card
-      ref={setNodeRef}
-      style={sortableStyle}
-      withBorder
-      padding="md"
-      bg={isChild ? "dark.7" : undefined}
-    >
+    <Card ref={rootRef} style={rootStyle} withBorder padding="md" bg={rootBg}>
       <Stack gap="sm">
         <Group justify="space-between">
           <Group gap="xs">
-            <ActionIcon
-              ref={setActivatorNodeRef}
-              variant="subtle"
-              size="sm"
-              aria-label="ドラッグして並び替え"
-              style={{ cursor: isDragging ? "grabbing" : "grab" }}
-              {...attributes}
-              {...listeners}
-            >
-              <IconGripVertical size={16} />
-            </ActionIcon>
+            {dragHandle}
             <Text fw={700}>#{index + 1}</Text>
             {variantLabel !== undefined && (
               <Badge color="grape" variant="light" size="sm">
@@ -108,15 +78,7 @@ export const MoveEditor = ({
         <MoveTextFields move={move} onChange={onChange} />
         <MoveResonancePanel move={move} onChange={onChange} />
 
-        {hasChildSlot && (
-          <ChildMoveList
-            childMoves={childMoves}
-            onChildChange={onChildChange}
-            onChildRemove={onChildRemove}
-            onAddCharge={onAddCharge}
-            onAddDerivative={onAddDerivative}
-          />
-        )}
+        {children}
       </Stack>
     </Card>
   );

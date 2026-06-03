@@ -1,7 +1,9 @@
 import Link from "next/link";
-import { ColorSchemeScript, MantineProvider } from "@mantine/core";
+import { Button, ColorSchemeScript, MantineProvider } from "@mantine/core";
 import { auth, signOut } from "@/lib/auth/config";
 import { AdminThemeToggle } from "@/components/admin/AdminThemeToggle";
+import { adminTheme } from "@/lib/mantine-theme";
+import { SURFACE } from "@/lib/admin/surfaceTokens";
 import "@mantine/core/styles.css";
 
 /**
@@ -19,19 +21,26 @@ export default async function AdminLayout({
   return (
     <>
       <ColorSchemeScript defaultColorScheme="dark" />
-      <MantineProvider defaultColorScheme="dark">
+      <MantineProvider theme={adminTheme} defaultColorScheme="dark">
         <header
           style={{
             padding: "12px 24px",
-            borderBottom: "1px solid var(--mantine-color-default-border)",
+            borderBottom: `1px solid ${SURFACE.border}`,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
             gap: 24,
-            background: "var(--mantine-color-body)",
+            background: SURFACE.card,
           }}
         >
-          <nav style={{ display: "flex", gap: 16, fontSize: 14 }}>
+          <nav
+            style={{
+              display: "flex",
+              gap: 16,
+              fontSize: 14,
+              color: "var(--mantine-color-text)",
+            }}
+          >
             <Link href="/admin">キャラ</Link>
             <Link href="/admin/exceptions">例外</Link>
             <Link href="/admin/allowed-emails">アクセス許可</Link>
@@ -49,20 +58,9 @@ export default async function AdminLayout({
                 await signOut({ redirectTo: "/" });
               }}
             >
-              <button
-                type="submit"
-                style={{
-                  background: "transparent",
-                  color: "var(--mantine-color-dimmed)",
-                  border: "1px solid var(--mantine-color-default-border)",
-                  borderRadius: 6,
-                  padding: "4px 10px",
-                  cursor: "pointer",
-                  fontSize: 12,
-                }}
-              >
+              <Button type="submit" variant="default" size="xs">
                 ログアウト
-              </button>
+              </Button>
             </form>
             <AdminThemeToggle />
           </div>

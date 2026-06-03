@@ -6,7 +6,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import type { Move } from "@/types/move";
-import { MoveEditor } from "./MoveEditor";
+import { SortableMoveEditor } from "./SortableMoveEditor";
 
 export interface ChildMoveListProps {
   childMoves: Move[];
@@ -23,7 +23,7 @@ export const ChildMoveList = ({
   onAddCharge,
   onAddDerivative,
 }: ChildMoveListProps) => (
-  <Card withBorder padding="sm" bg="dark.8">
+  <Card withBorder padding="sm" bg="var(--surface-2)" ml="md">
     <Stack gap="xs">
       <Group justify="space-between">
         <Text size="sm" fw={600}>
@@ -49,7 +49,7 @@ export const ChildMoveList = ({
         >
           <Stack gap="xs">
             {childMoves.map((child, childIndex) => (
-              <MoveEditor
+              <SortableMoveEditor
                 key={child.id}
                 move={child}
                 index={childIndex}
