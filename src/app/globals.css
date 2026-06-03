@@ -1,10 +1,49 @@
-:root {
+/*
+ * テーマは <html> の data-theme 属性で切り替える。
+ * ルートレイアウトのインラインスクリプトが描画前に必ず light / dark のいずれかを設定するため、
+ * :root 単体はスクリプト無効時のフォールバック（= 既定のダーク）も兼ねる。
+ */
+:root,
+:root[data-theme="dark"] {
   --bg: #0b0b0f;
   --bg-elevated: #15151c;
   --border: #2a2a35;
   --text: #e8e8ec;
   --text-dim: #9095a0;
   --accent: #f59e0b;
+  --danger-bg: #3a1818;
+  --danger-text: #f87171;
+}
+
+:root[data-theme="light"] {
+  --bg: #ffffff;
+  --bg-elevated: #f4f4f7;
+  --border: #d8d8e0;
+  --text: #1a1a1f;
+  --text-dim: #5c6270;
+  --accent: #f59e0b;
+  --danger-bg: #fdecec;
+  --danger-text: #c0322b;
+}
+
+/*
+ * admin（Mantine）専用のサーフェス階層トークン。
+ * 公開側の :root[data-theme] とは別系統で、Mantine が管理する data-mantine-color-scheme で切り替える。
+ * surface-1 = カード（body より明るく＝浮く）、surface-2 = 入れ子（暗く＝沈む）。
+ * default-border の上書きで、カード/入力欄の境界を既定より強く出す。
+ */
+[data-mantine-color-scheme="dark"] {
+  --surface-1: var(--mantine-color-dark-6);
+  --surface-2: var(--mantine-color-dark-8);
+  --surface-border: var(--mantine-color-dark-4);
+  --mantine-color-default-border: var(--surface-border);
+}
+
+[data-mantine-color-scheme="light"] {
+  --surface-1: #ffffff;
+  --surface-2: var(--mantine-color-gray-0);
+  --surface-border: var(--mantine-color-gray-3);
+  --mantine-color-default-border: var(--surface-border);
 }
 
 * {
@@ -60,6 +99,34 @@ a {
 
 .site-header__nav a:hover {
   color: var(--text);
+}
+
+.site-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    color 0.1s,
+    border-color 0.1s;
+}
+
+.theme-toggle:hover {
+  color: var(--text);
+  border-color: var(--accent);
 }
 
 .page-head {
@@ -259,8 +326,8 @@ a {
 }
 
 .signin-error {
-  background: #3a1818;
-  color: #f87171;
+  background: var(--danger-bg);
+  color: var(--danger-text);
   padding: 8px 12px;
   border-radius: 6px;
   font-size: 13px;

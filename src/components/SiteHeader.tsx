@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function SiteHeader() {
   return (
@@ -6,10 +7,13 @@ export function SiteHeader() {
       <Link href="/" className="site-header__brand">
         ポッ拳フレーム表
       </Link>
-      <nav className="site-header__nav">
-        <Link href="/">キャラ一覧</Link>
-        <Link href="/punish">確定反撃検索</Link>
-      </nav>
+      <div className="site-header__actions">
+        <nav className="site-header__nav">
+          <Link href="/">キャラ一覧</Link>
+          <Link href="/punish">確定反撃検索</Link>
+        </nav>
+        <ThemeToggle />
+      </div>
     </header>
   );
 }

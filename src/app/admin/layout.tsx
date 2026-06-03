@@ -1,6 +1,9 @@
 import Link from "next/link";
-import { ColorSchemeScript, MantineProvider } from "@mantine/core";
+import { Button, ColorSchemeScript, MantineProvider } from "@mantine/core";
 import { auth, signOut } from "@/lib/auth/config";
+import { AdminThemeToggle } from "@/components/admin/AdminThemeToggle";
+import { adminTheme } from "@/lib/mantine-theme";
+import { SURFACE } from "@/lib/admin/surfaceTokens";
 import "@mantine/core/styles.css";
 
 /**
@@ -18,49 +21,48 @@ export default async function AdminLayout({
   return (
     <>
       <ColorSchemeScript defaultColorScheme="dark" />
-      <MantineProvider defaultColorScheme="dark">
+      <MantineProvider theme={adminTheme} defaultColorScheme="dark">
         <header
           style={{
             padding: "12px 24px",
-            borderBottom: "1px solid #2a2a35",
+            borderBottom: `1px solid ${SURFACE.border}`,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
             gap: 24,
-            background: "#0b0b0f",
+            background: SURFACE.card,
           }}
         >
-          <nav style={{ display: "flex", gap: 16, fontSize: 14 }}>
+          <nav
+            style={{
+              display: "flex",
+              gap: 16,
+              fontSize: 14,
+              color: "var(--mantine-color-text)",
+            }}
+          >
             <Link href="/admin">キャラ</Link>
             <Link href="/admin/exceptions">例外</Link>
             <Link href="/admin/allowed-emails">アクセス許可</Link>
-            <Link href="/" style={{ color: "#9095a0" }}>
+            <Link href="/" style={{ color: "var(--mantine-color-dimmed)" }}>
               公開サイト
             </Link>
           </nav>
           <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 13 }}>
-            <span style={{ color: "#9095a0" }}>{session?.user?.email}</span>
+            <span style={{ color: "var(--mantine-color-dimmed)" }}>
+              {session?.user?.email}
+            </span>
             <form
               action={async () => {
                 "use server";
                 await signOut({ redirectTo: "/" });
               }}
             >
-              <button
-                type="submit"
-                style={{
-                  background: "transparent",
-                  color: "#9095a0",
-                  border: "1px solid #2a2a35",
-                  borderRadius: 6,
-                  padding: "4px 10px",
-                  cursor: "pointer",
-                  fontSize: 12,
-                }}
-              >
+              <Button type="submit" variant="default" size="xs">
                 ログアウト
-              </button>
+              </Button>
             </form>
+            <AdminThemeToggle />
           </div>
         </header>
         <div style={{ maxWidth: 1080, margin: "0 auto", padding: "24px 16px 80px" }}>

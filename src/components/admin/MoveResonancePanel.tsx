@@ -38,7 +38,7 @@ export const MoveResonancePanel = ({
 }: MoveResonancePanelProps) => {
   const hasResonance = move.resonance !== undefined;
   return (
-    <Card withBorder bg="dark.7" padding="sm">
+    <Card withBorder bg="var(--surface-2)" padding="sm">
       <Stack gap="sm">
         <Group gap="xl" wrap="wrap">
           <Switch
@@ -65,7 +65,7 @@ export const MoveResonancePanel = ({
           />
         </Group>
         <Collapse expanded={hasResonance}>
-          <Card withBorder bg="dark.6" padding="sm">
+          <Card withBorder bg="var(--surface-1)" padding="sm">
             <Text size="sm" c="dimmed" mb="xs">
               共鳴時に変化する項目だけ入力（空欄は通常時と同じ）
             </Text>
