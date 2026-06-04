@@ -1,0 +1,49 @@
+# Worktree Plus Configuration
+# 新しい worktree を作ると、git 管理外（.gitignore 済み）の開発用ファイルが
+# main worktree からコピーされ、依存インストールまで自動で走るようにする設定。
+version: "1.0"
+
+# worktree のデフォルト設定
+defaults:
+  # worktree を作るベースディレクトリ（リポジトリルートからの相対）
+  base_dir: ../worktrees
+
+# worktree 作成直後に実行されるフック
+hooks:
+  post_create:
+    # --- git 管理外だが開発に必要なファイルを main からコピー ---
+    # from は main worktree 基準、to は新しい worktree 基準。
+
+    # Cloudflare の自動生成型定義（wrangler types の生成物。コピーで再生成不要）
+    - type: copy
+      from: cloudflare-env.d.ts
+      to: cloudflare-env.d.ts
+
+    # ローカル KV/D1 の SQLite 等のローカル状態。シードし直さず既存データで開発できる
+    - type: copy
+      from: .wrangler/
+      to: .wrangler/
+
+    # 個人用シード（メールアドレス等を含むため gitignore 済み）。db:seed:local 用
+    - type: copy
+      from: scripts/seed-allowlist.local.sql
+      to: scripts/seed-allowlist.local.sql
+
+    # Claude Code 用コマンド・スキル（main で管理。各ブランチで誤って add しない運用）
+    - type: copy
+      from: .claude
+      to: .claude
+
+    # Cloudflare のローカルシークレット。main に実体がある場合のみ有効化する
+    # （現状は .dev.vars.example のみ。.dev.vars を作ったらコメント解除）
+    # - type: copy
+    #   from: .dev.vars
+    #   to: .dev.vars
+
+    # --- 依存インストール（node_modules は gitignore 済み） ---
+    - type: command
+      command: bun install
+
+    # 作成後に worktree 一覧を表示
+    - type: command
+      command: wtp list
