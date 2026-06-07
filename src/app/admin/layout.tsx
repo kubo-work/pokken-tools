@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Button, ColorSchemeScript, MantineProvider } from "@mantine/core";
 import { auth, signOut } from "@/lib/auth/config";
 import { AdminThemeToggle } from "@/components/admin/AdminThemeToggle";
@@ -17,6 +18,11 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
+
+  // middleware は設定エラーで fail open しうるため、ここでも明示的に弾く（多層防御）。
+  if (session === null) {
+    redirect("/auth/signin");
+  }
 
   return (
     <>
