@@ -7,15 +7,14 @@ compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
 directory = ".open-next/assets"
 binding = "ASSETS"
 
-# `wrangler kv namespace create FRAME_DATA_KV` で取得した id を貼る。
-# 本番投入前に必ず実 ID へ書き換える。
+# `wrangler kv namespace create FRAME_DATA_KV` で取得した実 ID。
 [[kv_namespaces]]
 binding = "FRAME_DATA_KV"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "f89083c92a804b42a3f86c00458dcb4f"
 
-# `wrangler d1 create pokken-db` で取得した id を貼る。
+# `wrangler d1 create pokken-db` で取得した実 ID。
 [[d1_databases]]
 binding = "DB"
 database_name = "pokken-db"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "bdaddb40-8e75-4459-b943-a25512f91dd3"
 migrations_dir = "migrations"
