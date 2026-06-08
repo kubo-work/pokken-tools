@@ -16,7 +16,8 @@ const variantSchema = z.enum(["normal", "charge", "derivative"]);
 
 const resonanceOverrideSchema = z.object({
   startup: z.number().optional(),
-  recovery: z.number().optional(),
+  guardFrameAdvantage: z.number().optional(),
+  hitFrameAdvantage: z.number().optional(),
   strength: strengthSchema.optional(),
   guardLevel: guardLevelSchema.optional(),
 });
@@ -30,7 +31,8 @@ export const moveSchema = z
     attackType: attackTypeSchema.optional(),
     guardLevel: guardLevelSchema.nullable(),
     startup: z.number(),
-    recovery: z.number(),
+    guardFrameAdvantage: z.number(),
+    hitFrameAdvantage: z.number().optional(),
     strength: strengthSchema,
     specialAttributes: z.array(specialAttributeSchema).optional(),
     variant: variantSchema.optional(),
@@ -102,7 +104,7 @@ export const punishExceptionSchema = z.object({
   attackerMoveId: z.string().min(1),
   defenderMoveId: z.string().min(1),
   action: z.enum(["exclude", "hit"]),
-  recoveryOverride: z.number().optional(),
+  guardFrameAdvantageOverride: z.number().optional(),
   note: z.string().optional(),
 });
 

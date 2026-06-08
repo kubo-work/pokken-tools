@@ -29,7 +29,10 @@ export const GUARD_LEVEL_OPTIONS = GUARD_LEVELS.map((level) => ({
   label: GUARD_LEVEL_META[level].label,
 }));
 
-export type ResonanceNumberField = "startup" | "recovery";
+export type ResonanceNumberField =
+  | "startup"
+  | "guardFrameAdvantage"
+  | "hitFrameAdvantage";
 
 export const RESONANCE_NUMBER_FIELDS: {
   key: ResonanceNumberField;
@@ -37,8 +40,6 @@ export const RESONANCE_NUMBER_FIELDS: {
   negative: boolean;
 }[] = [
   { key: "startup", label: "発生", negative: false },
-  { key: "recovery", label: "硬直F", negative: false },
+  { key: "guardFrameAdvantage", label: "ガード硬直差", negative: true },
+  { key: "hitFrameAdvantage", label: "ヒット硬直差", negative: true },
 ];
-
-export const toNumber = (value: number | string): number =>
-  typeof value === "number" ? value : 0;

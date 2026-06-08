@@ -6,7 +6,6 @@ import {
   Button,
   Card,
   Group,
-  NumberInput,
   Select,
   SimpleGrid,
   Stack,
@@ -18,6 +17,7 @@ import type { Character } from "@/types/character";
 import type { PunishException } from "@/types/move";
 import { asEnumValue } from "@/lib/optionGuards";
 import { useExceptionsForm } from "@/hooks/admin/useExceptionsForm";
+import { FrameNumberInput } from "./FrameNumberInput";
 
 const ACTION_VALUES = ["exclude", "hit"] as const satisfies readonly PunishException["action"][];
 
@@ -25,9 +25,6 @@ const ACTION_OPTIONS: { value: PunishException["action"]; label: string }[] = [
   { value: "exclude", label: "除外（確定でも表示しない）" },
   { value: "hit", label: "強制表示（先端当てなど）" },
 ];
-
-const toNumberOrUndefined = (value: number | string): number | undefined =>
-  value === "" || typeof value !== "number" ? undefined : value;
 
 export interface ExceptionsFormProps {
   characters: Character[];
@@ -61,7 +58,7 @@ export const ExceptionsForm = ({
       <Text size="sm" c="dimmed">
         フレーム計算では表現できないノックバック・先端当てを上書きします。登録したペアにのみ適用され、
         既定は「除外」です。「強制表示」はフレーム上不利でも反撃として表示します。
-        先端当ては「強制表示」を選び、硬直Fを上書き入力してください。
+        先端当ては「強制表示」を選び、ガード硬直差を上書き入力してください。
       </Text>
 
       {exceptions.length === 0 ? (
@@ -99,21 +96,24 @@ export const ExceptionsForm = ({
                       const action = asEnumValue(value, ACTION_VALUES, "exclude");
                       updateException(index, {
                         action,
-                        recoveryOverride:
-                          action === "hit" ? entry.recoveryOverride : undefined,
+                        guardFrameAdvantageOverride:
+                          action === "hit"
+                            ? entry.guardFrameAdvantageOverride
+                            : undefined,
                       });
                     }}
                   />
                 </SimpleGrid>
                 {entry.action === "hit" && (
-                  <NumberInput
-                    label="硬直F（先端当て時の上書き）"
-                    description="空欄なら技の通常硬直Fを使用"
-                    min={0}
-                    value={entry.recoveryOverride ?? ""}
+                  <FrameNumberInput
+                    key={`exception-${index}-override`}
+                    label="ガード硬直差（先端当て時の上書き）"
+                    description="攻撃側不利は負の値。空欄なら技の通常ガード硬直差を使用"
+                    allowNegative
+                    value={entry.guardFrameAdvantageOverride}
                     onChange={(value) =>
                       updateException(index, {
-                        recoveryOverride: toNumberOrUndefined(value),
+                        guardFrameAdvantageOverride: value,
                       })
                     }
                   />

@@ -9,7 +9,7 @@
       "category": "attack",
       "attackType": "strike",
       "startup": 18,
-      "recovery": 20,
+      "guardFrameAdvantage": -20,
       "strength": "medium",
       "guardLevel": "mid"
     },
@@ -20,7 +20,7 @@
       "category": "attack",
       "attackType": "strike",
       "startup": 24,
-      "recovery": 20,
+      "guardFrameAdvantage": -20,
       "strength": "weak",
       "guardLevel": "high"
     },
@@ -30,7 +30,7 @@
       "command": "Y+B",
       "category": "grab",
       "startup": 16,
-      "recovery": 20,
+      "guardFrameAdvantage": -20,
       "strength": "medium",
       "guardLevel": "mid"
     }
@@ -43,7 +43,7 @@
       "category": "attack",
       "attackType": "strike",
       "startup": 6,
-      "recovery": 20,
+      "guardFrameAdvantage": -20,
       "strength": "weak",
       "guardLevel": "mid"
     },
@@ -54,7 +54,7 @@
       "category": "attack",
       "attackType": "strike",
       "startup": 10,
-      "recovery": 24,
+      "guardFrameAdvantage": -24,
       "strength": "medium",
       "variant": "derivative",
       "parentMoveId": "pikachu_duel_5y",
@@ -67,7 +67,7 @@
       "category": "attack",
       "attackType": "strike",
       "startup": 8,
-      "recovery": 20,
+      "guardFrameAdvantage": -20,
       "strength": "weak",
       "guardLevel": "low"
     },
@@ -78,7 +78,7 @@
       "category": "attack",
       "attackType": "strike",
       "startup": 12,
-      "recovery": 20,
+      "guardFrameAdvantage": -20,
       "strength": "medium",
       "resonance": {
         "startup": 11
@@ -92,7 +92,7 @@
       "category": "attack",
       "attackType": "strike",
       "startup": 26,
-      "recovery": 28,
+      "guardFrameAdvantage": -28,
       "strength": "strong",
       "specialAttributes": [
         "armor"
@@ -108,7 +108,7 @@
       "command": "Y+B",
       "category": "grab",
       "startup": 14,
-      "recovery": 20,
+      "guardFrameAdvantage": -20,
       "strength": "medium",
       "guardLevel": "mid"
     },
@@ -119,7 +119,7 @@
       "category": "block",
       "attackType": "strike",
       "startup": 20,
-      "recovery": 20,
+      "guardFrameAdvantage": -20,
       "strength": "strong",
       "guardLevel": "high"
     },
@@ -130,7 +130,7 @@
       "category": "attack",
       "attackType": "strike",
       "startup": 18,
-      "recovery": 20,
+      "guardFrameAdvantage": -20,
       "strength": "strong",
       "resonanceOnly": true,
       "note": "共鳴中のみ使用可能なバーストアタック",

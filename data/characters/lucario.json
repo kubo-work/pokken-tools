@@ -9,7 +9,7 @@
       "category": "attack",
       "attackType": "strike",
       "startup": 20,
-      "recovery": 20,
+      "guardFrameAdvantage": -20,
       "strength": "medium",
       "guardLevel": "mid"
     },
@@ -20,7 +20,7 @@
       "category": "attack",
       "attackType": "strike",
       "startup": 22,
-      "recovery": 20,
+      "guardFrameAdvantage": -20,
       "strength": "weak",
       "guardLevel": "high"
     }
@@ -33,7 +33,7 @@
       "category": "attack",
       "attackType": "strike",
       "startup": 7,
-      "recovery": 20,
+      "guardFrameAdvantage": -20,
       "strength": "weak",
       "guardLevel": "mid"
     },
@@ -44,7 +44,7 @@
       "category": "attack",
       "attackType": "strike",
       "startup": 11,
-      "recovery": 20,
+      "guardFrameAdvantage": -20,
       "strength": "medium",
       "guardLevel": "low"
     },
@@ -55,7 +55,7 @@
       "category": "attack",
       "attackType": "strike",
       "startup": 16,
-      "recovery": 20,
+      "guardFrameAdvantage": -20,
       "strength": "medium",
       "note": "中下段。先端当てでガード硬直差が改善する",
       "resonance": {
@@ -69,7 +69,7 @@
       "command": "Y+B",
       "category": "grab",
       "startup": 13,
-      "recovery": 20,
+      "guardFrameAdvantage": -20,
       "strength": "medium",
       "guardLevel": "mid"
     },
@@ -80,7 +80,7 @@
       "category": "block",
       "attackType": "strike",
       "startup": 18,
-      "recovery": 20,
+      "guardFrameAdvantage": -20,
       "strength": "strong",
       "guardLevel": "high"
     },
@@ -91,7 +91,7 @@
       "category": "attack",
       "attackType": "strike",
       "startup": 16,
-      "recovery": 20,
+      "guardFrameAdvantage": -20,
       "strength": "strong",
       "resonanceOnly": true,
       "note": "共鳴中のみ使用可能なバーストアタック",

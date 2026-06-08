@@ -4,7 +4,6 @@ import {
   Card,
   Collapse,
   Group,
-  NumberInput,
   Select,
   SimpleGrid,
   Stack,
@@ -19,6 +18,7 @@ import {
   RESONANCE_NUMBER_FIELDS,
   STRENGTH_OPTIONS,
 } from "./moveFieldsHelpers";
+import { FrameNumberInput } from "./FrameNumberInput";
 import {
   setMoveField,
   setResonanceGuardLevel,
@@ -71,13 +71,16 @@ export const MoveResonancePanel = ({
             </Text>
             <SimpleGrid cols={{ base: 2, sm: 3 }}>
               {RESONANCE_NUMBER_FIELDS.map(({ key, label, negative }) => (
-                <NumberInput
-                  key={key}
+                <FrameNumberInput
+                  key={`${move.id}-resonance-${key}`}
                   label={label}
+                  allowNegative={negative}
                   min={negative ? undefined : 0}
-                  value={move.resonance?.[key] ?? ""}
+                  value={move.resonance?.[key]}
                   onChange={(value) =>
-                    onChange(setResonanceNumber(move, key, value))
+                    onChange(
+                      setResonanceNumber(move, key, value ?? ""),
+                    )
                   }
                 />
               ))}
