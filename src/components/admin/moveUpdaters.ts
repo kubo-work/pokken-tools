@@ -21,7 +21,7 @@ export const setMoveField = <Key extends keyof Move>(
   value: Move[Key],
 ): Move => ({ ...move, [key]: value });
 
-/** 共鳴差分の数値フィールド (startup / recovery) を更新。空文字なら削除。 */
+/** 共鳴差分の数値フィールド (startup / guardFrameAdvantage / hitFrameAdvantage) を更新。空文字なら削除。 */
 export const setResonanceNumber = (
   move: Move,
   key: ResonanceNumberField,

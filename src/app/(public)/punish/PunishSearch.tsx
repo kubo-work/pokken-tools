@@ -96,7 +96,7 @@ export const PunishSearch = ({
       ) : (
         <>
           <p className="page-lead" style={{ marginBottom: 12 }}>
-            余裕フレーム: {attackerContext.move.recovery}F（攻撃側{" "}
+            余裕フレーム: {-attackerContext.move.guardFrameAdvantage}F（攻撃側{" "}
             {attackerContext.character.name} / {attackerContext.move.name}{" "}
             がガードされた前提）
           </p>

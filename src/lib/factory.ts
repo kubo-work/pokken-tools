@@ -3,8 +3,8 @@ import type { Move, MoveVariant, Phase } from "@/types/move";
 /** ID 生成のサフィックス長（16進文字列）。 */
 const ID_SUFFIX_LENGTH = 6;
 
-/** 実測値が入るまでの暫定の硬直F。実値が入ったら個別に上書きする。 */
-export const DEFAULT_RECOVERY_FRAMES = 20;
+/** 実測値が入るまでの暫定のガード硬直差（攻撃側不利側を仮置き）。実値が入ったら個別に上書きする。 */
+export const DEFAULT_GUARD_FRAME_ADVANTAGE = -20;
 
 const VARIANT_ID_INFIX: Record<Exclude<MoveVariant, "normal">, string> = {
   charge: "chg",
@@ -44,7 +44,7 @@ export const createMove = (
     attackType: "strike",
     guardLevel: "mid",
     startup: 0,
-    recovery: DEFAULT_RECOVERY_FRAMES,
+    guardFrameAdvantage: DEFAULT_GUARD_FRAME_ADVANTAGE,
     strength: "weak",
     ...(isChild
       ? { variant: options.variant, parentMoveId: options.parentMoveId }

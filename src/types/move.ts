@@ -16,7 +16,8 @@ export type MoveVariant = "normal" | "charge" | "derivative";
 
 export interface ResonanceOverride {
   startup?: number;
-  recovery?: number;
+  guardFrameAdvantage?: number;
+  hitFrameAdvantage?: number;
   strength?: MoveStrength;
   guardLevel?: GuardLevel;
 }
@@ -29,7 +30,14 @@ export interface Move {
   attackType?: MoveAttackType;
   guardLevel: GuardLevel | null;
   startup: number;
-  recovery: number;
+  /**
+   * ガード硬直差。攻撃側視点の有利/不利フレームで、負の値ほど攻撃側が不利。
+   * wiki の「ガード硬直差」をそのまま符号付きで入力する。確定反撃計算はこの値だけを使う
+   * （防御側の余裕フレーム = -guardFrameAdvantage）。
+   */
+  guardFrameAdvantage: number;
+  /** ヒット硬直差。攻撃側視点の有利/不利フレーム。表示専用で、未計測なら省略。 */
+  hitFrameAdvantage?: number;
   strength: MoveStrength;
   specialAttributes?: SpecialAttribute[];
   /** "charge" / "derivative" の場合は親技の id を parentMoveId に必ず入れる。 */
@@ -47,7 +55,10 @@ export interface PunishException {
   attackerMoveId: string;
   defenderMoveId: string;
   action: "exclude" | "hit";
-  /** 先端当てなど特定の状況で攻撃側の硬直Fが通常と変わる場合の上書き値。action="hit" のときに参照する。 */
-  recoveryOverride?: number;
+  /**
+   * 先端当てなど特定の状況で攻撃側のガード硬直差が通常と変わる場合の上書き値（符号付き）。
+   * action="hit" のときに参照する。
+   */
+  guardFrameAdvantageOverride?: number;
   note?: string;
 }

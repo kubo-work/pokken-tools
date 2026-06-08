@@ -24,7 +24,7 @@ const isDefenderCandidate = (move: Move): boolean =>
 
 export interface PunishResult {
   defenderMove: Move;
-  /** 攻撃側硬直F - 防御側発生。0 以上で確定反撃が成立。 */
+  /** 防御側の余裕フレーム - 防御側発生。0 以上で確定反撃が成立。 */
   frameAdvantage: number;
   forcedBy?: PunishException;
 }
@@ -39,17 +39,18 @@ export interface SearchPunishParams {
 /**
  * ガードされた攻撃側の技に対する確定反撃を検索する。
  *
- * 余裕フレーム = 攻撃側の硬直F（recovery）。
- * frameAdvantage = 攻撃側 recovery - 防御側の発生。0 以上で成立。
+ * 余裕フレーム = -攻撃側のガード硬直差（guardFrameAdvantage）。
+ *   guardFrameAdvantage は攻撃側視点の符号付き値で、負ほど攻撃側が不利＝防御側の余裕が大きい。
+ * frameAdvantage = 余裕フレーム - 防御側の発生。0 以上で成立。
  *
  * 例外ペアが登録されている場合は action で上書きする。
  *   - "exclude": フレーム上確定でも結果から除外（ノックバック等）。
  *   - "hit":     フレーム上不可でも強制的に表示（先端当て等）。
- *                recoveryOverride が指定されていればそちらを攻撃側硬直Fとして再計算する。
+ *                guardFrameAdvantageOverride が指定されていればそれ（符号付き）から余裕フレームを再計算する。
  */
 export const searchPunishes = (params: SearchPunishParams): PunishResult[] => {
   const { attackerMove, defenderMoves, defenderState, exceptions } = params;
-  const baseAvailableFrames = attackerMove.recovery;
+  const baseAvailableFrames = -attackerMove.guardFrameAdvantage;
 
   const results: PunishResult[] = [];
   for (const candidate of defenderMoves) {
@@ -71,7 +72,10 @@ export const searchPunishes = (params: SearchPunishParams): PunishResult[] => {
       if (exception.action === "exclude") {
         continue;
       }
-      const availableFrames = exception.recoveryOverride ?? baseAvailableFrames;
+      const availableFrames =
+        exception.guardFrameAdvantageOverride !== undefined
+          ? -exception.guardFrameAdvantageOverride
+          : baseAvailableFrames;
       results.push({
         defenderMove,
         frameAdvantage: availableFrames - defenderMove.startup,

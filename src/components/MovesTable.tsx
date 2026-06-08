@@ -1,6 +1,7 @@
 import { Fragment } from "react";
 import type { Move } from "@/types/move";
 import { CategoryBadge, GuardBadge } from "@/components/badges";
+import { FrameNumber } from "@/components/FrameNumber";
 import {
   ATTACK_TYPE_META,
   GUARD_LEVEL_META,
@@ -14,7 +15,7 @@ import {
   UI_SIZES,
 } from "@/lib/uiTokens";
 
-const TABLE_COLUMN_COUNT = 8;
+const TABLE_COLUMN_COUNT = 9;
 
 interface MoveRowProps {
   move: Move;
@@ -96,11 +97,24 @@ const MoveRow = ({ move, parentCommand }: MoveRowProps) => {
         )}
       </td>
       <td className="num">
-        {move.recovery}
-        {move.resonance?.recovery !== undefined && (
+        <FrameNumber value={move.guardFrameAdvantage} />
+        {move.resonance?.guardFrameAdvantage !== undefined && (
           <span style={{ color: UI_COLORS.resonance }}>
             {" "}
-            →{move.resonance.recovery}
+            →<FrameNumber value={move.resonance.guardFrameAdvantage} />
+          </span>
+        )}
+      </td>
+      <td className="num">
+        {move.hitFrameAdvantage === undefined ? (
+          "-"
+        ) : (
+          <FrameNumber value={move.hitFrameAdvantage} />
+        )}
+        {move.resonance?.hitFrameAdvantage !== undefined && (
+          <span style={{ color: UI_COLORS.resonance }}>
+            {" "}
+            →<FrameNumber value={move.resonance.hitFrameAdvantage} />
           </span>
         )}
       </td>
@@ -175,7 +189,8 @@ export const MovesTable = ({ moves }: { moves: Move[] }) => {
             <th>攻撃属性</th>
             <th>特殊</th>
             <th className="num">発生</th>
-            <th className="num">硬直F</th>
+            <th className="num">ガード硬直差</th>
+            <th className="num">ヒット硬直差</th>
           </tr>
         </thead>
         <tbody>
