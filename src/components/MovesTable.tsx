@@ -5,10 +5,12 @@ import { FrameNumber } from "@/components/FrameNumber";
 import {
   ATTACK_TYPE_META,
   GUARD_LEVEL_META,
-  MOVE_VARIANT_META,
   SPECIAL_ATTRIBUTE_META,
+  childVariantLabel,
+  maxChargeLevel,
 } from "@/lib/meta";
-import { groupMovesByParent } from "@/lib/moves/grouping";
+import { formatMoveCommand } from "@/lib/moves/command";
+import { groupMovesByParent, isChildMove } from "@/lib/moves/grouping";
 import {
   DESCRIPTION_BLOCK_BG,
   UI_COLORS,
@@ -20,14 +22,14 @@ const TABLE_COLUMN_COUNT = 9;
 interface MoveRowProps {
   move: Move;
   parentCommand?: string;
+  /** 同じ親グループ内のため段階の最大値。ため子技のラベルを「ためMAX」にするか判定する。 */
+  chargeMaxLevel?: number;
 }
 
-const MoveRow = ({ move, parentCommand }: MoveRowProps) => {
-  const isChild = move.variant !== undefined && move.variant !== "normal";
-  const command =
-    parentCommand !== undefined
-      ? `${parentCommand} > ${move.command}`
-      : move.command;
+const MoveRow = ({ move, parentCommand, chargeMaxLevel = 0 }: MoveRowProps) => {
+  const isChild = isChildMove(move);
+  const command = formatMoveCommand(move, parentCommand);
+  const variantLabel = childVariantLabel(move, chargeMaxLevel);
   return (
     <tr className={isChild ? "moves-table__child" : undefined}>
       <td>
@@ -43,7 +45,7 @@ const MoveRow = ({ move, parentCommand }: MoveRowProps) => {
             共鳴
           </span>
         )}
-        {isChild && (
+        {variantLabel !== undefined && (
           <span
             style={{
               marginLeft: 4,
@@ -51,7 +53,7 @@ const MoveRow = ({ move, parentCommand }: MoveRowProps) => {
               color: UI_COLORS.variant,
             }}
           >
-            {MOVE_VARIANT_META[move.variant!].label}
+            {variantLabel}
           </span>
         )}
       </td>
@@ -194,22 +196,29 @@ export const MovesTable = ({ moves }: { moves: Move[] }) => {
           </tr>
         </thead>
         <tbody>
-          {groups.map(({ parent, children }) => (
-            <Fragment key={parent.id}>
-              <MoveRow move={parent} />
-              {parent.description !== undefined && (
-                <DescriptionRow description={parent.description} />
-              )}
-              {children.map((child) => (
-                <Fragment key={child.id}>
-                  <MoveRow move={child} parentCommand={parent.command} />
-                  {child.description !== undefined && (
-                    <DescriptionRow description={child.description} />
-                  )}
-                </Fragment>
-              ))}
-            </Fragment>
-          ))}
+          {groups.map(({ parent, children }) => {
+            const chargeMaxLevel = maxChargeLevel(children);
+            return (
+              <Fragment key={parent.id}>
+                <MoveRow move={parent} />
+                {parent.description !== undefined && (
+                  <DescriptionRow description={parent.description} />
+                )}
+                {children.map((child) => (
+                  <Fragment key={child.id}>
+                    <MoveRow
+                      move={child}
+                      parentCommand={parent.command}
+                      chargeMaxLevel={chargeMaxLevel}
+                    />
+                    {child.description !== undefined && (
+                      <DescriptionRow description={child.description} />
+                    )}
+                  </Fragment>
+                ))}
+              </Fragment>
+            );
+          })}
         </tbody>
       </table>
     </>

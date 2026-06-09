@@ -1,6 +1,13 @@
 "use client";
 
-import { Checkbox, Group, Select, SimpleGrid, TextInput } from "@mantine/core";
+import {
+  Checkbox,
+  Group,
+  NumberInput,
+  Select,
+  SimpleGrid,
+  TextInput,
+} from "@mantine/core";
 import {
   GUARD_LEVELS,
   MOVE_ATTACK_TYPES,
@@ -40,13 +47,30 @@ export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => (
           onChange(setMoveField(move, "name", event.currentTarget.value))
         }
       />
-      <TextInput
-        label={isChild ? "コマンド（親からの追加入力）" : "コマンド"}
-        value={move.command}
-        onChange={(event) =>
-          onChange(setMoveField(move, "command", event.currentTarget.value))
-        }
-      />
+      {move.variant === "charge" ? (
+        <NumberInput
+          label="ため段階"
+          min={1}
+          value={move.chargeLevel ?? 1}
+          onChange={(value) =>
+            onChange(
+              setMoveField(
+                move,
+                "chargeLevel",
+                typeof value === "number" ? value : 1,
+              ),
+            )
+          }
+        />
+      ) : (
+        <TextInput
+          label={isChild ? "コマンド（親からの追加入力）" : "コマンド"}
+          value={move.command}
+          onChange={(event) =>
+            onChange(setMoveField(move, "command", event.currentTarget.value))
+          }
+        />
+      )}
     </SimpleGrid>
 
     <SimpleGrid cols={{ base: 1, sm: 2 }}>
