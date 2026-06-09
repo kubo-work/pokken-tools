@@ -1,5 +1,6 @@
 import type {
   GuardLevel,
+  Move,
   MoveAttackType,
   MoveCategory,
   MoveStrength,
@@ -41,6 +42,59 @@ export const MOVE_VARIANT_META: Record<
   normal: { label: "通常", shortLabel: "" },
   charge: { label: "ため", shortLabel: "た" },
   derivative: { label: "派生", shortLabel: "派" },
+};
+
+/** 最大ため段階の表示ラベル。 */
+const CHARGE_MAX_LABEL = "ためMAX";
+
+/**
+ * 同じ親に属する子技群の中で、ため段階の最大値を返す。
+ * ため技が無い、または段階未設定なら 0。「ためMAX」の判定基準に使う。
+ */
+export const maxChargeLevel = (childMoves: Move[]): number =>
+  childMoves.reduce(
+    (max, child) =>
+      child.variant === "charge" && child.chargeLevel !== undefined
+        ? Math.max(max, child.chargeLevel)
+        : max,
+    0,
+  );
+
+/**
+ * ため段階の表示ラベルを返す。
+ * - 段階が単一（maxLevel<=1）または未設定なら単に「ため」
+ * - 最大段階なら「ためMAX」
+ * - それ以外は「ため{段階}」（例: ため2）
+ */
+export const chargeStageLabel = (
+  level: number | undefined,
+  maxLevel: number,
+): string => {
+  if (maxLevel <= 1 || level === undefined) {
+    return MOVE_VARIANT_META.charge.label;
+  }
+  if (level >= maxLevel) {
+    return CHARGE_MAX_LABEL;
+  }
+  return `${MOVE_VARIANT_META.charge.label}${level}`;
+};
+
+/**
+ * 子技（ため/派生）の表示ラベルを返す。通常技や variant 未設定は undefined。
+ * ため技は段階に応じて「ため」「ため2」「ためMAX」を返す。
+ * chargeMaxLevel は同じ親グループ内のため段階の最大値（maxChargeLevel で算出）。
+ */
+export const childVariantLabel = (
+  move: Move,
+  chargeMaxLevel: number,
+): string | undefined => {
+  if (move.variant === "charge") {
+    return chargeStageLabel(move.chargeLevel, chargeMaxLevel);
+  }
+  if (move.variant === "derivative") {
+    return MOVE_VARIANT_META.derivative.label;
+  }
+  return undefined;
 };
 
 export const STRENGTH_META: Record<MoveStrength, { label: string }> = {

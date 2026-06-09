@@ -43,6 +43,12 @@ export interface Move {
   /** "charge" / "derivative" の場合は親技の id を parentMoveId に必ず入れる。 */
   variant?: MoveVariant;
   parentMoveId?: string;
+  /**
+   * ため段階。variant==="charge" のときだけ意味を持つ。1=最小チャージで、数値が大きいほど高チャージ。
+   * 同じ親に複数のため段階がある場合、最大値の段階が「ためMAX」として表示される。
+   * 単一段階のためでは省略可（その場合は単に「ため」と表示）。
+   */
+  chargeLevel?: number;
   resonance?: ResonanceOverride;
   resonanceOnly?: boolean;
   /** 技名直下に常時表示する短い注記。1 行向け。 */

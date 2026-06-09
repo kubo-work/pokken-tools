@@ -49,5 +49,7 @@ export const createMove = (
     ...(isChild
       ? { variant: options.variant, parentMoveId: options.parentMoveId }
       : {}),
+    // ため技は最小段階から始める。複数段階にする場合は段階ごとに別の charge 技を追加する。
+    ...(isChild && options.variant === "charge" ? { chargeLevel: 1 } : {}),
   };
 };

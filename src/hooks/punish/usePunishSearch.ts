@@ -9,6 +9,8 @@ import type {
   ResonanceState,
 } from "@/types/move";
 import { MOVE_VARIANT_META, PHASES, PHASE_META } from "@/lib/meta";
+import { formatMoveCommand } from "@/lib/moves/command";
+import { isChildMove } from "@/lib/moves/grouping";
 import { searchPunishes, type PunishResult } from "@/lib/frame/calcPunish";
 
 export interface MoveOption {
@@ -30,12 +32,10 @@ const buildLabel = (
   parent: Move | undefined,
   phaseShort: string,
 ): string => {
-  const variantTag =
-    move.variant !== undefined && move.variant !== "normal"
-      ? `［${MOVE_VARIANT_META[move.variant].label}］`
-      : "";
-  const command =
-    parent !== undefined ? `${parent.command} > ${move.command}` : move.command;
+  const variantTag = isChildMove(move)
+    ? `［${MOVE_VARIANT_META[move.variant].label}］`
+    : "";
+  const command = formatMoveCommand(move, parent?.command);
   return `${characterName} / ${move.name}${variantTag}（${command}）[${phaseShort}]`;
 };
 

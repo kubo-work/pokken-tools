@@ -1,4 +1,7 @@
-import type { Move } from "@/types/move";
+import type { Move, MoveVariant } from "@/types/move";
+
+/** ため/派生など、親技にぶら下がる子技。variant が "normal" 以外で確定している Move。 */
+export type ChildMove = Move & { variant: Exclude<MoveVariant, "normal"> };
 
 /**
  * 配列の from index 要素を to index に移動した新しい配列を返す。
@@ -24,6 +27,10 @@ export interface MoveGroup {
 /** Move の variant 未設定または "normal" を親として扱うかの判定。 */
 export const isParentMove = (move: Move): boolean =>
   move.variant === undefined || move.variant === "normal";
+
+/** ため/派生の子技かどうかを判定する型ガード。true なら variant が "normal" 以外に絞られる。 */
+export const isChildMove = (move: Move): move is ChildMove =>
+  move.variant !== undefined && move.variant !== "normal";
 
 /**
  * フラットな moves 配列を親 → 子のグループに変換する。

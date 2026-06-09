@@ -31,7 +31,7 @@ export const ChildMoveList = ({
         </Text>
         <Group gap="xs">
           <Button variant="light" size="compact-xs" onClick={onAddCharge}>
-            ためを追加
+            ため段階を追加
           </Button>
           <Button variant="light" size="compact-xs" onClick={onAddDerivative}>
             派生を追加

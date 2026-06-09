@@ -50,7 +50,7 @@
     {
       "id": "pikachu_duel_5y_drv_x",
       "name": "弱>中派生",
-      "command": ">X",
+      "command": "X",
       "category": "attack",
       "attackType": "strike",
       "startup": 10,
@@ -88,7 +88,7 @@
     {
       "id": "pikachu_duel_5x_chg_full",
       "name": "中攻撃ため",
-      "command": "X(ため)",
+      "command": "",
       "category": "attack",
       "attackType": "strike",
       "startup": 26,

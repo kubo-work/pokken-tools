@@ -37,6 +37,7 @@ export const moveSchema = z
     specialAttributes: z.array(specialAttributeSchema).optional(),
     variant: variantSchema.optional(),
     parentMoveId: z.string().min(1).optional(),
+    chargeLevel: z.number().int().positive().optional(),
     resonance: resonanceOverrideSchema.optional(),
     resonanceOnly: z.boolean().optional(),
     note: z.string().optional(),
@@ -67,6 +68,13 @@ export const moveSchema = z
         code: "custom",
         path: ["parentMoveId"],
         message: "通常技に親技 ID は設定できません",
+      });
+    }
+    if (move.chargeLevel !== undefined && move.variant !== "charge") {
+      ctx.addIssue({
+        code: "custom",
+        path: ["chargeLevel"],
+        message: "ため段階はため技 (charge) にのみ設定できます",
       });
     }
   });
