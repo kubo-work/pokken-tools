@@ -1,0 +1,33 @@
+# コミット前にローカルでセキュリティスキャンを走らせる pre-commit フック定義。
+#
+# 前提: pre-commit 本体のインストールが必要（リポジトリ依存ではなくホストに入れる）。
+#   brew install pre-commit
+# 初回のみフックを有効化:
+#   pre-commit install
+#
+# 各フックのバージョン(rev)はここで固定する。更新は手動で:
+#   pre-commit autoupdate
+# ※ グローバル CLAUDE.md のルールに従い、リリースから3日以上経った版だけに上げること。
+repos:
+  # シークレット（APIキー・トークン等）のハードコード検出。
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+
+  # 危険なコーディングパターンの静的解析。
+  # --config auto は誤検知が多くルールが毎回リモート取得で非決定的なため、
+  # pokken のスタック(TS/JS/React/Next.js)に絞って明示指定する。
+  - repo: https://github.com/semgrep/semgrep
+    rev: v1.165.0
+    hooks:
+      - id: semgrep
+        args:
+          - "--config=p/typescript"
+          - "--config=p/javascript"
+          - "--config=p/react"
+          - "--config=p/secrets"
+          # Next.js 固有ルールも見たい場合は次の行を有効化:
+          # - "--config=p/nextjs"
+          - "--error"               # 検出があれば exit code 1（コミットをブロック）
+          - "--skip-unknown-extensions"

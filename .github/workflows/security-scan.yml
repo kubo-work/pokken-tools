@@ -1,0 +1,47 @@
+# pre-commit をすり抜けた（--no-verify 等）変更を CI 側で再検出する最終防衛線。
+# push / PR の両方で走らせ、検出があればジョブを失敗させる。
+#
+# バージョン/ルールの単一ソース化:
+#   - semgrep:  バージョンもルールセットも .pre-commit-config.yaml が唯一の定義。
+#               CI もそのフックを実行するだけにして二重管理を排除する。
+#   - gitleaks: pre-commit フックはコミット時用(--staged)で全履歴走査に向かないため
+#               CI では独立して `gitleaks git` を回す。バージョンは下記の
+#               GITLEAKS_VERSION を .pre-commit-config.yaml の rev と一致させること。
+name: Security Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  semgrep:
+    name: semgrep
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - run: pip install pre-commit
+      # ルール・バージョンは .pre-commit-config.yaml の semgrep フック定義を使う。
+      - run: pre-commit run semgrep --all-files --color always
+
+  gitleaks:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    env:
+      # .pre-commit-config.yaml の gitleaks フック rev と必ず一致させる。
+      GITLEAKS_VERSION: 8.30.1
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # 全履歴を取得しないと過去コミットのシークレットを走査できない
+      - name: Install gitleaks (pinned)
+        run: |
+          curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            | tar -xz -C /usr/local/bin gitleaks
+          gitleaks version
+      # .gitleaks.toml は対象パスから自動検出されるが明示する。--redact で秘密値をログに出さない。
+      - run: gitleaks git . -c .gitleaks.toml --redact -v

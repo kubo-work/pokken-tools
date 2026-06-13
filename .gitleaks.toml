@@ -1,0 +1,28 @@
+# gitleaks 設定。デフォルトの検出ルールを継承しつつ、
+# 「秘密ではないが既定ルールに引っかかるもの」を除外する。
+title = "gitleaks config for pokken"
+
+[extend]
+# gitleaks 同梱のデフォルトルールをすべて有効化したうえで下記を上書き。
+useDefault = true
+
+[allowlist]
+description = "pokken global allowlist"
+
+# パス単位の除外（検出されても困らない / 秘密を含まないと判断できるもの）。
+paths = [
+  '''bun\.lock$''',                       # 依存ロックファイル
+  '''cloudflare-env\.d\.ts$''',           # wrangler 自動生成の巨大型定義（.gitignore 済だが保険）
+  '''next-env\.d\.ts$''',
+  '''\.dev\.vars\.example$''',            # 値が空のテンプレ
+  '''scripts/.*\.example\.sql$''',        # ダミーデータのみ
+  '''node_modules/.*''',
+  '''.*\.tsbuildinfo$''',
+]
+
+# 値単位の除外。wrangler.toml にコミット済みの Cloudflare リソースID。
+# これらはアクセスキーではなく公開しても安全な識別子なので誤検知として除外する。
+regexes = [
+  '''f89083c92a804b42a3f86c00458dcb4f''',          # FRAME_DATA_KV namespace id
+  '''bdaddb40-8e75-4459-b943-a25512f91dd3''',       # pokken-db D1 database_id
+]
