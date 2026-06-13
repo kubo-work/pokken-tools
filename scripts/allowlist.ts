@@ -13,6 +13,9 @@ import { spawnSync } from "node:child_process";
 
 const BINDING = "DB";
 
+// allowlist 用途なので最低限の形式チェックのみ行う。
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 type Target = "--local" | "--remote";
 type Subcommand = "list" | "add";
 
@@ -28,21 +31,20 @@ const USAGE = [
   "  bun scripts/allowlist.ts add <email> --local | --remote",
 ].join("\n");
 
-function exitWithUsage(message: string): never {
+const isSubcommand = (arg: string): arg is Subcommand => arg === "list" || arg === "add";
+const isTarget = (arg: string): arg is Target => arg === "--local" || arg === "--remote";
+
+const exitWithUsage = (message: string): never => {
   console.error(message);
   console.error(USAGE);
   process.exit(1);
-}
+};
 
-function parseArguments(): ParsedArguments {
+const parseArguments = (): ParsedArguments => {
   const args = process.argv.slice(2);
 
-  const subcommand = args.find((arg) => arg === "list" || arg === "add") as
-    | Subcommand
-    | undefined;
-  const target = args.find((arg) => arg === "--local" || arg === "--remote") as
-    | Target
-    | undefined;
+  const subcommand = args.find(isSubcommand);
+  const target = args.find(isTarget);
   const email = args.find((arg) => !arg.startsWith("--") && arg !== subcommand) ?? null;
 
   if (!subcommand) {
@@ -56,22 +58,21 @@ function parseArguments(): ParsedArguments {
   }
 
   return { subcommand, target, email };
-}
+};
 
-// 簡易バリデーション。allowlist 用途なので最低限の形式チェックのみ行う。
-function assertValidEmail(email: string): void {
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailPattern.test(email)) {
+const assertValidEmail = (email: string): void => {
+  if (!EMAIL_PATTERN.test(email)) {
     exitWithUsage(`Error: '${email}' is not a valid email address.`);
   }
-}
+};
 
 // SQL リテラル中のシングルクォートを 2 個にしてエスケープする。
-function toSqlStringLiteral(value: string): string {
-  return `'${value.replace(/'/g, "''")}'`;
-}
+const toSqlStringLiteral = (value: string): string => `'${value.replace(/'/g, "''")}'`;
 
-function executeSql(target: Target, sql: string): void {
+const describeTarget = (target: Target): string =>
+  target === "--remote" ? "remote" : "local";
+
+const executeSql = (target: Target, sql: string): void => {
   const result = spawnSync(
     "bunx",
     ["wrangler", "d1", "execute", BINDING, target, "--command", sql],
@@ -80,9 +81,9 @@ function executeSql(target: Target, sql: string): void {
   if (result.status !== 0) {
     throw new Error("wrangler d1 execute failed.");
   }
-}
+};
 
-function main(): void {
+const main = (): void => {
   const { subcommand, target, email } = parseArguments();
 
   if (subcommand === "list") {
@@ -96,11 +97,11 @@ function main(): void {
   // subcommand === "add"
   assertValidEmail(email!);
   const emailLiteral = toSqlStringLiteral(email!);
-  console.log(`[allowlist] add ${email} -> ${target.slice(2)}`);
+  console.log(`[allowlist] add ${email} -> ${describeTarget(target)}`);
   executeSql(
     target,
     `INSERT INTO allowed_emails (email) VALUES (${emailLiteral}) ON CONFLICT (email) DO NOTHING;`,
   );
-}
+};
 
 main();
