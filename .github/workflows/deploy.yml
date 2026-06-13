@@ -1,0 +1,60 @@
+# 本番 Cloudflare Workers へのデプロイ。これまでローカルの `bun run deploy` でしか
+# 行えなかったものを GitHub Actions に移し、main への push（自動）と
+# workflow_dispatch（手動）の両方から実行できるようにする。
+#
+# デプロイ前に D1 のリモートマイグレーションを適用し、スキーマとコードのズレを防ぐ。
+# 本番シークレット（AUTH_*）は `wrangler secret put` で Cloudflare 側に設定済みのため、
+# このワークフローでは扱わない。必要な認可は下記 2 つの GitHub Secrets のみ:
+#   - CLOUDFLARE_API_TOKEN  : Workers 編集 / D1 編集権限を持つ API トークン
+#   - CLOUDFLARE_ACCOUNT_ID : 対象アカウント ID
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    # ビルド/デプロイ出力に影響しない変更（ドキュメント・スキャン設定等）では発火させない。
+    # 許可リストではなく除外リストにするのは、列挙漏れによる「デプロイされない」事故を防ぐため。
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - ".gitleaks.toml"
+      - ".pre-commit-config.yaml"
+      - ".github/workflows/security-scan.yml"
+      - ".dev.vars.example"
+      - ".gitignore"
+  workflow_dispatch:
+
+# 同一 ref のデプロイが重ならないようにする。進行中のデプロイは中断させない。
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        # バージョンは package.json の packageManager から解決させる（単一ソース化）。
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # cloudflare-env.d.ts は .gitignore 対象（自動生成）でリポジトリに無いため、
+      # ビルドの型チェックが通るよう wrangler.toml から再生成する。リモート通信は無い。
+      - name: Generate Cloudflare types
+        run: bun run cf-typegen
+
+      # 追加された migrations を本番 D1 に適用する。デプロイより先に流すことで
+      # 新スキーマ前提のコードが古い DB に当たる事故を防ぐ。
+      - name: Apply D1 migrations (remote)
+        run: bun run db:migrate:remote
+
+      - name: Build and deploy
+        run: bun run deploy
