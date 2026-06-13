@@ -1,0 +1,38 @@
+# PR 時点でビルドが通るかを検証する。デプロイ（deploy.yml）と同じ OpenNext ビルド経路を
+# 通すことで、main にマージする前に「ビルドできない変更」を弾く。
+#
+# デプロイは伴わないため Cloudflare の認可（API トークン等）は不要。
+# cf-typegen / opennextjs-cloudflare build はいずれもローカル完結でリモート通信しない。
+name: Build Check
+
+on:
+  pull_request:
+    branches: [main]
+
+# 同一 PR で新しい push があれば古い実行を打ち切る。
+concurrency:
+  group: build-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        # バージョンは package.json の packageManager から解決させる（単一ソース化）。
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # cloudflare-env.d.ts は .gitignore 対象（自動生成）でリポジトリに無いため、
+      # 型チェックが通るよう wrangler.toml から再生成する。
+      - name: Generate Cloudflare types
+        run: bun run cf-typegen
+
+      # デプロイと同じ OpenNext ビルドを実行。deploy せず build までで検証を止める。
+      - name: Build (OpenNext)
+        run: bunx opennextjs-cloudflare build
