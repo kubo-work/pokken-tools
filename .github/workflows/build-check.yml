@@ -8,6 +8,16 @@ name: Build Check
 on:
   pull_request:
     branches: [main]
+    # ビルド出力に影響しない変更（ドキュメント・スキャン設定等）では検証を回さない。
+    # 許可リストではなく除外リストにするのは、列挙漏れで検証が抜ける事故を防ぐため。
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - ".gitleaks.toml"
+      - ".pre-commit-config.yaml"
+      - ".github/workflows/security-scan.yml"
+      - ".dev.vars.example"
+      - ".gitignore"
 
 # 同一 PR で新しい push があれば古い実行を打ち切る。
 concurrency:
