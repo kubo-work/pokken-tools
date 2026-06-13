@@ -11,6 +11,7 @@
   --text: #e8e8ec;
   --text-dim: #9095a0;
   --accent: #f59e0b;
+  --link: #fbbf24;
   --danger-bg: #3a1818;
   --danger-text: #f87171;
 }
@@ -22,6 +23,7 @@
   --text: #1a1a1f;
   --text-dim: #5c6270;
   --accent: #f59e0b;
+  --link: #b45309;
   --danger-bg: #fdecec;
   --danger-text: #c0322b;
 }
@@ -373,11 +375,13 @@ a {
 }
 
 .site-footer__nav a {
-  color: var(--text-dim);
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .site-footer__nav a:hover {
-  color: var(--text);
+  text-decoration: none;
 }
 
 /* 文章主体ページ（免責事項など） */
@@ -400,4 +404,14 @@ a {
   margin: 0;
   color: var(--text-dim);
   font-size: 14px;
+}
+
+.prose a {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.prose a:hover {
+  text-decoration: none;
 }
