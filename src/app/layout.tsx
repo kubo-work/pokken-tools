@@ -16,13 +16,13 @@ export const viewport: Viewport = {
 
 /**
  * 公開側テーマ（data-theme 属性）を描画前に確定させるスクリプト。
- * localStorage の選択を最優先し、未選択なら OS の prefers-color-scheme を既定にする。
+ * localStorage の選択を最優先し、未選択ならダークを既定にする（OS 設定に追従しない）。
  * <head> でブロッキング実行することで、初回描画時のテーマのチラつき（FOUC）を防ぐ。
  */
 const themeInitScript = `(function () {
   try {
     const stored = localStorage.getItem("${THEME_STORAGE_KEY}");
-    const theme = stored || (matchMedia("(prefers-color-scheme: light)").matches ? "${THEME.LIGHT}" : "${THEME.DARK}");
+    const theme = stored || "${THEME.DARK}";
     document.documentElement.dataset.theme = theme;
   } catch {
     // localStorage 不可（プライベートモード等）の場合は CSS 既定（ダーク）にフォールバックする
