@@ -34,11 +34,15 @@ const USAGE = [
 const isSubcommand = (arg: string): arg is Subcommand => arg === "list" || arg === "add";
 const isTarget = (arg: string): arg is Target => arg === "--local" || arg === "--remote";
 
-const exitWithUsage = (message: string): never => {
+// never を返す終了ヘルパ。`function` 宣言にすることで、呼び出し後に
+// 後続コードが到達不能であることを TypeScript の制御フロー解析が認識し、
+// ガード後の subcommand / target が undefined を除いて narrow される。
+// （アロー関数の const 代入では、この never ナローイングが効かない）
+function exitWithUsage(message: string): never {
   console.error(message);
   console.error(USAGE);
   process.exit(1);
-};
+}
 
 const parseArguments = (): ParsedArguments => {
   const args = process.argv.slice(2);
