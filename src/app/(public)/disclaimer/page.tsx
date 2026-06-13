@@ -39,6 +39,20 @@ export default function DisclaimerPage() {
           その正確性・完全性・最新性を保証しません。本サイトの情報の利用によって生じた
           いかなる損害についても、運営者は責任を負いません。
         </p>
+
+        <h2>お問い合わせ</h2>
+        <p>
+          掲載内容の誤りのご指摘やお問い合わせは、以下の Google フォームよりお寄せください。
+        </p>
+        <p>
+          <a
+            href="https://docs.google.com/forms/d/e/1FAIpQLSd8ZyIiHQ6psjtkQM2sTbszGZjYW6THIICdTYruSVZljveYIQ/viewform"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            お問い合わせフォーム
+          </a>
+        </p>
       </section>
     </>
   );
