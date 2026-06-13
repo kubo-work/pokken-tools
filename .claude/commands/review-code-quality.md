@@ -73,6 +73,19 @@
 - **関数の長さ**: 関数が50行以内に収まっているか
 - **引数の数**: 引数が3つ以内に収まっているか（多い場合はオブジェクトで渡す）
 - **早期リターン**: ネストを減らすために早期リターンを使用しているか
+- **三項演算子のネスト禁止**: 三項演算子がネストする場合は独自関数に切り出し、if文で早期returnしているか
+  ```typescript
+  // ❌ Bad - 三項演算子のネスト
+  const label = isAdmin ? 'Admin' : isMember ? 'Member' : 'Guest'
+
+  // ✅ Good - 独自関数に切り出してif文でreturn
+  const getLabel = (isAdmin: boolean, isMember: boolean): string => {
+    if (isAdmin) return 'Admin'
+    if (isMember) return 'Member'
+    return 'Guest'
+  }
+  const label = getLabel(isAdmin, isMember)
+  ```
 - **純粋関数**: 副作用のない純粋関数として実装されているか
 
 ### 5. 命名規則
@@ -128,6 +141,19 @@
 - **3階層以内**: ネストが3階層以内に収まっているか
 - **早期リターン**: 早期リターンでネストを減らせないか
 - **関数抽出**: ネストの深い部分を関数として抽出できないか
+- **三項演算子のネスト**: 三項演算子が2段以上ネストしている場合は独自関数に切り出しているか
+  ```typescript
+  // ❌ Bad
+  const message = hasError ? 'エラー' : isLoading ? '読込中' : isEmpty ? '空です' : 'OK'
+
+  // ✅ Good
+  const getMessage = (hasError: boolean, isLoading: boolean, isEmpty: boolean): string => {
+    if (hasError) return 'エラー'
+    if (isLoading) return '読込中'
+    if (isEmpty) return '空です'
+    return 'OK'
+  }
+  ```
 
 ### 10. パフォーマンス
 - **useMemo/useCallback**: 適切に使用されているか（過度な使用も避ける）
