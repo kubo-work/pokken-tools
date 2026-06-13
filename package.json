@@ -14,6 +14,10 @@
     "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
     "db:seed:local": "wrangler d1 execute DB --local --file=scripts/seed-allowlist.local.sql",
     "db:seed:remote": "wrangler d1 execute DB --remote --file=scripts/seed-allowlist.local.sql",
+    "db:allowlist:list:local": "bun scripts/allowlist.ts list --local",
+    "db:allowlist:list:remote": "bun scripts/allowlist.ts list --remote",
+    "db:allowlist:add:local": "bun scripts/allowlist.ts add --local",
+    "db:allowlist:add:remote": "bun scripts/allowlist.ts add --remote",
     "kv:seed:local": "bun scripts/seed-kv.ts --local",
     "kv:seed:remote": "bun scripts/seed-kv.ts --remote"
   },
