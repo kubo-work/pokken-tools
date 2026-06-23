@@ -14,7 +14,7 @@ export const CATEGORY_META: Record<
   MoveCategory,
   { label: string; shortLabel: string; color: string }
 > = {
-  attack: { label: "攻撃", shortLabel: "攻", color: "#ef4444" },
+  attack: { label: "通常攻撃", shortLabel: "攻", color: "#ef4444" },
   block: { label: "ブロック", shortLabel: "ブ", color: "#3b82f6" },
   grab: { label: "つかみ", shortLabel: "つ", color: "#22c55e" },
 };

@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "bun@1.2.15",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 2015",
     "build": "next build",
     "start": "next start",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",

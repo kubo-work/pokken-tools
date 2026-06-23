@@ -184,7 +184,7 @@ export const MovesTable = ({ moves }: { moves: Move[] }) => {
       <table className="moves-table">
         <thead>
           <tr>
-            <th>分類</th>
+            <th>属性</th>
             <th>技名</th>
             <th>コマンド</th>
             <th>判定</th>
