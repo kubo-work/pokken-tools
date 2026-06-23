@@ -28,7 +28,11 @@ import {
   CATEGORY_OPTIONS,
   GUARD_LEVEL_OPTIONS,
 } from "./moveFieldsHelpers";
-import { setMoveField, setMoveStrength } from "./moveUpdaters";
+import {
+  setMoveCategory,
+  setMoveField,
+  setMoveStrength,
+} from "./moveUpdaters";
 
 export interface MoveFieldsProps {
   move: Move;
@@ -38,6 +42,8 @@ export interface MoveFieldsProps {
 
 export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => {
   const strengthRange = strengthRangeForAttackType(move.attackType);
+  // つかみは攻撃属性・強度・判定を持たないため、これらの入力欄は隠す。
+  const isGrab = move.category === "grab";
   return (
     <>
     <SimpleGrid cols={{ base: 1, sm: 2 }}>
@@ -82,78 +88,85 @@ export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => {
         allowDeselect={false}
         onChange={(value) =>
           onChange(
-            setMoveField(
+            setMoveCategory(
               move,
-              "category",
               asEnumValue(value, MOVE_CATEGORIES, "attack"),
             ),
           )
         }
       />
-      <Select
-        label="攻撃属性"
-        placeholder="つかみは任意"
-        clearable
-        data={ATTACK_TYPE_OPTIONS}
-        value={move.attackType ?? null}
-        onChange={(value) => {
-          const nextAttackType = asOptionalEnumValue(value, MOVE_ATTACK_TYPES);
-          const withAttackType = setMoveField(
-            move,
-            "attackType",
-            nextAttackType,
-          );
-          // 攻撃属性を外した（つかみ等）場合は強度の許容範囲が無くなるため強度も削除する。
-          onChange(
-            nextAttackType === undefined
-              ? setMoveStrength(withAttackType, undefined)
-              : withAttackType,
-          );
-        }}
-      />
+      {!isGrab && (
+        <Select
+          label="攻撃属性"
+          clearable
+          data={ATTACK_TYPE_OPTIONS}
+          value={move.attackType ?? null}
+          onChange={(value) => {
+            const nextAttackType = asOptionalEnumValue(
+              value,
+              MOVE_ATTACK_TYPES,
+            );
+            const withAttackType = setMoveField(
+              move,
+              "attackType",
+              nextAttackType,
+            );
+            // 攻撃属性を外した場合は強度の許容範囲が無くなるため強度も削除する。
+            onChange(
+              nextAttackType === undefined
+                ? setMoveStrength(withAttackType, undefined)
+                : withAttackType,
+            );
+          }}
+        />
+      )}
     </SimpleGrid>
 
-    <SimpleGrid cols={{ base: 1, sm: 2 }}>
-      <NumberInput
-        label="強度"
-        placeholder={
-          strengthRange === undefined ? "攻撃属性を選択" : `${strengthRange.min}〜${strengthRange.max}`
-        }
-        description={
-          strengthRange === undefined
-            ? "つかみ等、攻撃属性のない技には強度はありません"
-            : undefined
-        }
-        disabled={strengthRange === undefined}
-        min={strengthRange?.min}
-        max={strengthRange?.max}
-        value={move.strength ?? ""}
-        onChange={(value) =>
-          onChange(
-            setMoveStrength(
-              move,
-              typeof value === "number" ? value : undefined,
-            ),
-          )
-        }
-      />
-      <Select
-        label="判定"
-        placeholder="なし"
-        clearable
-        data={GUARD_LEVEL_OPTIONS}
-        value={move.guardLevel}
-        onChange={(value) =>
-          onChange(
-            setMoveField(
-              move,
-              "guardLevel",
-              asNullableEnumValue(value, GUARD_LEVELS),
-            ),
-          )
-        }
-      />
-    </SimpleGrid>
+    {!isGrab && (
+      <SimpleGrid cols={{ base: 1, sm: 2 }}>
+        <NumberInput
+          label="強度"
+          placeholder={
+            strengthRange === undefined
+              ? "攻撃属性を選択"
+              : `${strengthRange.min}〜${strengthRange.max}`
+          }
+          description={
+            strengthRange === undefined
+              ? "攻撃属性を選択すると入力できます"
+              : undefined
+          }
+          disabled={strengthRange === undefined}
+          min={strengthRange?.min}
+          max={strengthRange?.max}
+          value={move.strength ?? ""}
+          onChange={(value) =>
+            onChange(
+              setMoveStrength(
+                move,
+                typeof value === "number" ? value : undefined,
+              ),
+            )
+          }
+        />
+        <Select
+          label="判定"
+          placeholder="なし"
+          clearable
+          data={GUARD_LEVEL_OPTIONS}
+          value={move.guardLevel}
+          onChange={(value) =>
+            onChange(
+              setMoveField(
+                move,
+                "guardLevel",
+                asNullableEnumValue(value, GUARD_LEVELS),
+              ),
+            )
+          }
+        />
+      </SimpleGrid>
+    )}
 
     <Checkbox.Group
       label="特殊属性（複数可・なくても可）"

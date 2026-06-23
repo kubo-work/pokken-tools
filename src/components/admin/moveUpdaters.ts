@@ -1,4 +1,9 @@
-import type { GuardLevel, Move, ResonanceOverride } from "@/types/move";
+import type {
+  GuardLevel,
+  Move,
+  MoveCategory,
+  ResonanceOverride,
+} from "@/types/move";
 import type { ResonanceNumberField } from "./moveFieldsHelpers";
 
 /**
@@ -29,6 +34,20 @@ export const setResonanceNumber = (
     next[key] = toNumber(value);
   }
   return { ...move, resonance: next };
+};
+
+/**
+ * 技の分類（属性）を更新する。つかみ (grab) は攻撃属性・強度・判定を持たないため、
+ * grab へ切り替えたときはこれらを空にする（attackType / strength は削除、guardLevel は null）。
+ */
+export const setMoveCategory = (move: Move, category: MoveCategory): Move => {
+  if (category !== "grab") {
+    return { ...move, category };
+  }
+  const next: Move = { ...move, category, guardLevel: null };
+  delete next.attackType;
+  delete next.strength;
+  return next;
 };
 
 /** 技本体の強度を更新。undefined（攻撃属性なし等）なら強度を削除する。 */
