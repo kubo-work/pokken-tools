@@ -31,7 +31,7 @@
       "category": "grab",
       "startup": 16,
       "guardFrameAdvantage": -20,
-      "guardLevel": "mid"
+      "guardLevel": null
     }
   ],
   "duelMoves": [
@@ -108,7 +108,7 @@
       "category": "grab",
       "startup": 14,
       "guardFrameAdvantage": -20,
-      "guardLevel": "mid"
+      "guardLevel": null
     },
     {
       "id": "pikachu_duel_counter",

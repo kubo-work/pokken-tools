@@ -70,7 +70,7 @@
       "category": "grab",
       "startup": 13,
       "guardFrameAdvantage": -20,
-      "guardLevel": "mid"
+      "guardLevel": null
     },
     {
       "id": "lucario_duel_counter",
