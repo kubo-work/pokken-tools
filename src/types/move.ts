@@ -2,6 +2,11 @@ export type MoveCategory = "attack" | "block" | "grab";
 export type MoveAttackType = "strike" | "projectile";
 export type Phase = "field" | "duel";
 export type ResonanceState = "normal" | "resonance";
+/** 攻撃属性ごとの強度の許容範囲（最小・最大）。 */
+export interface StrengthRange {
+  min: number;
+  max: number;
+}
 export type GuardLevel =
   | "high"
   | "mid_high"

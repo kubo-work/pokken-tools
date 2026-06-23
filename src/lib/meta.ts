@@ -7,6 +7,7 @@ import type {
   Phase,
   ResonanceState,
   SpecialAttribute,
+  StrengthRange,
 } from "@/types/move";
 
 export const CATEGORY_META: Record<
@@ -102,7 +103,7 @@ export const childVariantLabel = (
  */
 export const STRENGTH_RANGE_BY_ATTACK_TYPE: Record<
   MoveAttackType,
-  { min: number; max: number }
+  StrengthRange
 > = {
   strike: { min: 1, max: 6 },
   projectile: { min: 1, max: 8 },
@@ -114,7 +115,7 @@ export const STRENGTH_RANGE_BY_ATTACK_TYPE: Record<
  */
 export const strengthRangeForAttackType = (
   attackType: MoveAttackType | undefined,
-): { min: number; max: number } | undefined =>
+): StrengthRange | undefined =>
   attackType === undefined
     ? undefined
     : STRENGTH_RANGE_BY_ATTACK_TYPE[attackType];

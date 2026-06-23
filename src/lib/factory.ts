@@ -1,3 +1,4 @@
+import { STRENGTH_RANGE_BY_ATTACK_TYPE } from "@/lib/meta";
 import type { Move, MoveVariant, Phase } from "@/types/move";
 
 /** ID 生成のサフィックス長（16進文字列）。 */
@@ -45,8 +46,8 @@ export const createMove = (
     guardLevel: "mid",
     startup: 0,
     guardFrameAdvantage: DEFAULT_GUARD_FRAME_ADVANTAGE,
-    // 既定の攻撃属性が打撃 (strike, 範囲 1〜6) のため最小値 1 を初期値とする。
-    strength: 1,
+    // 既定の攻撃属性が打撃 (strike) のため、その範囲の最小値を初期値とする。
+    strength: STRENGTH_RANGE_BY_ATTACK_TYPE.strike.min,
     ...(isChild
       ? { variant: options.variant, parentMoveId: options.parentMoveId }
       : {}),
