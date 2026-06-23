@@ -2,7 +2,11 @@ export type MoveCategory = "attack" | "block" | "grab";
 export type MoveAttackType = "strike" | "projectile";
 export type Phase = "field" | "duel";
 export type ResonanceState = "normal" | "resonance";
-export type MoveStrength = "weak" | "medium" | "strong";
+/** 攻撃属性ごとの強度の許容範囲（最小・最大）。 */
+export interface StrengthRange {
+  min: number;
+  max: number;
+}
 export type GuardLevel =
   | "high"
   | "mid_high"
@@ -18,7 +22,7 @@ export interface ResonanceOverride {
   startup?: number;
   guardFrameAdvantage?: number;
   hitFrameAdvantage?: number;
-  strength?: MoveStrength;
+  strength?: number;
   guardLevel?: GuardLevel;
 }
 
@@ -38,7 +42,11 @@ export interface Move {
   guardFrameAdvantage: number;
   /** ヒット硬直差。攻撃側視点の有利/不利フレーム。表示専用で、未計測なら省略。 */
   hitFrameAdvantage?: number;
-  strength: MoveStrength;
+  /**
+   * 攻撃の強度。攻撃属性 (attackType) に応じた範囲で入力する：打撃 (strike) は 1〜6、弾 (projectile) は 1〜8。
+   * 攻撃属性を持たない「つかみ」技には強度がないため省略する。
+   */
+  strength?: number;
   specialAttributes?: SpecialAttribute[];
   /** "charge" / "derivative" の場合は親技の id を parentMoveId に必ず入れる。 */
   variant?: MoveVariant;

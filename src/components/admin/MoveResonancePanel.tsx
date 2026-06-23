@@ -4,19 +4,19 @@ import {
   Card,
   Collapse,
   Group,
+  NumberInput,
   Select,
   SimpleGrid,
   Stack,
   Switch,
   Text,
 } from "@mantine/core";
-import { GUARD_LEVELS, MOVE_STRENGTHS } from "@/lib/meta";
+import { GUARD_LEVELS, strengthRangeForAttackType } from "@/lib/meta";
 import { asOptionalEnumValue } from "@/lib/optionGuards";
 import type { Move } from "@/types/move";
 import {
   GUARD_LEVEL_OPTIONS,
   RESONANCE_NUMBER_FIELDS,
-  STRENGTH_OPTIONS,
 } from "./moveFieldsHelpers";
 import { FrameNumberInput } from "./FrameNumberInput";
 import {
@@ -37,6 +37,7 @@ export const MoveResonancePanel = ({
   onChange,
 }: MoveResonancePanelProps) => {
   const hasResonance = move.resonance !== undefined;
+  const strengthRange = strengthRangeForAttackType(move.attackType);
   return (
     <Card withBorder bg="var(--surface-2)" padding="sm">
       <Stack gap="sm">
@@ -84,17 +85,18 @@ export const MoveResonancePanel = ({
                   }
                 />
               ))}
-              <Select
+              <NumberInput
                 label="強度"
-                placeholder="変化なし"
-                clearable
-                data={STRENGTH_OPTIONS}
-                value={move.resonance?.strength ?? null}
+                placeholder={strengthRange === undefined ? "強度なし" : "変化なし"}
+                disabled={strengthRange === undefined}
+                min={strengthRange?.min}
+                max={strengthRange?.max}
+                value={move.resonance?.strength ?? ""}
                 onChange={(value) =>
                   onChange(
                     setResonanceStrength(
                       move,
-                      asOptionalEnumValue(value, MOVE_STRENGTHS),
+                      typeof value === "number" ? value : undefined,
                     ),
                   )
                 }

@@ -1,7 +1,7 @@
 import type {
   GuardLevel,
   Move,
-  MoveStrength,
+  MoveCategory,
   ResonanceOverride,
 } from "@/types/move";
 import type { ResonanceNumberField } from "./moveFieldsHelpers";
@@ -36,10 +36,38 @@ export const setResonanceNumber = (
   return { ...move, resonance: next };
 };
 
+/**
+ * 技の分類（属性）を更新する。つかみ (grab) は攻撃属性・強度・判定を持たないため、
+ * grab へ切り替えたときはこれらを空にする（attackType / strength は削除、guardLevel は null）。
+ */
+export const setMoveCategory = (move: Move, category: MoveCategory): Move => {
+  if (category !== "grab") {
+    return { ...move, category };
+  }
+  const next: Move = { ...move, category, guardLevel: null };
+  delete next.attackType;
+  delete next.strength;
+  return next;
+};
+
+/** 技本体の強度を更新。undefined（攻撃属性なし等）なら強度を削除する。 */
+export const setMoveStrength = (
+  move: Move,
+  strength: number | undefined,
+): Move => {
+  const next: Move = { ...move };
+  if (strength === undefined) {
+    delete next.strength;
+  } else {
+    next.strength = strength;
+  }
+  return next;
+};
+
 /** 共鳴差分の strength を更新。undefined なら削除。 */
 export const setResonanceStrength = (
   move: Move,
-  strength: MoveStrength | undefined,
+  strength: number | undefined,
 ): Move => {
   const next: ResonanceOverride = { ...move.resonance };
   if (strength === undefined) {

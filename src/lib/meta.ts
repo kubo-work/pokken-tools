@@ -3,11 +3,11 @@ import type {
   Move,
   MoveAttackType,
   MoveCategory,
-  MoveStrength,
   MoveVariant,
   Phase,
   ResonanceState,
   SpecialAttribute,
+  StrengthRange,
 } from "@/types/move";
 
 export const CATEGORY_META: Record<
@@ -97,11 +97,28 @@ export const childVariantLabel = (
   return undefined;
 };
 
-export const STRENGTH_META: Record<MoveStrength, { label: string }> = {
-  weak: { label: "弱" },
-  medium: { label: "中" },
-  strong: { label: "強" },
+/**
+ * 攻撃属性ごとの強度の入力可能範囲。打撃は 1〜6、弾は 1〜8。
+ * 攻撃属性を持たない「つかみ」技は強度を持たないため、ここには含めない。
+ */
+export const STRENGTH_RANGE_BY_ATTACK_TYPE: Record<
+  MoveAttackType,
+  StrengthRange
+> = {
+  strike: { min: 1, max: 6 },
+  projectile: { min: 1, max: 8 },
 };
+
+/**
+ * 指定した攻撃属性で許容される強度範囲を返す。
+ * 攻撃属性が未設定（つかみ等）の場合は強度を持たないため undefined。
+ */
+export const strengthRangeForAttackType = (
+  attackType: MoveAttackType | undefined,
+): StrengthRange | undefined =>
+  attackType === undefined
+    ? undefined
+    : STRENGTH_RANGE_BY_ATTACK_TYPE[attackType];
 
 export const GUARD_LEVEL_META: Record<
   GuardLevel,
@@ -131,7 +148,6 @@ export const MOVE_SPECIAL_ATTRIBUTES: SpecialAttribute[] = [
   "blockPiercing",
   "armor",
 ];
-export const MOVE_STRENGTHS: MoveStrength[] = ["weak", "medium", "strong"];
 export const GUARD_LEVELS: GuardLevel[] = [
   "high",
   "mid_high",

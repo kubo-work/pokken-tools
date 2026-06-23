@@ -5,8 +5,6 @@ import {
   GUARD_LEVEL_META,
   MOVE_ATTACK_TYPES,
   MOVE_CATEGORIES,
-  MOVE_STRENGTHS,
-  STRENGTH_META,
 } from "@/lib/meta";
 
 export const CATEGORY_OPTIONS = MOVE_CATEGORIES.map((category) => ({
@@ -17,11 +15,6 @@ export const CATEGORY_OPTIONS = MOVE_CATEGORIES.map((category) => ({
 export const ATTACK_TYPE_OPTIONS = MOVE_ATTACK_TYPES.map((attackType) => ({
   value: attackType,
   label: ATTACK_TYPE_META[attackType].label,
-}));
-
-export const STRENGTH_OPTIONS = MOVE_STRENGTHS.map((strength) => ({
-  value: strength,
-  label: STRENGTH_META[strength].label,
 }));
 
 export const GUARD_LEVEL_OPTIONS = GUARD_LEVELS.map((level) => ({

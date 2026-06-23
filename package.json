@@ -19,7 +19,10 @@
     "db:allowlist:add:local": "bun scripts/allowlist.ts add --local",
     "db:allowlist:add:remote": "bun scripts/allowlist.ts add --remote",
     "kv:seed:local": "bun scripts/seed-kv.ts --local",
-    "kv:seed:remote": "bun scripts/seed-kv.ts --remote"
+    "kv:seed:remote": "bun scripts/seed-kv.ts --remote",
+    "kv:migrate:strength:local": "bun scripts/migrations/migrate-kv-strength.ts --local",
+    "kv:migrate:strength:remote": "bun scripts/migrations/migrate-kv-strength.ts --remote",
+    "kv:migrate:strength:remote:dry": "bun scripts/migrations/migrate-kv-strength.ts --remote --dry-run"
   },
   "dependencies": {
     "@dnd-kit/core": "6.3.1",

@@ -4,7 +4,7 @@ import { Badge, Group, Stack, Text, UnstyledButton } from "@mantine/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { ACCENT_BORDER, SURFACE } from "@/lib/admin/surfaceTokens";
-import { CATEGORY_META, STRENGTH_META } from "@/lib/meta";
+import { CATEGORY_META } from "@/lib/meta";
 import type { MoveGroup } from "@/lib/moves/grouping";
 import { MoveDragHandle } from "./MoveDragHandle";
 
@@ -80,7 +80,7 @@ export const MoveListRow = ({
               )}
               <Badge size="xs" variant="light" color="gray">
                 {CATEGORY_META[parent.category].shortLabel}
-                {STRENGTH_META[parent.strength].label}
+                {parent.strength ?? ""}
               </Badge>
               {children.length > 0 && (
                 <Badge size="xs" variant="light" color="grape">
