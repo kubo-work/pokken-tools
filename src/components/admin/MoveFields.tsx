@@ -13,8 +13,8 @@ import {
   MOVE_ATTACK_TYPES,
   MOVE_CATEGORIES,
   MOVE_SPECIAL_ATTRIBUTES,
-  MOVE_STRENGTHS,
   SPECIAL_ATTRIBUTE_META,
+  strengthRangeForAttackType,
 } from "@/lib/meta";
 import {
   asEnumValue,
@@ -27,9 +27,8 @@ import {
   ATTACK_TYPE_OPTIONS,
   CATEGORY_OPTIONS,
   GUARD_LEVEL_OPTIONS,
-  STRENGTH_OPTIONS,
 } from "./moveFieldsHelpers";
-import { setMoveField } from "./moveUpdaters";
+import { setMoveField, setMoveStrength } from "./moveUpdaters";
 
 export interface MoveFieldsProps {
   move: Move;
@@ -37,8 +36,10 @@ export interface MoveFieldsProps {
   onChange: (move: Move) => void;
 }
 
-export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => (
-  <>
+export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => {
+  const strengthRange = strengthRangeForAttackType(move.attackType);
+  return (
+    <>
     <SimpleGrid cols={{ base: 1, sm: 2 }}>
       <TextInput
         label="技名"
@@ -95,30 +96,43 @@ export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => (
         clearable
         data={ATTACK_TYPE_OPTIONS}
         value={move.attackType ?? null}
-        onChange={(value) =>
+        onChange={(value) => {
+          const nextAttackType = asOptionalEnumValue(value, MOVE_ATTACK_TYPES);
+          const withAttackType = setMoveField(
+            move,
+            "attackType",
+            nextAttackType,
+          );
+          // 攻撃属性を外した（つかみ等）場合は強度の許容範囲が無くなるため強度も削除する。
           onChange(
-            setMoveField(
-              move,
-              "attackType",
-              asOptionalEnumValue(value, MOVE_ATTACK_TYPES),
-            ),
-          )
-        }
+            nextAttackType === undefined
+              ? setMoveStrength(withAttackType, undefined)
+              : withAttackType,
+          );
+        }}
       />
     </SimpleGrid>
 
     <SimpleGrid cols={{ base: 1, sm: 2 }}>
-      <Select
+      <NumberInput
         label="強度"
-        data={STRENGTH_OPTIONS}
-        value={move.strength}
-        allowDeselect={false}
+        placeholder={
+          strengthRange === undefined ? "攻撃属性を選択" : `${strengthRange.min}〜${strengthRange.max}`
+        }
+        description={
+          strengthRange === undefined
+            ? "つかみ等、攻撃属性のない技には強度はありません"
+            : undefined
+        }
+        disabled={strengthRange === undefined}
+        min={strengthRange?.min}
+        max={strengthRange?.max}
+        value={move.strength ?? ""}
         onChange={(value) =>
           onChange(
-            setMoveField(
+            setMoveStrength(
               move,
-              "strength",
-              asEnumValue(value, MOVE_STRENGTHS, "weak"),
+              typeof value === "number" ? value : undefined,
             ),
           )
         }
@@ -165,5 +179,6 @@ export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => (
         ))}
       </Group>
     </Checkbox.Group>
-  </>
-);
+    </>
+  );
+};

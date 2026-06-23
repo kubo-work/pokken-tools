@@ -45,7 +45,8 @@ export const createMove = (
     guardLevel: "mid",
     startup: 0,
     guardFrameAdvantage: DEFAULT_GUARD_FRAME_ADVANTAGE,
-    strength: "weak",
+    // 既定の攻撃属性が打撃 (strike, 範囲 1〜6) のため最小値 1 を初期値とする。
+    strength: 1,
     ...(isChild
       ? { variant: options.variant, parentMoveId: options.parentMoveId }
       : {}),

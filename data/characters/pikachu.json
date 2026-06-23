@@ -10,7 +10,7 @@
       "attackType": "strike",
       "startup": 18,
       "guardFrameAdvantage": -20,
-      "strength": "medium",
+      "strength": 3,
       "guardLevel": "mid"
     },
     {
@@ -21,7 +21,7 @@
       "attackType": "strike",
       "startup": 24,
       "guardFrameAdvantage": -20,
-      "strength": "weak",
+      "strength": 1,
       "guardLevel": "high"
     },
     {
@@ -31,7 +31,6 @@
       "category": "grab",
       "startup": 16,
       "guardFrameAdvantage": -20,
-      "strength": "medium",
       "guardLevel": "mid"
     }
   ],
@@ -44,7 +43,7 @@
       "attackType": "strike",
       "startup": 6,
       "guardFrameAdvantage": -20,
-      "strength": "weak",
+      "strength": 1,
       "guardLevel": "mid"
     },
     {
@@ -55,7 +54,7 @@
       "attackType": "strike",
       "startup": 10,
       "guardFrameAdvantage": -24,
-      "strength": "medium",
+      "strength": 3,
       "variant": "derivative",
       "parentMoveId": "pikachu_duel_5y",
       "guardLevel": "mid"
@@ -68,7 +67,7 @@
       "attackType": "strike",
       "startup": 8,
       "guardFrameAdvantage": -20,
-      "strength": "weak",
+      "strength": 1,
       "guardLevel": "low"
     },
     {
@@ -79,7 +78,7 @@
       "attackType": "strike",
       "startup": 12,
       "guardFrameAdvantage": -20,
-      "strength": "medium",
+      "strength": 3,
       "resonance": {
         "startup": 11
       },
@@ -93,7 +92,7 @@
       "attackType": "strike",
       "startup": 26,
       "guardFrameAdvantage": -28,
-      "strength": "strong",
+      "strength": 5,
       "specialAttributes": [
         "armor"
       ],
@@ -109,7 +108,6 @@
       "category": "grab",
       "startup": 14,
       "guardFrameAdvantage": -20,
-      "strength": "medium",
       "guardLevel": "mid"
     },
     {
@@ -120,7 +118,7 @@
       "attackType": "strike",
       "startup": 20,
       "guardFrameAdvantage": -20,
-      "strength": "strong",
+      "strength": 5,
       "guardLevel": "high"
     },
     {
@@ -131,7 +129,7 @@
       "attackType": "strike",
       "startup": 18,
       "guardFrameAdvantage": -20,
-      "strength": "strong",
+      "strength": 5,
       "resonanceOnly": true,
       "note": "共鳴中のみ使用可能なバーストアタック",
       "guardLevel": "mid"

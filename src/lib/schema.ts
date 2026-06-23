@@ -10,8 +10,17 @@ const guardLevelSchema = z.enum([
 ]);
 const categorySchema = z.enum(["attack", "block", "grab"]);
 const attackTypeSchema = z.enum(["strike", "projectile"]);
-const strengthSchema = z.enum(["weak", "medium", "strong"]);
+const strengthSchema = z.number().int().positive();
 const specialAttributeSchema = z.enum(["blockPiercing", "armor"]);
+
+/** 攻撃属性ごとの強度の許容範囲。打撃は 1〜6、弾は 1〜8。 */
+const STRENGTH_RANGE: Record<
+  "strike" | "projectile",
+  { min: number; max: number }
+> = {
+  strike: { min: 1, max: 6 },
+  projectile: { min: 1, max: 8 },
+};
 const variantSchema = z.enum(["normal", "charge", "derivative"]);
 
 const resonanceOverrideSchema = z.object({
@@ -33,7 +42,7 @@ export const moveSchema = z
     startup: z.number(),
     guardFrameAdvantage: z.number(),
     hitFrameAdvantage: z.number().optional(),
-    strength: strengthSchema,
+    strength: strengthSchema.optional(),
     specialAttributes: z.array(specialAttributeSchema).optional(),
     variant: variantSchema.optional(),
     parentMoveId: z.string().min(1).optional(),
@@ -53,6 +62,42 @@ export const moveSchema = z
         path: ["attackType"],
         message: "攻撃・ブロック技は攻撃属性（打撃／弾）が必須です",
       });
+    }
+    if (move.attackType === undefined) {
+      // つかみ等、攻撃属性を持たない技は強度を持たない。
+      if (move.strength !== undefined) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["strength"],
+          message: "攻撃属性を持たない技に強度は設定できません",
+        });
+      }
+    } else {
+      const range = STRENGTH_RANGE[move.attackType];
+      if (move.strength === undefined) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["strength"],
+          message: `${move.attackType === "strike" ? "打撃" : "弾"}技は強度（${range.min}〜${range.max}）が必須です`,
+        });
+      } else if (move.strength < range.min || move.strength > range.max) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["strength"],
+          message: `${move.attackType === "strike" ? "打撃" : "弾"}技の強度は${range.min}〜${range.max}で入力してください`,
+        });
+      }
+      const resonanceStrength = move.resonance?.strength;
+      if (
+        resonanceStrength !== undefined &&
+        (resonanceStrength < range.min || resonanceStrength > range.max)
+      ) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["resonance", "strength"],
+          message: `共鳴中の強度は${range.min}〜${range.max}で入力してください`,
+        });
+      }
     }
     const isChildVariant =
       move.variant === "charge" || move.variant === "derivative";
