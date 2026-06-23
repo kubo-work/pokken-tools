@@ -75,7 +75,7 @@ export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => (
 
     <SimpleGrid cols={{ base: 1, sm: 2 }}>
       <Select
-        label="分類"
+        label="属性"
         data={CATEGORY_OPTIONS}
         value={move.category}
         allowDeselect={false}
