@@ -84,6 +84,7 @@ const MoveRow = ({
           ? "-"
           : ATTACK_TYPE_META[move.attackType].label}
       </td>
+      <td className="num">{move.strength ?? "-"}</td>
       <td className="num">{move.startup}</td>
       <td className="num">
         <FrameNumber value={move.guardFrameAdvantage} />
@@ -103,6 +104,7 @@ const MoveRow = ({
  * 技一覧テーブル。識別と最頻参照の項目のみを表示し、共鳴差分・特殊属性・説明など
  * 詳細情報は各技の詳細ページ (/characters/[id]/moves/[moveId]) に委譲する。
  * 副次列（判定・攻撃属性・ヒット硬直差）はスマホで CSS により非表示にする。
+ * 強度は 1 桁で省スペースのため、スマホでも主要列として表示する。
  * ため・派生は親技の直下にぶら下げて表示。
  */
 export const MovesTable = ({
@@ -125,6 +127,7 @@ export const MovesTable = ({
             <th className="moves-table__secondary">判定</th>
             <th>コマンド</th>
             <th className="moves-table__secondary">攻撃属性</th>
+            <th className="num">強度</th>
             <th className="num">発生</th>
             <th className="num">ガード硬直差</th>
             <th className="num moves-table__secondary">ヒット硬直差</th>
