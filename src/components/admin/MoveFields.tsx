@@ -28,11 +28,8 @@ import {
   CATEGORY_OPTIONS,
   GUARD_LEVEL_OPTIONS,
 } from "./moveFieldsHelpers";
-import {
-  setMoveCategory,
-  setMoveField,
-  setMoveStrength,
-} from "./moveUpdaters";
+import { ResonanceFlinchField } from "./ResonanceFlinchField";
+import { setMoveCategory, setMoveField, setMoveStrength } from "./moveUpdaters";
 
 export interface MoveFieldsProps {
   move: Move;
@@ -167,6 +164,8 @@ export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => {
           />
         </SimpleGrid>
       )}
+
+      {!isGrab && <ResonanceFlinchField move={move} onChange={onChange} />}
 
       <Checkbox.Group
         label="特殊属性（複数可・なくても可）"

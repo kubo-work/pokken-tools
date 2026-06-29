@@ -12,6 +12,10 @@ const guardLevelSchema = z.enum([
 const categorySchema = z.enum(["attack", "block", "grab"]);
 const attackTypeSchema = z.enum(["strike", "projectile"]);
 const strengthSchema = z.number().int().positive();
+const resonanceFlinchSchema = z.union([
+  z.enum(["weak", "strong"]),
+  z.object({ switchActiveFrame: z.number().int().positive() }),
+]);
 const specialAttributeSchema = z.enum(["blockPiercing", "armor"]);
 const variantSchema = z.enum(["normal", "charge", "derivative"]);
 
@@ -35,6 +39,7 @@ export const moveSchema = z
     guardFrameAdvantage: z.number(),
     hitFrameAdvantage: z.number().optional(),
     strength: strengthSchema.optional(),
+    resonanceFlinch: resonanceFlinchSchema.optional(),
     specialAttributes: z.array(specialAttributeSchema).optional(),
     variant: variantSchema.optional(),
     parentMoveId: z.string().min(1).optional(),
@@ -91,6 +96,13 @@ export const moveSchema = z
           message: `共鳴中の強度は${range.min}〜${range.max}で入力してください`,
         });
       }
+    }
+    if (move.category === "grab" && move.resonanceFlinch !== undefined) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["resonanceFlinch"],
+        message: "つかみ技に共鳴怯ませ強度は設定できません",
+      });
     }
     const isChildVariant =
       move.variant === "charge" || move.variant === "derivative";

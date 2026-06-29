@@ -8,6 +8,7 @@ import {
   SPECIAL_ATTRIBUTE_META,
   childVariantLabel,
   maxChargeLevel,
+  resonanceFlinchLabel,
 } from "@/lib/meta";
 import { formatMoveCommand } from "@/lib/moves/command";
 import { groupMovesByParent, isChildMove } from "@/lib/moves/grouping";
@@ -17,7 +18,7 @@ import {
   UI_SIZES,
 } from "@/lib/uiTokens";
 
-const TABLE_COLUMN_COUNT = 9;
+const TABLE_COLUMN_COUNT = 10;
 
 interface MoveRowProps {
   move: Move;
@@ -89,6 +90,7 @@ const MoveRow = ({ move, parentCommand, chargeMaxLevel = 0 }: MoveRowProps) => {
               .map((attr) => SPECIAL_ATTRIBUTE_META[attr].label)
               .join(" / ")}
       </td>
+      <td>{resonanceFlinchLabel(move.resonanceFlinch)}</td>
       <td className="num">
         {move.startup}
         {move.resonance?.startup !== undefined && (
@@ -190,6 +192,7 @@ export const MovesTable = ({ moves }: { moves: Move[] }) => {
             <th>判定</th>
             <th>攻撃属性</th>
             <th>特殊</th>
+            <th>共鳴怯ませ</th>
             <th className="num">発生</th>
             <th className="num">ガード硬直差</th>
             <th className="num">ヒット硬直差</th>

@@ -2,9 +2,14 @@ import type {
   GuardLevel,
   Move,
   MoveCategory,
+  ResonanceFlinch,
   ResonanceOverride,
 } from "@/types/move";
-import type { ResonanceNumberField } from "./moveFieldsHelpers";
+import {
+  DEFAULT_SWITCH_ACTIVE_FRAME,
+  type ResonanceFlinchMode,
+  type ResonanceNumberField,
+} from "./moveFieldsHelpers";
 
 /**
  * Move 編集の純粋関数群。コンポーネントは onChange に新しい Move を渡すだけで済むよう、
@@ -47,6 +52,7 @@ export const setMoveCategory = (move: Move, category: MoveCategory): Move => {
   const next: Move = { ...move, category, guardLevel: null };
   delete next.attackType;
   delete next.strength;
+  delete next.resonanceFlinch;
   return next;
 };
 
@@ -62,6 +68,41 @@ export const setMoveStrength = (
     next.strength = strength;
   }
   return next;
+};
+
+/** 技本体の共鳴怯ませ強度を更新。undefined なら削除する。 */
+export const setMoveResonanceFlinch = (
+  move: Move,
+  resonanceFlinch: ResonanceFlinch | undefined,
+): Move => {
+  const next: Move = { ...move };
+  if (resonanceFlinch === undefined) {
+    delete next.resonanceFlinch;
+  } else {
+    next.resonanceFlinch = resonanceFlinch;
+  }
+  return next;
+};
+
+/**
+ * 入力モード（弱／強／弱→強）と切替フレームから技本体の共鳴怯ませ強度を更新する。
+ * mode が null なら削除、"transition" なら切替フレーム付きの値、それ以外はモード値をそのまま設定。
+ * 切替フレーム未指定時は DEFAULT_SWITCH_ACTIVE_FRAME で補完する。
+ */
+export const setMoveResonanceFlinchMode = (
+  move: Move,
+  mode: ResonanceFlinchMode | null,
+  switchActiveFrame: number | undefined,
+): Move => {
+  if (mode === null) {
+    return setMoveResonanceFlinch(move, undefined);
+  }
+  if (mode === "transition") {
+    return setMoveResonanceFlinch(move, {
+      switchActiveFrame: switchActiveFrame ?? DEFAULT_SWITCH_ACTIVE_FRAME,
+    });
+  }
+  return setMoveResonanceFlinch(move, mode);
 };
 
 /** 共鳴差分の strength を更新。undefined なら削除。 */
