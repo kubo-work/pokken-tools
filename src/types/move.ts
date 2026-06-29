@@ -15,6 +15,20 @@ export type GuardLevel =
   | "mid_low"
   | "low";
 export type SpecialAttribute = "blockPiercing" | "armor";
+/**
+ * 共鳴怯ませ強度。共鳴（相手が一定時間パワーアップしている状態）中の相手を
+ * この技で怯ませられるかを表す。"weak"=怯ませ不可 / "strong"=怯ませ可。
+ * 打撃同士・弾同士の撃ち合い優先度を表す数値の strength とは別軸の概念。
+ */
+export type ResonanceFlinchLevel = "weak" | "strong";
+/**
+ * 共鳴怯ませ強度の値。常時一定なら "weak" / "strong"。
+ * 出始めは弱・途中から強に変わる技は { switchActiveFrame } で表し、
+ * 持続 switchActiveFrame フレーム目以降が "strong"、それ未満が "weak"。
+ */
+export type ResonanceFlinch =
+  | ResonanceFlinchLevel
+  | { switchActiveFrame: number };
 /** 親技 (normal) / ため (charge) / 派生 (derivative)。undefined は normal 扱い。 */
 export type MoveVariant = "normal" | "charge" | "derivative";
 
@@ -47,6 +61,11 @@ export interface Move {
    * 攻撃属性を持たない「つかみ」技には強度がないため省略する。
    */
   strength?: number;
+  /**
+   * 共鳴中の相手を怯ませられるか（共鳴怯ませ強度）。攻撃属性を持たない「つかみ」技には設定しない。
+   * 出始め弱→途中から強の技は { switchActiveFrame } で切替フレームを持つ。
+   */
+  resonanceFlinch?: ResonanceFlinch;
   specialAttributes?: SpecialAttribute[];
   /** "charge" / "derivative" の場合は親技の id を parentMoveId に必ず入れる。 */
   variant?: MoveVariant;

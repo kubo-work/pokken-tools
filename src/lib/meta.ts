@@ -5,6 +5,8 @@ import type {
   MoveCategory,
   MoveVariant,
   Phase,
+  ResonanceFlinch,
+  ResonanceFlinchLevel,
   ResonanceState,
   SpecialAttribute,
   StrengthRange,
@@ -120,6 +122,32 @@ export const strengthRangeForAttackType = (
     ? undefined
     : STRENGTH_RANGE_BY_ATTACK_TYPE[attackType];
 
+export const RESONANCE_FLINCH_META: Record<
+  ResonanceFlinchLevel,
+  { label: string }
+> = {
+  weak: { label: "弱" },
+  strong: { label: "強" },
+};
+
+/**
+ * 共鳴怯ませ強度の表示ラベルを返す。
+ * - 未設定（つかみ等）→ "-"
+ * - 常時一定 → "弱" / "強"
+ * - 出始め弱→途中強 → "弱→強（持続{N}〜）"
+ */
+export const resonanceFlinchLabel = (
+  value: ResonanceFlinch | undefined,
+): string => {
+  if (value === undefined) {
+    return "-";
+  }
+  if (value === "weak" || value === "strong") {
+    return RESONANCE_FLINCH_META[value].label;
+  }
+  return `${RESONANCE_FLINCH_META.weak.label}→${RESONANCE_FLINCH_META.strong.label}（持続${value.switchActiveFrame}〜）`;
+};
+
 export const GUARD_LEVEL_META: Record<
   GuardLevel,
   { label: string; shortLabel: string }
@@ -144,6 +172,10 @@ export const RESONANCE_META: Record<ResonanceState, { label: string }> = {
 
 export const MOVE_CATEGORIES: MoveCategory[] = ["attack", "block", "grab"];
 export const MOVE_ATTACK_TYPES: MoveAttackType[] = ["strike", "projectile"];
+export const RESONANCE_FLINCH_LEVELS: ResonanceFlinchLevel[] = [
+  "weak",
+  "strong",
+];
 export const MOVE_SPECIAL_ATTRIBUTES: SpecialAttribute[] = [
   "blockPiercing",
   "armor",
