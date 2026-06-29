@@ -4,9 +4,16 @@ import "./globals.css";
 import { DevTools } from "@/components/DevTools";
 import { THEME, THEME_STORAGE_KEY } from "@/lib/theme";
 
+/**
+ * サイト全体の既定は noindex（検索除外）。
+ * 権利面の露出を抑えるため、検索に載せるのはトップページだけに限定し、
+ * キャラページ・技詳細ページ等は各 page で robots を上書きせず既定の noindex を継承させる。
+ * トップページ (app/(public)/page.tsx) のみ index 許可へ上書きする。
+ */
 export const metadata: Metadata = {
   title: "ポッ拳フレーム表",
   description: "ポッ拳DXのキャラ別フレームデータと確定反撃検索",
+  robots: { index: false, follow: false },
 };
 
 export const viewport: Viewport = {

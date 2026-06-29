@@ -1,40 +1,52 @@
 import { Fragment } from "react";
+import Link from "next/link";
 import type { Move } from "@/types/move";
 import { CategoryBadge, GuardBadge } from "@/components/badges";
 import { FrameNumber } from "@/components/FrameNumber";
 import {
   ATTACK_TYPE_META,
-  GUARD_LEVEL_META,
-  SPECIAL_ATTRIBUTE_META,
+  RESONANCE_ONLY_LABEL,
   childVariantLabel,
   maxChargeLevel,
-  resonanceFlinchLabel,
 } from "@/lib/meta";
 import { formatMoveCommand } from "@/lib/moves/command";
 import { groupMovesByParent, isChildMove } from "@/lib/moves/grouping";
-import {
-  DESCRIPTION_BLOCK_BG,
-  UI_COLORS,
-  UI_SIZES,
-} from "@/lib/uiTokens";
-
-const TABLE_COLUMN_COUNT = 10;
+import { UI_COLORS, UI_SIZES } from "@/lib/uiTokens";
 
 interface MoveRowProps {
   move: Move;
+  characterId: string;
   parentCommand?: string;
   /** 同じ親グループ内のため段階の最大値。ため子技のラベルを「ためMAX」にするか判定する。 */
   chargeMaxLevel?: number;
 }
 
-const MoveRow = ({ move, parentCommand, chargeMaxLevel = 0 }: MoveRowProps) => {
+const MoveRow = ({
+  move,
+  characterId,
+  parentCommand,
+  chargeMaxLevel = 0,
+}: MoveRowProps) => {
   const isChild = isChildMove(move);
   const command = formatMoveCommand(move, parentCommand);
   const variantLabel = childVariantLabel(move, chargeMaxLevel);
   return (
     <tr className={isChild ? "moves-table__child" : undefined}>
       <td>
-        <CategoryBadge category={move.category} />
+        <span style={isChild ? { paddingLeft: 16 } : undefined}>
+          <CategoryBadge category={move.category} />
+          {isChild ? (
+            // ため/派生は親の詳細ページにまとめて表示するため、子はリンクにしない。
+            <span className="moves-table__move-name">{move.name}</span>
+          ) : (
+            <Link
+              href={`/characters/${characterId}/moves/${move.id}`}
+              className="moves-table__move-link"
+            >
+              {move.name}
+            </Link>
+          )}
+        </span>
         {move.resonanceOnly === true && (
           <span
             style={{
@@ -43,7 +55,7 @@ const MoveRow = ({ move, parentCommand, chargeMaxLevel = 0 }: MoveRowProps) => {
               color: UI_COLORS.resonance,
             }}
           >
-            共鳴
+            {RESONANCE_ONLY_LABEL.short}
           </span>
         )}
         {variantLabel !== undefined && (
@@ -57,145 +69,65 @@ const MoveRow = ({ move, parentCommand, chargeMaxLevel = 0 }: MoveRowProps) => {
             {variantLabel}
           </span>
         )}
-      </td>
-      <td>
-        <span style={isChild ? { paddingLeft: 16 } : undefined}>
-          {move.name}
-        </span>
         {move.note !== undefined && (
           <div style={{ fontSize: UI_SIZES.caption, color: UI_COLORS.mute }}>
             {move.note}
           </div>
         )}
       </td>
-      <td>{command}</td>
-      <td>
+      <td className="moves-table__secondary">
         <GuardBadge level={move.guardLevel} />
-        {move.resonance?.guardLevel !== undefined && (
-          <span style={{ color: UI_COLORS.resonance, marginLeft: 4 }}>
-            →{GUARD_LEVEL_META[move.resonance.guardLevel].shortLabel}
-          </span>
-        )}
       </td>
-      <td>
+      <td>{command}</td>
+      <td className="moves-table__secondary">
         {move.attackType === undefined
           ? "-"
           : ATTACK_TYPE_META[move.attackType].label}
       </td>
-      <td>
-        {move.specialAttributes === undefined ||
-        move.specialAttributes.length === 0
-          ? "-"
-          : move.specialAttributes
-              .map((attr) => SPECIAL_ATTRIBUTE_META[attr].label)
-              .join(" / ")}
-      </td>
-      <td>{resonanceFlinchLabel(move.resonanceFlinch)}</td>
-      <td className="num">
-        {move.startup}
-        {move.resonance?.startup !== undefined && (
-          <span style={{ color: UI_COLORS.resonance }}>
-            {" "}
-            →{move.resonance.startup}
-          </span>
-        )}
-      </td>
+      <td className="num">{move.startup}</td>
       <td className="num">
         <FrameNumber value={move.guardFrameAdvantage} />
-        {move.resonance?.guardFrameAdvantage !== undefined && (
-          <span style={{ color: UI_COLORS.resonance }}>
-            {" "}
-            →<FrameNumber value={move.resonance.guardFrameAdvantage} />
-          </span>
-        )}
       </td>
-      <td className="num">
+      <td className="num moves-table__secondary">
         {move.hitFrameAdvantage === undefined ? (
           "-"
         ) : (
           <FrameNumber value={move.hitFrameAdvantage} />
-        )}
-        {move.resonance?.hitFrameAdvantage !== undefined && (
-          <span style={{ color: UI_COLORS.resonance }}>
-            {" "}
-            →<FrameNumber value={move.resonance.hitFrameAdvantage} />
-          </span>
         )}
       </td>
     </tr>
   );
 };
 
-const DescriptionRow = ({ description }: { description: string }) => (
-  <tr className="moves-table__description">
-    <td colSpan={TABLE_COLUMN_COUNT} style={{ background: "transparent" }}>
-      <details>
-        <summary
-          style={{
-            fontSize: UI_SIZES.small,
-            cursor: "pointer",
-            color: UI_COLORS.accent,
-            userSelect: "none",
-            paddingLeft: 8,
-          }}
-        >
-          説明
-        </summary>
-        <div
-          style={{
-            fontSize: UI_SIZES.body,
-            marginTop: 6,
-            padding: "8px 12px",
-            color: UI_COLORS.description,
-            whiteSpace: "pre-wrap",
-            lineHeight: 1.6,
-            background: DESCRIPTION_BLOCK_BG,
-            borderLeft: `3px solid ${UI_COLORS.accent}`,
-            borderRadius: 4,
-          }}
-        >
-          {description}
-        </div>
-      </details>
-    </td>
-  </tr>
-);
-
 /**
- * 技一覧テーブル。共鳴差分はセル内に黄色で並記し、凡例をテーブル上部に出す。
- * description を持つ技は技行の直下に colspan で全幅の説明行を展開する。
+ * 技一覧テーブル。識別と最頻参照の項目のみを表示し、共鳴差分・特殊属性・説明など
+ * 詳細情報は各技の詳細ページ (/characters/[id]/moves/[moveId]) に委譲する。
+ * 副次列（判定・攻撃属性・ヒット硬直差）はスマホで CSS により非表示にする。
  * ため・派生は親技の直下にぶら下げて表示。
  */
-export const MovesTable = ({ moves }: { moves: Move[] }) => {
+export const MovesTable = ({
+  moves,
+  characterId,
+}: {
+  moves: Move[];
+  characterId: string;
+}) => {
   if (moves.length === 0) {
     return <div className="empty">登録されている技がありません。</div>;
   }
   const groups = groupMovesByParent(moves);
   return (
-    <>
-      <p
-        style={{
-          fontSize: UI_SIZES.small,
-          color: UI_COLORS.mute,
-          margin: "0 0 6px",
-        }}
-      >
-        黄色の「<span style={{ color: UI_COLORS.resonance }}>→値</span>
-        」は共鳴中の値です。
-      </p>
+    <div className="moves-table__scroll">
       <table className="moves-table">
         <thead>
           <tr>
-            <th>属性</th>
             <th>技名</th>
+            <th className="moves-table__secondary">判定</th>
             <th>コマンド</th>
-            <th>判定</th>
-            <th>攻撃属性</th>
-            <th>特殊</th>
-            <th>共鳴怯ませ</th>
+            <th className="moves-table__secondary">攻撃属性</th>
             <th className="num">発生</th>
             <th className="num">ガード硬直差</th>
-            <th className="num">ヒット硬直差</th>
+            <th className="num moves-table__secondary">ヒット硬直差</th>
           </tr>
         </thead>
         <tbody>
@@ -203,27 +135,21 @@ export const MovesTable = ({ moves }: { moves: Move[] }) => {
             const chargeMaxLevel = maxChargeLevel(children);
             return (
               <Fragment key={parent.id}>
-                <MoveRow move={parent} />
-                {parent.description !== undefined && (
-                  <DescriptionRow description={parent.description} />
-                )}
+                <MoveRow move={parent} characterId={characterId} />
                 {children.map((child) => (
-                  <Fragment key={child.id}>
-                    <MoveRow
-                      move={child}
-                      parentCommand={parent.command}
-                      chargeMaxLevel={chargeMaxLevel}
-                    />
-                    {child.description !== undefined && (
-                      <DescriptionRow description={child.description} />
-                    )}
-                  </Fragment>
+                  <MoveRow
+                    key={child.id}
+                    move={child}
+                    characterId={characterId}
+                    parentCommand={parent.command}
+                    chargeMaxLevel={chargeMaxLevel}
+                  />
                 ))}
               </Fragment>
             );
           })}
         </tbody>
       </table>
-    </>
+    </div>
   );
 };
