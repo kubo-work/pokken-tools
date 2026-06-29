@@ -1,8 +1,17 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { CHARACTER_REGISTRY } from "@/lib/characters/registry";
 import { getAllCharacters } from "@/lib/kv/getCharacters";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * トップページだけは検索に載せる。ルートレイアウトの既定 noindex を index 許可へ上書きする。
+ * follow: true でトップから各ページへのクロール導線は残すが、リンク先は noindex のためインデックスされない。
+ */
+export const metadata: Metadata = {
+  robots: { index: true, follow: true },
+};
 
 /**
  * トップ: 23 キャラのテキストタイル選択グリッド。

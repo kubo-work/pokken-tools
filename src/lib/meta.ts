@@ -122,6 +122,12 @@ export const strengthRangeForAttackType = (
     ? undefined
     : STRENGTH_RANGE_BY_ATTACK_TYPE[attackType];
 
+/**
+ * resonanceOnly（共鳴中のみ存在する技）に付けるラベル。
+ * 省スペースの一覧では short、詳細ページでは full を使う。
+ */
+export const RESONANCE_ONLY_LABEL = { short: "共鳴", full: "共鳴専用" } as const;
+
 export const RESONANCE_FLINCH_META: Record<
   ResonanceFlinchLevel,
   { label: string }

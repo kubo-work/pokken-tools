@@ -45,7 +45,7 @@ export default async function CharacterPage({ params }: { params: Params }) {
             デュエルフェイズ ({character.duelMoves.length}技)
           </h2>
         </div>
-        <MovesTable moves={character.duelMoves} />
+        <MovesTable moves={character.duelMoves} characterId={id} />
       </section>
 
       <section className="moves-section">
@@ -54,7 +54,7 @@ export default async function CharacterPage({ params }: { params: Params }) {
             フィールドフェイズ ({character.fieldMoves.length}技)
           </h2>
         </div>
-        <MovesTable moves={character.fieldMoves} />
+        <MovesTable moves={character.fieldMoves} characterId={id} />
       </section>
     </>
   );
