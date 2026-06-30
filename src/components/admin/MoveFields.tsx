@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Checkbox,
-  Group,
-  NumberInput,
-  Select,
-  SimpleGrid,
-  TextInput,
-} from "@mantine/core";
+import { Checkbox, Group, Select, SimpleGrid, TextInput } from "@mantine/core";
 import {
   GUARD_LEVELS,
   MOVE_ATTACK_TYPES,
@@ -17,19 +10,24 @@ import {
   strengthRangeForAttackType,
 } from "@/lib/meta";
 import {
-  asEnumValue,
   asNullableEnumValue,
   asOptionalEnumValue,
   pickEnumValues,
 } from "@/lib/optionGuards";
 import type { Move } from "@/types/move";
+import { IntegerNumberInput } from "./IntegerNumberInput";
 import {
   ATTACK_TYPE_OPTIONS,
   CATEGORY_OPTIONS,
   GUARD_LEVEL_OPTIONS,
 } from "./moveFieldsHelpers";
 import { ResonanceFlinchField } from "./ResonanceFlinchField";
-import { setMoveCategory, setMoveField, setMoveStrength } from "./moveUpdaters";
+import {
+  setMoveAttackType,
+  setMoveCategory,
+  setMoveField,
+  setMoveStrength,
+} from "./moveUpdaters";
 
 export interface MoveFieldsProps {
   move: Move;
@@ -39,8 +37,12 @@ export interface MoveFieldsProps {
 
 export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => {
   const strengthRange = strengthRangeForAttackType(move.attackType);
+  // 属性なしの技は攻撃属性・強度・判定・共鳴怯ませを持たないため、これらの入力欄を隠す。
+  const hasCategory = move.category !== undefined;
   // つかみは攻撃属性・強度・判定を持たないため、これらの入力欄は隠す。
   const isGrab = move.category === "grab";
+  // 攻撃しない技（攻撃属性なし）は強度・判定・共鳴怯ませを持たないため、これらの入力欄は隠す。
+  const hasAttackType = move.attackType !== undefined;
   return (
     <>
       <SimpleGrid cols={{ base: 1, sm: 2 }}>
@@ -52,18 +54,13 @@ export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => {
           }
         />
         {move.variant === "charge" ? (
-          <NumberInput
+          <IntegerNumberInput
+            key={`${move.id}-chargeLevel`}
             label="ため段階"
             min={1}
             value={move.chargeLevel ?? 1}
             onChange={(value) =>
-              onChange(
-                setMoveField(
-                  move,
-                  "chargeLevel",
-                  typeof value === "number" ? value : 1,
-                ),
-              )
+              onChange(setMoveField(move, "chargeLevel", value ?? 1))
             }
           />
         ) : (
@@ -80,71 +77,47 @@ export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => {
       <SimpleGrid cols={{ base: 1, sm: 2 }}>
         <Select
           label="属性"
+          placeholder="なし"
+          clearable
           data={CATEGORY_OPTIONS}
-          value={move.category}
-          allowDeselect={false}
+          value={move.category ?? null}
           onChange={(value) =>
             onChange(
-              setMoveCategory(
-                move,
-                asEnumValue(value, MOVE_CATEGORIES, "attack"),
-              ),
+              setMoveCategory(move, asOptionalEnumValue(value, MOVE_CATEGORIES)),
             )
           }
         />
-        {!isGrab && (
+        {hasCategory && !isGrab && (
           <Select
             label="攻撃属性"
+            placeholder="なし（攻撃しない技）"
             clearable
             data={ATTACK_TYPE_OPTIONS}
             value={move.attackType ?? null}
-            onChange={(value) => {
-              const nextAttackType = asOptionalEnumValue(
-                value,
-                MOVE_ATTACK_TYPES,
-              );
-              const withAttackType = setMoveField(
-                move,
-                "attackType",
-                nextAttackType,
-              );
-              // 攻撃属性を外した場合は強度の許容範囲が無くなるため強度も削除する。
+            onChange={(value) =>
               onChange(
-                nextAttackType === undefined
-                  ? setMoveStrength(withAttackType, undefined)
-                  : withAttackType,
-              );
-            }}
+                setMoveAttackType(
+                  move,
+                  asOptionalEnumValue(value, MOVE_ATTACK_TYPES),
+                ),
+              )
+            }
           />
         )}
       </SimpleGrid>
 
-      {!isGrab && (
+      {!isGrab && hasAttackType && (
         <SimpleGrid cols={{ base: 1, sm: 2 }}>
-          <NumberInput
+          <IntegerNumberInput
+            key={`${move.id}-strength`}
             label="強度"
             placeholder={
-              strengthRange === undefined
-                ? "攻撃属性を選択"
-                : `${strengthRange.min}〜${strengthRange.max}`
+              strengthRange && `${strengthRange.min}〜${strengthRange.max}`
             }
-            description={
-              strengthRange === undefined
-                ? "攻撃属性を選択すると入力できます"
-                : undefined
-            }
-            disabled={strengthRange === undefined}
             min={strengthRange?.min}
             max={strengthRange?.max}
-            value={move.strength ?? ""}
-            onChange={(value) =>
-              onChange(
-                setMoveStrength(
-                  move,
-                  typeof value === "number" ? value : undefined,
-                ),
-              )
-            }
+            value={move.strength}
+            onChange={(value) => onChange(setMoveStrength(move, value))}
           />
           <Select
             label="判定"
@@ -165,7 +138,9 @@ export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => {
         </SimpleGrid>
       )}
 
-      {!isGrab && <ResonanceFlinchField move={move} onChange={onChange} />}
+      {!isGrab && hasAttackType && (
+        <ResonanceFlinchField move={move} onChange={onChange} />
+      )}
 
       <Checkbox.Group
         label="特殊属性（複数可・なくても可）"

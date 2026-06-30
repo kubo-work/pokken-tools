@@ -44,7 +44,8 @@ export interface Move {
   id: string;
   name: string;
   command: string;
-  category: MoveCategory;
+  /** 属性（攻撃／ブロック／つかみ）。攻撃しない・分類しない技では未設定。 */
+  category?: MoveCategory;
   attackType?: MoveAttackType;
   guardLevel: GuardLevel | null;
   startup: number;

@@ -17,7 +17,7 @@ import type { Character } from "@/types/character";
 import type { PunishException } from "@/types/move";
 import { asEnumValue } from "@/lib/optionGuards";
 import { useExceptionsForm } from "@/hooks/admin/useExceptionsForm";
-import { FrameNumberInput } from "./FrameNumberInput";
+import { IntegerNumberInput } from "./IntegerNumberInput";
 
 const ACTION_VALUES = ["exclude", "hit"] as const satisfies readonly PunishException["action"][];
 
@@ -105,7 +105,7 @@ export const ExceptionsForm = ({
                   />
                 </SimpleGrid>
                 {entry.action === "hit" && (
-                  <FrameNumberInput
+                  <IntegerNumberInput
                     key={`exception-${index}-override`}
                     label="ガード硬直差（先端当て時の上書き）"
                     description="攻撃側不利は負の値。空欄なら技の通常ガード硬直差を使用"

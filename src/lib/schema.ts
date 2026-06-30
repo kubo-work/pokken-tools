@@ -32,7 +32,7 @@ export const moveSchema = z
     id: z.string().min(1),
     name: z.string(),
     command: z.string(),
-    category: categorySchema,
+    category: categorySchema.optional(),
     attackType: attackTypeSchema.optional(),
     guardLevel: guardLevelSchema.nullable(),
     startup: z.number(),
@@ -50,23 +50,35 @@ export const moveSchema = z
     description: z.string().optional(),
   })
   .superRefine((move, ctx) => {
-    if (
-      (move.category === "attack" || move.category === "block") &&
-      move.attackType === undefined
-    ) {
+    if (move.category === undefined && move.attackType !== undefined) {
+      // 属性を持たない技は攻撃しないため攻撃属性も持たない。
       ctx.addIssue({
         code: "custom",
         path: ["attackType"],
-        message: "攻撃・ブロック技は攻撃属性（打撃／弾）が必須です",
+        message: "属性を持たない技に攻撃属性は設定できません",
       });
     }
     if (move.attackType === undefined) {
-      // つかみ等、攻撃属性を持たない技は強度を持たない。
+      // 攻撃属性を持たない技（つかみ・攻撃しない技）は強度・判定・共鳴怯ませ強度を持たない。
       if (move.strength !== undefined) {
         ctx.addIssue({
           code: "custom",
           path: ["strength"],
           message: "攻撃属性を持たない技に強度は設定できません",
+        });
+      }
+      if (move.guardLevel !== null) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["guardLevel"],
+          message: "攻撃属性を持たない技に判定は設定できません",
+        });
+      }
+      if (move.resonanceFlinch !== undefined) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["resonanceFlinch"],
+          message: "攻撃属性を持たない技に共鳴怯ませ強度は設定できません",
         });
       }
     } else {
@@ -96,13 +108,6 @@ export const moveSchema = z
           message: `共鳴中の強度は${range.min}〜${range.max}で入力してください`,
         });
       }
-    }
-    if (move.category === "grab" && move.resonanceFlinch !== undefined) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["resonanceFlinch"],
-        message: "つかみ技に共鳴怯ませ強度は設定できません",
-      });
     }
     const isChildVariant =
       move.variant === "charge" || move.variant === "derivative";
