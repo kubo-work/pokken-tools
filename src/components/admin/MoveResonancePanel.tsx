@@ -18,7 +18,7 @@ import {
   GUARD_LEVEL_OPTIONS,
   RESONANCE_NUMBER_FIELDS,
 } from "./moveFieldsHelpers";
-import { FrameNumberInput } from "./FrameNumberInput";
+import { IntegerNumberInput } from "./IntegerNumberInput";
 import {
   setMoveField,
   setResonanceGuardLevel,
@@ -72,7 +72,7 @@ export const MoveResonancePanel = ({
             </Text>
             <SimpleGrid cols={{ base: 2, sm: 3 }}>
               {RESONANCE_NUMBER_FIELDS.map(({ key, label, negative }) => (
-                <FrameNumberInput
+                <IntegerNumberInput
                   key={`${move.id}-resonance-${key}`}
                   label={label}
                   allowNegative={negative}

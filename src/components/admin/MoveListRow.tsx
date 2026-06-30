@@ -79,7 +79,9 @@ export const MoveListRow = ({
                 </Text>
               )}
               <Badge size="xs" variant="light" color="gray">
-                {CATEGORY_META[parent.category].shortLabel}
+                {parent.category !== undefined
+                  ? CATEGORY_META[parent.category].shortLabel
+                  : ""}
                 {parent.strength ?? ""}
               </Badge>
               {children.length > 0 && (

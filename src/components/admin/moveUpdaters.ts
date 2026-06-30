@@ -1,6 +1,7 @@
 import type {
   GuardLevel,
   Move,
+  MoveAttackType,
   MoveCategory,
   ResonanceFlinch,
   ResonanceOverride,
@@ -42,19 +43,50 @@ export const setResonanceNumber = (
 };
 
 /**
- * 技の分類（属性）を更新する。つかみ (grab) は攻撃属性・強度・判定を持たないため、
- * grab へ切り替えたときはこれらを空にする（attackType / strength は削除、guardLevel は null）。
+ * 攻撃に紐づく項目（攻撃属性・強度・判定・共鳴怯ませ）を空にした Move を返す。
+ * 「攻撃しない技」へ変えるときの共通処理（attackType / strength / resonanceFlinch は削除、
+ * guardLevel は null）。属性なし・つかみ・攻撃属性なしのいずれでも同じ不変条件を満たす。
  */
-export const setMoveCategory = (move: Move, category: MoveCategory): Move => {
-  if (category !== "grab") {
-    return { ...move, category };
-  }
-  const next: Move = { ...move, category, guardLevel: null };
+const clearAttackFields = (move: Move): Move => {
+  const next: Move = { ...move, guardLevel: null };
   delete next.attackType;
   delete next.strength;
   delete next.resonanceFlinch;
   return next;
 };
+
+/**
+ * 技の属性 (category) を更新する。攻撃 (attack) / ブロック (block) は攻撃属性以下を保持する。
+ * 属性なし (undefined) と つかみ (grab) は攻撃属性・強度・判定・共鳴怯ませを持たない。
+ */
+export const setMoveCategory = (
+  move: Move,
+  category: MoveCategory | undefined,
+): Move => {
+  if (category === "attack" || category === "block") {
+    return { ...move, category };
+  }
+  // ここに来るのは grab か undefined（属性なし）のみ。
+  const next = clearAttackFields(move);
+  if (category === undefined) {
+    delete next.category;
+  } else {
+    next.category = category;
+  }
+  return next;
+};
+
+/**
+ * 技本体の攻撃属性を更新する。攻撃属性を外した（undefined）技は「攻撃しない技」となり、
+ * 強度・判定・共鳴怯ませ強度を持たない。
+ */
+export const setMoveAttackType = (
+  move: Move,
+  attackType: MoveAttackType | undefined,
+): Move =>
+  attackType !== undefined
+    ? { ...move, attackType }
+    : clearAttackFields(move);
 
 /** 技本体の強度を更新。undefined（攻撃属性なし等）なら強度を削除する。 */
 export const setMoveStrength = (
