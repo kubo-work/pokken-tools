@@ -32,6 +32,11 @@ export type ResonanceFlinch =
   | ResonanceFlinchLevel
   | { switchActiveFrame: number };
 /**
+ * ダメージ系の値。多段ヒット技は { perHit, hitCount } で持ち、「perHit×hitCount」と表示する
+ * （例: 20×3）。単発技は数値のまま。
+ */
+export type DamageValue = number | { perHit: number; hitCount: number };
+/**
  * 硬直差の範囲。当て方や距離で硬直差が変わる技に使う。
  * min が最も不利側（小さい値）、max が最も有利側で、min <= max。
  */
@@ -106,6 +111,14 @@ export interface Move {
   chargeLevel?: number;
   resonance?: ResonanceOverride;
   resonanceOnly?: boolean;
+  /** 基礎ダメージ。未計測なら省略（「-」表示）。 */
+  baseDamage?: DamageValue;
+  /** 削りダメージ（ガードした相手に与える HP ダメージ）。未計測なら省略。 */
+  chipDamage?: DamageValue;
+  /** ガード削り値（相手のガードゲージを削る量）。未計測なら省略。 */
+  guardCrushValue?: DamageValue;
+  /** PCH値（フェイズチェンジポイント）。未計測なら省略。 */
+  phaseChangePoints?: number;
   /** 技名直下に常時表示する短い注記。1 行向け。 */
   note?: string;
   /** 詳細ページでクリック展開する長文の説明。段落 OK。 */

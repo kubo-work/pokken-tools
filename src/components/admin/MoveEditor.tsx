@@ -4,6 +4,7 @@ import type { CSSProperties, ReactNode, Ref } from "react";
 import { Badge, Button, Card, Group, Stack, Text } from "@mantine/core";
 import { MOVE_VARIANT_META } from "@/lib/meta";
 import type { Move } from "@/types/move";
+import { MoveDamageFields } from "./MoveDamageFields";
 import { MoveFields } from "./MoveFields";
 import { MoveResonancePanel } from "./MoveResonancePanel";
 import { MoveTextFields } from "./MoveTextFields";
@@ -75,6 +76,7 @@ export const MoveEditor = ({
 
         <MoveFields move={move} isChild={isChild} onChange={onChange} />
         <MoveTimingFields move={move} onChange={onChange} />
+        <MoveDamageFields move={move} onChange={onChange} />
         <MoveTextFields move={move} onChange={onChange} />
         <MoveResonancePanel move={move} onChange={onChange} />
 
