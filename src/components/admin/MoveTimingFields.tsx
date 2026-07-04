@@ -49,7 +49,7 @@ export const MoveTimingFields = ({ move, onChange }: MoveTimingFieldsProps) => (
     <FrameAdvantageField
       inputKeyPrefix={`${move.id}-hitFrameAdvantage`}
       label="ヒット硬直差"
-      description="未計測なら空欄。ダウンする技は「ダウン」"
+      description="ダウンする技は「ダウン」"
       clearable
       allowDown
       value={move.hitFrameAdvantage}

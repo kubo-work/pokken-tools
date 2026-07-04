@@ -36,7 +36,8 @@ export const MoveDamageFields = ({ move, onChange }: MoveDamageFieldsProps) => (
     <IntegerNumberInput
       key={`${move.id}-phaseChangePoints`}
       label="PCH値"
-      description="フェイズチェンジポイント。未計測なら空欄"
+      description="フェイズチェンジポイント"
+      placeholder="未計測"
       min={0}
       value={move.phaseChangePoints}
       onChange={(value) => onChange(setMovePhaseChangePoints(move, value))}

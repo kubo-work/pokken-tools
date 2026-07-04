@@ -46,7 +46,7 @@ export const DamageValueField = ({
       <IntegerNumberInput
         key={`${inputKeyPrefix}-perHit`}
         label={label}
-        description="未計測なら空欄"
+        placeholder="未計測"
         min={0}
         value={perHit}
         onChange={(nextValue) => emitChange(nextValue, hitCount)}
@@ -54,7 +54,7 @@ export const DamageValueField = ({
       <IntegerNumberInput
         key={`${inputKeyPrefix}-hitCount`}
         label={`${label}のヒット数`}
-        description="多段技のみ（例: 20×3 の 3）。単発は空欄"
+        description="多段技のみ（例: 20×3 の 3）"
         min={2}
         value={hitCount}
         onChange={(nextValue) => emitChange(perHit, nextValue)}
