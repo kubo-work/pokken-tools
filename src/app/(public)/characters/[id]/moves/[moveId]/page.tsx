@@ -23,6 +23,7 @@ import {
   PHASE_META,
   RESONANCE_ONLY_LABEL,
   childVariantLabel,
+  formatDamageValue,
   maxChargeLevel,
   resonanceFlinchLabel,
   specialAttributeLabel,
@@ -147,6 +148,26 @@ const FRAME_ROWS: ComparisonRow[] = [
   },
 ];
 
+/** ダメージ系の行。全変種で未入力ならセクションごと表示しない（hasAnyDamage 参照）。 */
+const DAMAGE_ROWS: ComparisonRow[] = [
+  {
+    header: "基礎ダメージ",
+    renderCell: (move) => formatDamageValue(move.baseDamage),
+  },
+  {
+    header: "削りダメージ",
+    renderCell: (move) => formatDamageValue(move.chipDamage),
+  },
+  {
+    header: "ガード削り値",
+    renderCell: (move) => formatDamageValue(move.guardCrushValue),
+  },
+  {
+    header: "PCH値",
+    renderCell: (move) => move.phaseChangePoints ?? "-",
+  },
+];
+
 /** コマンドは親コマンド基準で変わるため parentMove を受けて行を組み立てる。 */
 const buildAttributeRows = (parentMove: Move): ComparisonRow[] => [
   {
@@ -256,6 +277,13 @@ export default async function MoveDetailPage({
   const hasAnyText = columns.some(
     ({ move }) => move.note !== undefined || move.description !== undefined,
   );
+  const hasAnyDamage = columns.some(
+    ({ move }) =>
+      move.baseDamage !== undefined ||
+      move.chipDamage !== undefined ||
+      move.guardCrushValue !== undefined ||
+      move.phaseChangePoints !== undefined,
+  );
 
   return (
     <div className="move-detail">
@@ -284,6 +312,17 @@ export default async function MoveDetailPage({
           resonanceOnlyLabel={RESONANCE_ONLY_LABEL.full}
         />
       </section>
+
+      {hasAnyDamage && (
+        <section className="move-detail__section">
+          <h2 className="move-detail__section-title">ダメージ</h2>
+          <MoveComparisonTable
+            columns={columns}
+            rows={DAMAGE_ROWS}
+            resonanceOnlyLabel={RESONANCE_ONLY_LABEL.full}
+          />
+        </section>
+      )}
 
       <section className="move-detail__section">
         <h2 className="move-detail__section-title">判定・属性</h2>
