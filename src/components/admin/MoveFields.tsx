@@ -194,7 +194,8 @@ export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => {
           <IntegerNumberInput
             key={`${move.id}-projectileNullifyStartFrame`}
             label="弾消し開始フレーム"
-            description="動作開始を1F目とした経過フレーム。未計測なら空欄"
+            description="動作開始を1F目とした経過フレーム"
+            placeholder="未計測"
             min={1}
             value={move.projectileNullifyStartFrame}
             onChange={(value) =>
