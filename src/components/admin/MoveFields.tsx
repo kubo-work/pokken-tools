@@ -53,6 +53,7 @@ export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => {
       <SimpleGrid cols={{ base: 1, sm: 2 }}>
         <TextInput
           label="技名"
+          withAsterisk
           value={move.name}
           onChange={(event) =>
             onChange(setMoveField(move, "name", event.currentTarget.value))
@@ -62,6 +63,7 @@ export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => {
           <IntegerNumberInput
             key={`${move.id}-chargeLevel`}
             label="ため段階"
+            withAsterisk
             min={1}
             value={move.chargeLevel ?? 1}
             onChange={(value) =>
@@ -71,6 +73,7 @@ export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => {
         ) : (
           <TextInput
             label={isChild ? "コマンド（親からの追加入力）" : "コマンド"}
+            withAsterisk={!isChild}
             value={move.command}
             onChange={(event) =>
               onChange(setMoveField(move, "command", event.currentTarget.value))
@@ -116,6 +119,7 @@ export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => {
           <IntegerNumberInput
             key={`${move.id}-strength`}
             label="強度"
+            withAsterisk
             placeholder={
               strengthRange && `${strengthRange.min}〜${strengthRange.max}`
             }
