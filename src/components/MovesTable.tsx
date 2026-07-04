@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Move } from "@/types/move";
 import { CategoryBadge, GuardBadge } from "@/components/badges";
 import { FrameAdvantageText } from "@/components/FrameAdvantageText";
+import { StrengthHelpPopover } from "@/components/StrengthHelpPopover";
 import {
   AIR_GROUND_JUDGMENT_META,
   ATTACK_TYPE_META,
@@ -135,41 +136,46 @@ export const MovesTable = ({
   }
   const groups = groupMovesByParent(moves);
   return (
-    <div className="moves-table__scroll">
-      <table className="moves-table">
-        <thead>
-          <tr>
-            <th>技名</th>
-            <th className="moves-table__secondary">判定</th>
-            <th>コマンド</th>
-            <th className="moves-table__secondary">攻撃属性</th>
-            <th className="num">強度</th>
-            <th className="num">発生</th>
-            <th className="num">ガード硬直差</th>
-            <th className="num moves-table__secondary">ヒット硬直差</th>
-            <th className="num moves-table__secondary">基礎ダメージ</th>
-          </tr>
-        </thead>
-        <tbody>
-          {groups.map(({ parent, children }) => {
-            const chargeMaxLevel = maxChargeLevel(children);
-            return (
-              <Fragment key={parent.id}>
-                <MoveRow move={parent} characterId={characterId} />
-                {children.map((child) => (
-                  <MoveRow
-                    key={child.id}
-                    move={child}
-                    characterId={characterId}
-                    parentCommand={parent.command}
-                    chargeMaxLevel={chargeMaxLevel}
-                  />
-                ))}
-              </Fragment>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <div className="moves-table__toolbar">
+        <StrengthHelpPopover />
+      </div>
+      <div className="moves-table__scroll">
+        <table className="moves-table">
+          <thead>
+            <tr>
+              <th>技名</th>
+              <th className="moves-table__secondary">判定</th>
+              <th>コマンド</th>
+              <th className="moves-table__secondary">攻撃属性</th>
+              <th className="num">強度</th>
+              <th className="num">発生</th>
+              <th className="num">ガード硬直差</th>
+              <th className="num moves-table__secondary">ヒット硬直差</th>
+              <th className="num moves-table__secondary">基礎ダメージ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {groups.map(({ parent, children }) => {
+              const chargeMaxLevel = maxChargeLevel(children);
+              return (
+                <Fragment key={parent.id}>
+                  <MoveRow move={parent} characterId={characterId} />
+                  {children.map((child) => (
+                    <MoveRow
+                      key={child.id}
+                      move={child}
+                      characterId={characterId}
+                      parentCommand={parent.command}
+                      chargeMaxLevel={chargeMaxLevel}
+                    />
+                  ))}
+                </Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 };
