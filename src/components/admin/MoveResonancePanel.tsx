@@ -18,11 +18,15 @@ import {
   GUARD_LEVEL_OPTIONS,
   RESONANCE_NUMBER_FIELDS,
 } from "./moveFieldsHelpers";
+import { DamageValueField } from "./DamageValueField";
 import { IntegerNumberInput } from "./IntegerNumberInput";
+import { DAMAGE_VALUE_FIELDS } from "./MoveDamageFields";
 import {
   setMoveField,
+  setResonanceDamageValue,
   setResonanceGuardLevel,
   setResonanceNumber,
+  setResonancePhaseChangePoints,
   setResonanceStrength,
   toggleResonance,
 } from "./moveUpdaters";
@@ -114,6 +118,28 @@ export const MoveResonancePanel = ({
                       asOptionalEnumValue(value, GUARD_LEVELS),
                     ),
                   )
+                }
+              />
+              {DAMAGE_VALUE_FIELDS.map(({ key, label }) => (
+                <DamageValueField
+                  key={`${move.id}-resonance-${key}`}
+                  inputKeyPrefix={`${move.id}-resonance-${key}`}
+                  label={label}
+                  placeholder="変化なし"
+                  value={move.resonance?.[key]}
+                  onChange={(value) =>
+                    onChange(setResonanceDamageValue(move, key, value))
+                  }
+                />
+              ))}
+              <IntegerNumberInput
+                key={`${move.id}-resonance-phaseChangePoints`}
+                label="PCH値"
+                placeholder="変化なし"
+                min={0}
+                value={move.resonance?.phaseChangePoints}
+                onChange={(value) =>
+                  onChange(setResonancePhaseChangePoints(move, value))
                 }
               />
             </SimpleGrid>

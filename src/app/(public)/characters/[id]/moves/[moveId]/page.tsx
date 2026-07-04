@@ -152,19 +152,53 @@ const FRAME_ROWS: ComparisonRow[] = [
 const DAMAGE_ROWS: ComparisonRow[] = [
   {
     header: "基礎ダメージ",
-    renderCell: (move) => formatDamageValue(move.baseDamage),
+    renderCell: (move) => (
+      <>
+        {formatDamageValue(move.baseDamage)}
+        {move.resonance?.baseDamage !== undefined && (
+          <ResonanceArrow>
+            {formatDamageValue(move.resonance.baseDamage)}
+          </ResonanceArrow>
+        )}
+      </>
+    ),
   },
   {
     header: "削りダメージ",
-    renderCell: (move) => formatDamageValue(move.chipDamage),
+    renderCell: (move) => (
+      <>
+        {formatDamageValue(move.chipDamage)}
+        {move.resonance?.chipDamage !== undefined && (
+          <ResonanceArrow>
+            {formatDamageValue(move.resonance.chipDamage)}
+          </ResonanceArrow>
+        )}
+      </>
+    ),
   },
   {
     header: "ガード削り値",
-    renderCell: (move) => formatDamageValue(move.guardCrushValue),
+    renderCell: (move) => (
+      <>
+        {formatDamageValue(move.guardCrushValue)}
+        {move.resonance?.guardCrushValue !== undefined && (
+          <ResonanceArrow>
+            {formatDamageValue(move.resonance.guardCrushValue)}
+          </ResonanceArrow>
+        )}
+      </>
+    ),
   },
   {
     header: "PCH値",
-    renderCell: (move) => move.phaseChangePoints ?? "-",
+    renderCell: (move) => (
+      <>
+        {move.phaseChangePoints ?? "-"}
+        {move.resonance?.phaseChangePoints !== undefined && (
+          <ResonanceArrow>{move.resonance.phaseChangePoints}</ResonanceArrow>
+        )}
+      </>
+    ),
   },
 ];
 
