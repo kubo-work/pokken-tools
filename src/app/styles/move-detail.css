@@ -1,0 +1,136 @@
+/* 技詳細ページ（変種比較テーブル frame-table を含む） */
+.move-detail__back {
+  display: inline-block;
+  margin-bottom: 16px;
+  color: var(--link);
+  font-size: 13px;
+}
+
+.move-detail__back:hover {
+  text-decoration: underline;
+}
+
+.move-detail__head {
+  margin-bottom: 24px;
+}
+
+.move-detail__title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+
+.move-detail__tag {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.move-detail__tag--resonance {
+  color: var(--accent);
+}
+
+.move-detail__note {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.move-detail__section {
+  margin-bottom: 28px;
+}
+
+.move-detail__section-title {
+  margin: 0 0 12px;
+  padding-bottom: 6px;
+  font-size: 15px;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+}
+
+.frame-table {
+  border-collapse: collapse;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  min-width: 240px;
+}
+
+.frame-table th,
+.frame-table td {
+  padding: 8px 16px;
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+}
+
+.frame-table thead th {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.frame-table tbody th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.frame-table tr:last-child th,
+.frame-table tr:last-child td {
+  border-bottom: none;
+}
+
+.move-detail__override {
+  color: var(--accent);
+}
+
+.move-detail__description {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.7;
+}
+
+.move-detail__phase {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+/* 比較テーブルが画面幅を超えたら横スクロール */
+.move-detail__table-scroll {
+  overflow-x: auto;
+}
+
+/* 変種列見出しの下に出す「共鳴専用」などのフラグ */
+.move-detail__col-flag {
+  display: block;
+  margin-top: 2px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* 判定・属性テーブルはテキスト主体なので左寄せにする */
+.frame-table--attrs thead th,
+.frame-table--attrs td {
+  text-align: left;
+}
+
+.move-detail__desc-block {
+  margin-bottom: 16px;
+}
+
+.move-detail__desc-block:last-child {
+  margin-bottom: 0;
+}
+
+.move-detail__desc-label {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-dim);
+}

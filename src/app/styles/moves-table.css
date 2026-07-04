@@ -1,0 +1,83 @@
+/* 技テーブル */
+.moves-section {
+  margin-bottom: 32px;
+}
+
+.moves-section__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 12px;
+}
+
+.moves-section__title {
+  margin: 0;
+  font-size: 16px;
+}
+
+.moves-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 14px;
+}
+
+.moves-table th,
+.moves-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.moves-table th {
+  font-weight: 600;
+  color: var(--text-dim);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.moves-table tr:last-child td {
+  border-bottom: none;
+}
+
+.moves-table td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 一覧テーブル: 横スクロール保険と詳細ページへの技名リンク */
+.moves-table__scroll {
+  overflow-x: auto;
+}
+
+/* 技一覧の直上ツールバー（強度説明ポップアップの置き場） */
+.moves-table__toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 6px;
+}
+
+/* 親技: 詳細ページへのリンク。色＋常時下線でクリック可能と分かるようにする */
+.moves-table__move-link {
+  margin-left: 6px;
+  color: var(--link);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+/* ため/派生: リンクではないプレーンな技名。通常テキスト色・下線なしで非リンクと分かるようにする */
+.moves-table__move-name {
+  margin-left: 6px;
+  color: var(--text);
+}
+
+/* スマホでは副次列（判定・攻撃属性・ヒット硬直差）を隠し、詳細ページに委ねる */
+@media (max-width: 640px) {
+  .moves-table__secondary {
+    display: none;
+  }
+}

@@ -1,0 +1,40 @@
+/* キャラ選択グリッド */
+.char-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.char-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px 12px;
+  min-height: 96px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition:
+    transform 0.1s,
+    border-color 0.1s;
+}
+
+.char-tile:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+
+.char-tile__name {
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.char-tile__meta {
+  font-size: 11px;
+  color: var(--text-dim);
+  display: flex;
+  gap: 8px;
+}
