@@ -23,6 +23,20 @@ const specialAttributeSchema = z.enum([
 ]);
 const airGroundJudgmentSchema = z.enum(["air", "ground"]);
 const variantSchema = z.enum(["normal", "charge", "derivative"]);
+const frameAdvantageRangeSchema = z
+  .object({ min: z.number(), max: z.number() })
+  .refine((range) => range.min <= range.max, {
+    message: "範囲は 最小（不利側）<= 最大（有利側）で入力してください",
+  });
+const guardFrameAdvantageSchema = z.union([
+  z.number(),
+  frameAdvantageRangeSchema,
+]);
+const hitFrameAdvantageSchema = z.union([
+  z.number(),
+  frameAdvantageRangeSchema,
+  z.literal("down"),
+]);
 
 const resonanceOverrideSchema = z.object({
   startup: z.number().optional(),
@@ -41,8 +55,8 @@ export const moveSchema = z
     attackType: attackTypeSchema.optional(),
     guardLevel: guardLevelSchema.nullable(),
     startup: z.number(),
-    guardFrameAdvantage: z.number(),
-    hitFrameAdvantage: z.number().optional(),
+    guardFrameAdvantage: guardFrameAdvantageSchema,
+    hitFrameAdvantage: hitFrameAdvantageSchema.optional(),
     strength: strengthSchema.optional(),
     resonanceFlinch: resonanceFlinchSchema.optional(),
     specialAttributes: z.array(specialAttributeSchema).optional(),

@@ -31,9 +31,22 @@ export type ResonanceFlinchLevel = "weak" | "strong";
 export type ResonanceFlinch =
   | ResonanceFlinchLevel
   | { switchActiveFrame: number };
+/**
+ * 硬直差の範囲。当て方や距離で硬直差が変わる技に使う。
+ * min が最も不利側（小さい値）、max が最も有利側で、min <= max。
+ */
+export interface FrameAdvantageRange {
+  min: number;
+  max: number;
+}
+/** ガード硬直差。単一値、または当て方で変わる技の範囲。 */
+export type GuardFrameAdvantage = number | FrameAdvantageRange;
+/** ヒット硬直差。"down" は相手がダウンする技。 */
+export type HitFrameAdvantage = number | FrameAdvantageRange | "down";
 /** 親技 (normal) / ため (charge) / 派生 (derivative)。undefined は normal 扱い。 */
 export type MoveVariant = "normal" | "charge" | "derivative";
 
+/** 共鳴中の上書き値。硬直差は当面単一値のみ対応（範囲・ダウンが必要になったら拡張する）。 */
 export interface ResonanceOverride {
   startup?: number;
   guardFrameAdvantage?: number;
@@ -53,12 +66,13 @@ export interface Move {
   startup: number;
   /**
    * ガード硬直差。攻撃側視点の有利/不利フレームで、負の値ほど攻撃側が不利。
-   * wiki の「ガード硬直差」をそのまま符号付きで入力する。確定反撃計算はこの値だけを使う
-   * （防御側の余裕フレーム = -guardFrameAdvantage）。
+   * wiki の「ガード硬直差」をそのまま符号付きで入力する。当て方や距離で変わる技は範囲で登録する。
+   * 確定反撃計算は最も不利側（範囲なら min）まで候補に含め、有利側では確定しない反撃に
+   * 「当て方次第」の印を付ける（calcPunish 参照）。
    */
-  guardFrameAdvantage: number;
-  /** ヒット硬直差。攻撃側視点の有利/不利フレーム。表示専用で、未計測なら省略。 */
-  hitFrameAdvantage?: number;
+  guardFrameAdvantage: GuardFrameAdvantage;
+  /** ヒット硬直差。攻撃側視点の有利/不利フレーム。ダウンする技は "down"。表示専用で、未計測なら省略。 */
+  hitFrameAdvantage?: HitFrameAdvantage;
   /**
    * 攻撃の強度。攻撃属性 (attackType) に応じた範囲で入力する：打撃 (strike) は 1〜6、弾 (projectile) は 1〜8。
    * 攻撃属性を持たない「つかみ」技には強度がないため省略する。

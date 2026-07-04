@@ -182,6 +182,9 @@ export const resonanceFlinchLabel = (
   return `${RESONANCE_FLINCH_META.weak.label}→${RESONANCE_FLINCH_META.strong.label}（持続${value.switchActiveFrame}〜）`;
 };
 
+/** ヒット硬直差 "down"（相手がダウンする技）の表示ラベル。 */
+export const HIT_FRAME_ADVANTAGE_DOWN_LABEL = "ダウン";
+
 export const GUARD_LEVEL_META: Record<
   GuardLevel,
   { label: string; shortLabel: string }

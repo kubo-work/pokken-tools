@@ -2,7 +2,7 @@ import { Fragment } from "react";
 import Link from "next/link";
 import type { Move } from "@/types/move";
 import { CategoryBadge, GuardBadge } from "@/components/badges";
-import { FrameNumber } from "@/components/FrameNumber";
+import { FrameAdvantageText } from "@/components/FrameAdvantageText";
 import {
   AIR_GROUND_JUDGMENT_META,
   ATTACK_TYPE_META,
@@ -99,13 +99,13 @@ const MoveRow = ({
       <td className="num">{move.strength ?? "-"}</td>
       <td className="num">{move.startup}</td>
       <td className="num">
-        <FrameNumber value={move.guardFrameAdvantage} />
+        <FrameAdvantageText value={move.guardFrameAdvantage} />
       </td>
       <td className="num moves-table__secondary">
         {move.hitFrameAdvantage === undefined ? (
           "-"
         ) : (
-          <FrameNumber value={move.hitFrameAdvantage} />
+          <FrameAdvantageText value={move.hitFrameAdvantage} />
         )}
       </td>
     </tr>
