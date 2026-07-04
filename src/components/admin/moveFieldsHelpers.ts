@@ -31,6 +31,12 @@ export const AIR_GROUND_OPTIONS = AIR_GROUND_JUDGMENTS.map((judgment) => ({
   label: AIR_GROUND_JUDGMENT_META[judgment].label,
 }));
 
+/** 任意項目が未入力（未計測）であることを示す placeholder。 */
+export const PLACEHOLDER_NOT_MEASURED = "未計測";
+
+/** 共鳴差分が未入力（通常時と同じ）であることを示す placeholder。 */
+export const PLACEHOLDER_UNCHANGED = "変化なし";
+
 /**
  * 共鳴怯ませ強度の入力モード。"transition" は「出始め弱→途中から強」で、
  * 選択時に切替フレーム (switchActiveFrame) を別途入力する。

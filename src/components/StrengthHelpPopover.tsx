@@ -3,7 +3,7 @@
  * 公開ページには MantineProvider が無いため、JS 不要の <details> ベースで実装する。
  * 説明文はクライアント提供の仕様（同じ攻撃属性同士がかち合った場合の挙動）。
  */
-export function StrengthHelpPopover() {
+export const StrengthHelpPopover = () => {
   return (
     <details className="strength-help">
       <summary className="strength-help__trigger">強度とは？</summary>
@@ -28,4 +28,4 @@ export function StrengthHelpPopover() {
       </div>
     </details>
   );
-}
+};

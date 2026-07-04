@@ -1,9 +1,4 @@
 import type {
-  AirGroundJudgment,
-  DamageValue,
-  GuardFrameAdvantage,
-  GuardLevel,
-  HitFrameAdvantage,
   Move,
   MoveAttackType,
   MoveCategory,
@@ -14,16 +9,12 @@ import type {
 import {
   DEFAULT_SWITCH_ACTIVE_FRAME,
   type ResonanceFlinchMode,
-  type ResonanceNumberField,
 } from "./moveFieldsHelpers";
 
 /**
  * Move 編集の純粋関数群。コンポーネントは onChange に新しい Move を渡すだけで済むよう、
  * 部分更新ロジックはここに集約する。state も副作用も持たない。
  */
-
-const toNumber = (value: number | string): number =>
-  typeof value === "number" ? value : 0;
 
 /** 1 フィールドだけ差し替えた Move を返す。 */
 export const setMoveField = <Key extends keyof Move>(
@@ -32,17 +23,42 @@ export const setMoveField = <Key extends keyof Move>(
   value: Move[Key],
 ): Move => ({ ...move, [key]: value });
 
-/** 共鳴差分の数値フィールド (startup / guardFrameAdvantage / hitFrameAdvantage) を更新。空文字なら削除。 */
-export const setResonanceNumber = (
+/** Move の省略可能キー（undefined が「無し／未計測」を表すフィールド）。 */
+type OptionalMoveKey = {
+  [Key in keyof Move]-?: undefined extends Move[Key] ? Key : never;
+}[keyof Move];
+
+/**
+ * Move の省略可能フィールドを更新する。undefined ならキーごと削除し、
+ * JSON 化したときにフィールド自体が残らないようにする（省略＝未計測の規約）。
+ */
+export const setOptionalMoveField = <Key extends OptionalMoveKey>(
   move: Move,
-  key: ResonanceNumberField,
-  value: number | string,
+  key: Key,
+  value: Move[Key] | undefined,
+): Move => {
+  const next: Move = { ...move };
+  if (value === undefined) {
+    // OptionalMoveKey 制約で省略可能キーに限定済み。ジェネリックなキーへの
+    // delete 演算子を TS が許可しないため Reflect.deleteProperty で削除する。
+    Reflect.deleteProperty(next, key);
+  } else {
+    next[key] = value;
+  }
+  return next;
+};
+
+/** 共鳴差分 (ResonanceOverride) のフィールドを更新する。undefined ならキーごと削除。 */
+export const setOptionalResonanceField = <Key extends keyof ResonanceOverride>(
+  move: Move,
+  key: Key,
+  value: ResonanceOverride[Key] | undefined,
 ): Move => {
   const next: ResonanceOverride = { ...move.resonance };
-  if (value === "") {
-    delete next[key];
+  if (value === undefined) {
+    Reflect.deleteProperty(next, key);
   } else {
-    next[key] = toNumber(value);
+    next[key] = value;
   }
   return { ...move, resonance: next };
 };
@@ -93,34 +109,6 @@ export const setMoveAttackType = (
     ? { ...move, attackType }
     : clearAttackFields(move);
 
-/** 技本体の強度を更新。undefined（攻撃属性なし等）なら強度を削除する。 */
-export const setMoveStrength = (
-  move: Move,
-  strength: number | undefined,
-): Move => {
-  const next: Move = { ...move };
-  if (strength === undefined) {
-    delete next.strength;
-  } else {
-    next.strength = strength;
-  }
-  return next;
-};
-
-/** 技本体の共鳴怯ませ強度を更新。undefined なら削除する。 */
-export const setMoveResonanceFlinch = (
-  move: Move,
-  resonanceFlinch: ResonanceFlinch | undefined,
-): Move => {
-  const next: Move = { ...move };
-  if (resonanceFlinch === undefined) {
-    delete next.resonanceFlinch;
-  } else {
-    next.resonanceFlinch = resonanceFlinch;
-  }
-  return next;
-};
-
 /**
  * 入力モード（弱／強／弱→強）と切替フレームから技本体の共鳴怯ませ強度を更新する。
  * mode が null なら削除、"transition" なら切替フレーム付きの値、それ以外はモード値をそのまま設定。
@@ -131,36 +119,22 @@ export const setMoveResonanceFlinchMode = (
   mode: ResonanceFlinchMode | null,
   switchActiveFrame: number | undefined,
 ): Move => {
-  if (mode === null) {
-    return setMoveResonanceFlinch(move, undefined);
-  }
-  if (mode === "transition") {
-    return setMoveResonanceFlinch(move, {
-      switchActiveFrame: switchActiveFrame ?? DEFAULT_SWITCH_ACTIVE_FRAME,
-    });
-  }
-  return setMoveResonanceFlinch(move, mode);
+  const resonanceFlinch: ResonanceFlinch | undefined =
+    mode === null
+      ? undefined
+      : mode === "transition"
+        ? {
+            switchActiveFrame: switchActiveFrame ?? DEFAULT_SWITCH_ACTIVE_FRAME,
+          }
+        : mode;
+  return setOptionalMoveField(move, "resonanceFlinch", resonanceFlinch);
 };
 
-/** ガード硬直差を更新する。単一値・範囲のどちらも受け取れる。 */
-export const setMoveGuardFrameAdvantage = (
-  move: Move,
-  guardFrameAdvantage: GuardFrameAdvantage,
-): Move => ({ ...move, guardFrameAdvantage });
-
-/** ヒット硬直差を更新する。undefined（未計測）なら削除する。 */
-export const setMoveHitFrameAdvantage = (
-  move: Move,
-  hitFrameAdvantage: HitFrameAdvantage | undefined,
-): Move => {
-  const next: Move = { ...move };
-  if (hitFrameAdvantage === undefined) {
-    delete next.hitFrameAdvantage;
-  } else {
-    next.hitFrameAdvantage = hitFrameAdvantage;
-  }
-  return next;
-};
+/** DamageValue を持つフィールド名。PCH値 (phaseChangePoints) は単一数値のため含めない。 */
+export type MoveDamageValueFieldKey =
+  | "baseDamage"
+  | "chipDamage"
+  | "guardCrushValue";
 
 /**
  * 特殊属性を更新する。空配列なら specialAttributes 自体を削除する。
@@ -171,136 +145,14 @@ export const setMoveSpecialAttributes = (
   move: Move,
   attributes: SpecialAttribute[],
 ): Move => {
-  const next: Move = { ...move };
-  if (attributes.length === 0) {
-    delete next.specialAttributes;
-  } else {
-    next.specialAttributes = attributes;
-  }
-  if (!attributes.includes("projectileNullify")) {
-    delete next.projectileNullifyStartFrame;
-  }
-  return next;
-};
-
-/** 弾消し開始フレームを更新。undefined（未計測）なら削除する。 */
-export const setMoveProjectileNullifyStartFrame = (
-  move: Move,
-  startFrame: number | undefined,
-): Move => {
-  const next: Move = { ...move };
-  if (startFrame === undefined) {
-    delete next.projectileNullifyStartFrame;
-  } else {
-    next.projectileNullifyStartFrame = startFrame;
-  }
-  return next;
-};
-
-/** 空・地判定を更新。undefined なら削除する。 */
-export const setMoveAirGroundJudgment = (
-  move: Move,
-  airGroundJudgment: AirGroundJudgment | undefined,
-): Move => {
-  const next: Move = { ...move };
-  if (airGroundJudgment === undefined) {
-    delete next.airGroundJudgment;
-  } else {
-    next.airGroundJudgment = airGroundJudgment;
-  }
-  return next;
-};
-
-/** DamageValue を持つフィールド名。PCH値 (phaseChangePoints) は単一数値のため含めない。 */
-export type MoveDamageValueFieldKey =
-  | "baseDamage"
-  | "chipDamage"
-  | "guardCrushValue";
-
-/** ダメージ系フィールド（基礎/削り/ガード削り）を更新。undefined（未計測）なら削除する。 */
-export const setMoveDamageValue = (
-  move: Move,
-  key: MoveDamageValueFieldKey,
-  value: DamageValue | undefined,
-): Move => {
-  const next: Move = { ...move };
-  if (value === undefined) {
-    delete next[key];
-  } else {
-    next[key] = value;
-  }
-  return next;
-};
-
-/** PCH値を更新。undefined（未計測）なら削除する。 */
-export const setMovePhaseChangePoints = (
-  move: Move,
-  phaseChangePoints: number | undefined,
-): Move => {
-  const next: Move = { ...move };
-  if (phaseChangePoints === undefined) {
-    delete next.phaseChangePoints;
-  } else {
-    next.phaseChangePoints = phaseChangePoints;
-  }
-  return next;
-};
-
-/** 共鳴差分のダメージ系フィールド（基礎/削り/ガード削り）を更新。undefined なら削除。 */
-export const setResonanceDamageValue = (
-  move: Move,
-  key: MoveDamageValueFieldKey,
-  value: DamageValue | undefined,
-): Move => {
-  const next: ResonanceOverride = { ...move.resonance };
-  if (value === undefined) {
-    delete next[key];
-  } else {
-    next[key] = value;
-  }
-  return { ...move, resonance: next };
-};
-
-/** 共鳴差分の PCH値を更新。undefined なら削除。 */
-export const setResonancePhaseChangePoints = (
-  move: Move,
-  phaseChangePoints: number | undefined,
-): Move => {
-  const next: ResonanceOverride = { ...move.resonance };
-  if (phaseChangePoints === undefined) {
-    delete next.phaseChangePoints;
-  } else {
-    next.phaseChangePoints = phaseChangePoints;
-  }
-  return { ...move, resonance: next };
-};
-
-/** 共鳴差分の strength を更新。undefined なら削除。 */
-export const setResonanceStrength = (
-  move: Move,
-  strength: number | undefined,
-): Move => {
-  const next: ResonanceOverride = { ...move.resonance };
-  if (strength === undefined) {
-    delete next.strength;
-  } else {
-    next.strength = strength;
-  }
-  return { ...move, resonance: next };
-};
-
-/** 共鳴差分の guardLevel を更新。undefined なら削除。 */
-export const setResonanceGuardLevel = (
-  move: Move,
-  guardLevel: GuardLevel | undefined,
-): Move => {
-  const next: ResonanceOverride = { ...move.resonance };
-  if (guardLevel === undefined) {
-    delete next.guardLevel;
-  } else {
-    next.guardLevel = guardLevel;
-  }
-  return { ...move, resonance: next };
+  const next = setOptionalMoveField(
+    move,
+    "specialAttributes",
+    attributes.length === 0 ? undefined : attributes,
+  );
+  return attributes.includes("projectileNullify")
+    ? next
+    : setOptionalMoveField(next, "projectileNullifyStartFrame", undefined);
 };
 
 /** 共鳴差分 ON/OFF を切り替える。OFF にすると resonance を完全に削除。 */

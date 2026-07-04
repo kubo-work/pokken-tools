@@ -2,11 +2,7 @@
 
 import { SimpleGrid } from "@mantine/core";
 import type { Move } from "@/types/move";
-import {
-  setMoveField,
-  setMoveGuardFrameAdvantage,
-  setMoveHitFrameAdvantage,
-} from "./moveUpdaters";
+import { setMoveField, setOptionalMoveField } from "./moveUpdaters";
 import { FrameAdvantageField } from "./FrameAdvantageField";
 import { IntegerNumberInput } from "./IntegerNumberInput";
 
@@ -31,31 +27,25 @@ export const MoveTimingFields = ({ move, onChange }: MoveTimingFieldsProps) => (
       />
     </SimpleGrid>
     <FrameAdvantageField
+      kind="guard"
       inputKeyPrefix={`${move.id}-guardFrameAdvantage`}
       label="ガード硬直差"
       description="攻撃側不利は負の値。当て方で変わる技は範囲"
       withAsterisk
-      clearable={false}
-      allowDown={false}
       value={move.guardFrameAdvantage}
       onChange={(value) =>
-        // ガード硬直差は必須項目。allowDown=false のため "down" は来ない。
-        onChange(
-          setMoveGuardFrameAdvantage(
-            move,
-            value === undefined || value === "down" ? 0 : value,
-          ),
-        )
+        onChange(setMoveField(move, "guardFrameAdvantage", value))
       }
     />
     <FrameAdvantageField
+      kind="hit"
       inputKeyPrefix={`${move.id}-hitFrameAdvantage`}
       label="ヒット硬直差"
       description="ダウンする技は「ダウン」"
-      clearable
-      allowDown
       value={move.hitFrameAdvantage}
-      onChange={(value) => onChange(setMoveHitFrameAdvantage(move, value))}
+      onChange={(value) =>
+        onChange(setOptionalMoveField(move, "hitFrameAdvantage", value))
+      }
     />
   </>
 );

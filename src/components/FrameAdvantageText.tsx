@@ -8,11 +8,11 @@ import { FrameNumber } from "./FrameNumber";
  * - 範囲（当て方で変わる技）: 「min〜max」を両端それぞれ色分け
  * - "down"（相手がダウンする技）: 「ダウン」
  */
-export function FrameAdvantageText({
+export const FrameAdvantageText = ({
   value,
 }: {
   value: GuardFrameAdvantage | HitFrameAdvantage;
-}) {
+}) => {
   if (value === "down") {
     return <span>{HIT_FRAME_ADVANTAGE_DOWN_LABEL}</span>;
   }
@@ -26,4 +26,4 @@ export function FrameAdvantageText({
       <FrameNumber value={value.max} />
     </span>
   );
-}
+};

@@ -22,16 +22,15 @@ import {
   ATTACK_TYPE_OPTIONS,
   CATEGORY_OPTIONS,
   GUARD_LEVEL_OPTIONS,
+  PLACEHOLDER_NOT_MEASURED,
 } from "./moveFieldsHelpers";
 import { ResonanceFlinchField } from "./ResonanceFlinchField";
 import {
-  setMoveAirGroundJudgment,
   setMoveAttackType,
   setMoveCategory,
   setMoveField,
-  setMoveProjectileNullifyStartFrame,
   setMoveSpecialAttributes,
-  setMoveStrength,
+  setOptionalMoveField,
 } from "./moveUpdaters";
 
 export interface MoveFieldsProps {
@@ -126,7 +125,9 @@ export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => {
             min={strengthRange?.min}
             max={strengthRange?.max}
             value={move.strength}
-            onChange={(value) => onChange(setMoveStrength(move, value))}
+            onChange={(value) =>
+              onChange(setOptionalMoveField(move, "strength", value))
+            }
           />
           <Select
             label="判定"
@@ -161,8 +162,9 @@ export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => {
           value={move.airGroundJudgment ?? null}
           onChange={(value) =>
             onChange(
-              setMoveAirGroundJudgment(
+              setOptionalMoveField(
                 move,
+                "airGroundJudgment",
                 asOptionalEnumValue(value, AIR_GROUND_JUDGMENTS),
               ),
             )
@@ -199,11 +201,13 @@ export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => {
             key={`${move.id}-projectileNullifyStartFrame`}
             label="弾消し開始フレーム"
             description="動作開始を1F目とした経過フレーム"
-            placeholder="未計測"
+            placeholder={PLACEHOLDER_NOT_MEASURED}
             min={1}
             value={move.projectileNullifyStartFrame}
             onChange={(value) =>
-              onChange(setMoveProjectileNullifyStartFrame(move, value))
+              onChange(
+                setOptionalMoveField(move, "projectileNullifyStartFrame", value),
+              )
             }
           />
         </SimpleGrid>
