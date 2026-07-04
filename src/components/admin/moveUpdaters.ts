@@ -1,6 +1,8 @@
 import type {
   AirGroundJudgment,
+  GuardFrameAdvantage,
   GuardLevel,
+  HitFrameAdvantage,
   Move,
   MoveAttackType,
   MoveCategory,
@@ -137,6 +139,26 @@ export const setMoveResonanceFlinchMode = (
     });
   }
   return setMoveResonanceFlinch(move, mode);
+};
+
+/** ガード硬直差を更新する。単一値・範囲のどちらも受け取れる。 */
+export const setMoveGuardFrameAdvantage = (
+  move: Move,
+  guardFrameAdvantage: GuardFrameAdvantage,
+): Move => ({ ...move, guardFrameAdvantage });
+
+/** ヒット硬直差を更新する。undefined（未計測）なら削除する。 */
+export const setMoveHitFrameAdvantage = (
+  move: Move,
+  hitFrameAdvantage: HitFrameAdvantage | undefined,
+): Move => {
+  const next: Move = { ...move };
+  if (hitFrameAdvantage === undefined) {
+    delete next.hitFrameAdvantage;
+  } else {
+    next.hitFrameAdvantage = hitFrameAdvantage;
+  }
+  return next;
 };
 
 /**

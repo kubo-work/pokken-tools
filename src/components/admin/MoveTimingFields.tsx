@@ -2,7 +2,12 @@
 
 import { SimpleGrid } from "@mantine/core";
 import type { Move } from "@/types/move";
-import { setMoveField } from "./moveUpdaters";
+import {
+  setMoveField,
+  setMoveGuardFrameAdvantage,
+  setMoveHitFrameAdvantage,
+} from "./moveUpdaters";
+import { FrameAdvantageField } from "./FrameAdvantageField";
 import { IntegerNumberInput } from "./IntegerNumberInput";
 
 export interface MoveTimingFieldsProps {
@@ -11,36 +16,44 @@ export interface MoveTimingFieldsProps {
 }
 
 export const MoveTimingFields = ({ move, onChange }: MoveTimingFieldsProps) => (
-  <SimpleGrid cols={{ base: 2, sm: 3 }}>
-    <IntegerNumberInput
-      key={`${move.id}-startup`}
-      label="発生"
-      description="技が出るまでのフレーム"
-      min={0}
-      value={move.startup}
-      onChange={(value) =>
-        onChange(setMoveField(move, "startup", value ?? 0))
-      }
-    />
-    <IntegerNumberInput
-      key={`${move.id}-guardFrameAdvantage`}
+  <>
+    <SimpleGrid cols={{ base: 2, sm: 3 }}>
+      <IntegerNumberInput
+        key={`${move.id}-startup`}
+        label="発生"
+        description="技が出るまでのフレーム"
+        min={0}
+        value={move.startup}
+        onChange={(value) =>
+          onChange(setMoveField(move, "startup", value ?? 0))
+        }
+      />
+    </SimpleGrid>
+    <FrameAdvantageField
+      inputKeyPrefix={`${move.id}-guardFrameAdvantage`}
       label="ガード硬直差"
-      description="攻撃側不利は負の値（wiki の値をそのまま）"
-      allowNegative
+      description="攻撃側不利は負の値。当て方で変わる技は範囲"
+      clearable={false}
+      allowDown={false}
       value={move.guardFrameAdvantage}
       onChange={(value) =>
-        onChange(setMoveField(move, "guardFrameAdvantage", value ?? 0))
+        // ガード硬直差は必須項目。allowDown=false のため "down" は来ない。
+        onChange(
+          setMoveGuardFrameAdvantage(
+            move,
+            value === undefined || value === "down" ? 0 : value,
+          ),
+        )
       }
     />
-    <IntegerNumberInput
-      key={`${move.id}-hitFrameAdvantage`}
+    <FrameAdvantageField
+      inputKeyPrefix={`${move.id}-hitFrameAdvantage`}
       label="ヒット硬直差"
-      description="任意。空欄なら未計測"
-      allowNegative
+      description="未計測なら空欄。ダウンする技は「ダウン」"
+      clearable
+      allowDown
       value={move.hitFrameAdvantage}
-      onChange={(value) =>
-        onChange(setMoveField(move, "hitFrameAdvantage", value))
-      }
+      onChange={(value) => onChange(setMoveHitFrameAdvantage(move, value))}
     />
-  </SimpleGrid>
+  </>
 );
