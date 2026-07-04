@@ -58,6 +58,10 @@ export interface ResonanceOverride {
   hitFrameAdvantage?: number;
   strength?: number;
   guardLevel?: GuardLevel;
+  baseDamage?: DamageValue;
+  chipDamage?: DamageValue;
+  guardCrushValue?: DamageValue;
+  phaseChangePoints?: number;
 }
 
 export interface Move {

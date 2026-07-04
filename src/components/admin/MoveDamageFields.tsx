@@ -15,7 +15,11 @@ export interface MoveDamageFieldsProps {
   onChange: (move: Move) => void;
 }
 
-const DAMAGE_VALUE_FIELDS: { key: MoveDamageValueFieldKey; label: string }[] = [
+/** ダメージ系（DamageValue 型）フィールドの一覧。共鳴差分パネルでも同じ並びで使う。 */
+export const DAMAGE_VALUE_FIELDS: {
+  key: MoveDamageValueFieldKey;
+  label: string;
+}[] = [
   { key: "baseDamage", label: "基礎ダメージ" },
   { key: "chipDamage", label: "削りダメージ" },
   { key: "guardCrushValue", label: "ガード削り値" },

@@ -51,6 +51,10 @@ const resonanceOverrideSchema = z.object({
   hitFrameAdvantage: z.number().optional(),
   strength: strengthSchema.optional(),
   guardLevel: guardLevelSchema.optional(),
+  baseDamage: damageValueSchema.optional(),
+  chipDamage: damageValueSchema.optional(),
+  guardCrushValue: damageValueSchema.optional(),
+  phaseChangePoints: z.number().int().nonnegative().optional(),
 });
 
 export const moveSchema = z
