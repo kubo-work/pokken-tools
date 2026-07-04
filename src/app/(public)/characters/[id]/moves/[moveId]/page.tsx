@@ -15,15 +15,16 @@ import {
   type ComparisonRow,
 } from "@/components/MoveComparisonTable";
 import {
+  AIR_GROUND_JUDGMENT_META,
   ATTACK_TYPE_META,
   GUARD_LEVEL_META,
   MOVE_VARIANT_META,
   PHASE_META,
   RESONANCE_ONLY_LABEL,
-  SPECIAL_ATTRIBUTE_META,
   childVariantLabel,
   maxChargeLevel,
   resonanceFlinchLabel,
+  specialAttributeLabel,
 } from "@/lib/meta";
 import type { Move } from "@/types/move";
 
@@ -63,8 +64,13 @@ const specialAttributesLabel = (move: Move): string =>
   move.specialAttributes === undefined || move.specialAttributes.length === 0
     ? "-"
     : move.specialAttributes
-        .map((attribute) => SPECIAL_ATTRIBUTE_META[attribute].label)
+        .map((attribute) => specialAttributeLabel(attribute, move))
         .join(" / ");
+
+const airGroundJudgmentLabel = (move: Move): string =>
+  move.airGroundJudgment === undefined
+    ? "-"
+    : AIR_GROUND_JUDGMENT_META[move.airGroundJudgment].label;
 
 /** 共鳴中の上書き値を amber の「→値」でセル内に併記する。 */
 const ResonanceArrow = ({ children }: { children: ReactNode }) => (
@@ -159,6 +165,7 @@ const buildAttributeRows = (parentMove: Move): ComparisonRow[] => [
       </>
     ),
   },
+  { header: "空・地", renderCell: (move) => airGroundJudgmentLabel(move) },
   { header: "攻撃属性", renderCell: (move) => attackTypeLabel(move) },
   {
     header: "強度",

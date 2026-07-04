@@ -14,7 +14,9 @@ export type GuardLevel =
   | "special_mid"
   | "mid_low"
   | "low";
-export type SpecialAttribute = "blockPiercing" | "armor";
+export type SpecialAttribute = "blockPiercing" | "armor" | "projectileNullify";
+/** 空中／地上判定。上中下段 (guardLevel) とは別軸の判定。 */
+export type AirGroundJudgment = "air" | "ground";
 /**
  * 共鳴怯ませ強度。共鳴（相手が一定時間パワーアップしている状態）中の相手を
  * この技で怯ませられるかを表す。"weak"=怯ませ不可 / "strong"=怯ませ可。
@@ -68,6 +70,17 @@ export interface Move {
    */
   resonanceFlinch?: ResonanceFlinch;
   specialAttributes?: SpecialAttribute[];
+  /**
+   * 弾消しが可能になるフレーム。動作開始を 1F 目とした経過フレーム
+   * （攻撃発生前に弾を消せる技があるため、持続フレーム基準ではない）。
+   * specialAttributes に "projectileNullify" を含む技のみ設定できる。未計測なら省略。
+   */
+  projectileNullifyStartFrame?: number;
+  /**
+   * 空中／地上判定。guardLevel と違い、つかみ技などどの技でも任意で設定できる。
+   * 未設定は「-」表示。
+   */
+  airGroundJudgment?: AirGroundJudgment;
   /** "charge" / "derivative" の場合は親技の id を parentMoveId に必ず入れる。 */
   variant?: MoveVariant;
   parentMoveId?: string;

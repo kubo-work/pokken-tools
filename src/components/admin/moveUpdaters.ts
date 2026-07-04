@@ -1,10 +1,12 @@
 import type {
+  AirGroundJudgment,
   GuardLevel,
   Move,
   MoveAttackType,
   MoveCategory,
   ResonanceFlinch,
   ResonanceOverride,
+  SpecialAttribute,
 } from "@/types/move";
 import {
   DEFAULT_SWITCH_ACTIVE_FRAME,
@@ -135,6 +137,55 @@ export const setMoveResonanceFlinchMode = (
     });
   }
   return setMoveResonanceFlinch(move, mode);
+};
+
+/**
+ * 特殊属性を更新する。空配列なら specialAttributes 自体を削除する。
+ * 弾消し (projectileNullify) を外したときは弾消し開始フレームも一緒に削除し、
+ * 「開始フレームは弾消し属性を持つ技のみ」の不変条件を保つ。
+ */
+export const setMoveSpecialAttributes = (
+  move: Move,
+  attributes: SpecialAttribute[],
+): Move => {
+  const next: Move = { ...move };
+  if (attributes.length === 0) {
+    delete next.specialAttributes;
+  } else {
+    next.specialAttributes = attributes;
+  }
+  if (!attributes.includes("projectileNullify")) {
+    delete next.projectileNullifyStartFrame;
+  }
+  return next;
+};
+
+/** 弾消し開始フレームを更新。undefined（未計測）なら削除する。 */
+export const setMoveProjectileNullifyStartFrame = (
+  move: Move,
+  startFrame: number | undefined,
+): Move => {
+  const next: Move = { ...move };
+  if (startFrame === undefined) {
+    delete next.projectileNullifyStartFrame;
+  } else {
+    next.projectileNullifyStartFrame = startFrame;
+  }
+  return next;
+};
+
+/** 空・地判定を更新。undefined なら削除する。 */
+export const setMoveAirGroundJudgment = (
+  move: Move,
+  airGroundJudgment: AirGroundJudgment | undefined,
+): Move => {
+  const next: Move = { ...move };
+  if (airGroundJudgment === undefined) {
+    delete next.airGroundJudgment;
+  } else {
+    next.airGroundJudgment = airGroundJudgment;
+  }
+  return next;
 };
 
 /** 共鳴差分の strength を更新。undefined なら削除。 */
