@@ -338,34 +338,37 @@ export default async function MoveDetailPage({
         <p className="move-detail__phase">{PHASE_META[phase].label}</p>
       </header>
 
-      <section className="move-detail__section">
-        <h2 className="move-detail__section-title">フレームデータ</h2>
-        <MoveComparisonTable
-          columns={columns}
-          rows={FRAME_ROWS}
-          resonanceOnlyLabel={RESONANCE_ONLY_LABEL.full}
-        />
-      </section>
-
-      {hasAnyDamage && (
+      {/* PC ではテーブル群を横並びにして余白を活かす（狭幅では flex-wrap で縦積み） */}
+      <div className="move-detail__columns">
         <section className="move-detail__section">
-          <h2 className="move-detail__section-title">ダメージ</h2>
+          <h2 className="move-detail__section-title">フレームデータ</h2>
           <MoveComparisonTable
             columns={columns}
-            rows={DAMAGE_ROWS}
+            rows={FRAME_ROWS}
             resonanceOnlyLabel={RESONANCE_ONLY_LABEL.full}
           />
         </section>
-      )}
 
-      <section className="move-detail__section">
-        <h2 className="move-detail__section-title">判定・属性</h2>
-        <MoveComparisonTable
-          columns={columns}
-          rows={buildAttributeRows(parentMove)}
-          align="text"
-        />
-      </section>
+        {hasAnyDamage && (
+          <section className="move-detail__section">
+            <h2 className="move-detail__section-title">ダメージ</h2>
+            <MoveComparisonTable
+              columns={columns}
+              rows={DAMAGE_ROWS}
+              resonanceOnlyLabel={RESONANCE_ONLY_LABEL.full}
+            />
+          </section>
+        )}
+
+        <section className="move-detail__section">
+          <h2 className="move-detail__section-title">判定・属性</h2>
+          <MoveComparisonTable
+            columns={columns}
+            rows={buildAttributeRows(parentMove)}
+            align="text"
+          />
+        </section>
+      </div>
 
       {hasAnyText && (
         <section className="move-detail__section">

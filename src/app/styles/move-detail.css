@@ -42,6 +42,25 @@
   margin-bottom: 28px;
 }
 
+/*
+ * フレームデータ / ダメージ / 判定・属性のテーブル群。
+ * PC では横並びにして右側の余白を活かし、入り切らないセクションは折り返す。
+ * 狭い画面では flex-wrap により従来どおりの縦積みになる。
+ * min-width: 0 は、変種が多く幅広なテーブルでも内側の
+ * .move-detail__table-scroll の横スクロールが効くようにするため。
+ */
+.move-detail__columns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  column-gap: 48px;
+}
+
+.move-detail__columns > .move-detail__section {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .move-detail__section-title {
   margin: 0 0 12px;
   padding-bottom: 6px;
