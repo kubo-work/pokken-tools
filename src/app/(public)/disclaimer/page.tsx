@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "免責事項・著作権表記 | ポッ拳フレーム表",
   description:
-    "本サイトは個人が学習目的で作成した非公式のファンサイトであり、権利者とは一切関係ありません。",
+    "本サイトは非公式のファンサイトであり、権利者とは一切関係ありません。",
 };
 
 /**
@@ -22,7 +22,7 @@ export default function DisclaimerPage() {
       <section className="prose">
         <h2>非公式のファンサイトについて</h2>
         <p>
-          本サイトは、個人が学習目的で作成した非公式のファンサイトです。
+          本サイトは、非公式のファンサイトです。
           株式会社ポケモン、任天堂株式会社、株式会社バンダイナムコエンターテインメント、
           およびその他の権利者とは一切関係ありません。
         </p>

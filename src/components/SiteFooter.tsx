@@ -9,7 +9,7 @@ export function SiteFooter() {
   return (
     <footer className="site-footer">
       <p className="site-footer__note">
-        個人が学習目的で作成した非公式のファンサイトです。権利者とは一切関係ありません。
+        非公式のファンサイトです。権利者とは一切関係ありません。
       </p>
       <nav className="site-footer__nav">
         <Link href="/disclaimer">免責事項・著作権表記</Link>
