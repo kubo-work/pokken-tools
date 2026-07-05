@@ -1,0 +1,60 @@
+/* 強度説明ポップアップ（技一覧の直上ツールバーに置く <details> ベース） */
+.strength-help {
+  position: relative;
+  display: inline-block;
+}
+
+.strength-help__trigger {
+  cursor: pointer;
+  list-style: none;
+  font-size: 12px;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 10px;
+  user-select: none;
+}
+
+.strength-help__trigger::-webkit-details-marker {
+  display: none;
+}
+
+.strength-help[open] .strength-help__trigger {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.strength-help__panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 20;
+  width: min(340px, 86vw);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 12px;
+  line-height: 1.7;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 35%);
+  text-align: left;
+}
+
+.strength-help__lead {
+  margin: 0 0 8px;
+}
+
+.strength-help__heading {
+  margin: 8px 0 2px;
+  font-weight: 600;
+}
+
+.strength-help__list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.strength-help__note {
+  margin: 8px 0 0;
+  color: var(--text-dim);
+}
