@@ -4,6 +4,7 @@ import type { Move } from "@/types/move";
 import { CategoryBadge, GuardBadge } from "@/components/badges";
 import { FrameNumber } from "@/components/FrameNumber";
 import {
+  AIR_GROUND_JUDGMENT_META,
   ATTACK_TYPE_META,
   RESONANCE_ONLY_LABEL,
   childVariantLabel,
@@ -77,6 +78,17 @@ const MoveRow = ({
       </td>
       <td className="moves-table__secondary">
         <GuardBadge level={move.guardLevel} />
+        {move.airGroundJudgment !== undefined && (
+          <span
+            style={{
+              marginLeft: 4,
+              fontSize: UI_SIZES.caption,
+              color: UI_COLORS.mute,
+            }}
+          >
+            {AIR_GROUND_JUDGMENT_META[move.airGroundJudgment].label}
+          </span>
+        )}
       </td>
       <td>{command}</td>
       <td className="moves-table__secondary">

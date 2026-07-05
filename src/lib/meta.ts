@@ -1,4 +1,5 @@
 import type {
+  AirGroundJudgment,
   GuardLevel,
   Move,
   MoveAttackType,
@@ -35,6 +36,33 @@ export const SPECIAL_ATTRIBUTE_META: Record<
 > = {
   blockPiercing: { label: "ブロック貫通", shortLabel: "貫" },
   armor: { label: "アーマー", shortLabel: "鎧" },
+  projectileNullify: { label: "弾消し", shortLabel: "消" },
+};
+
+/**
+ * 特殊属性 1 件の表示ラベルを返す。
+ * 弾消しは開始フレームが登録されていれば「弾消し（NF〜）」（N は動作開始 1F 目基準）。
+ */
+export const specialAttributeLabel = (
+  attribute: SpecialAttribute,
+  move: Move,
+): string => {
+  const baseLabel = SPECIAL_ATTRIBUTE_META[attribute].label;
+  if (
+    attribute === "projectileNullify" &&
+    move.projectileNullifyStartFrame !== undefined
+  ) {
+    return `${baseLabel}（${move.projectileNullifyStartFrame}F〜）`;
+  }
+  return baseLabel;
+};
+
+export const AIR_GROUND_JUDGMENT_META: Record<
+  AirGroundJudgment,
+  { label: string }
+> = {
+  air: { label: "空" },
+  ground: { label: "地" },
 };
 
 export const MOVE_VARIANT_META: Record<
@@ -185,7 +213,9 @@ export const RESONANCE_FLINCH_LEVELS: ResonanceFlinchLevel[] = [
 export const MOVE_SPECIAL_ATTRIBUTES: SpecialAttribute[] = [
   "blockPiercing",
   "armor",
+  "projectileNullify",
 ];
+export const AIR_GROUND_JUDGMENTS: AirGroundJudgment[] = ["air", "ground"];
 export const GUARD_LEVELS: GuardLevel[] = [
   "high",
   "mid_high",

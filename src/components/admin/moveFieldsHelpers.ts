@@ -1,4 +1,6 @@
 import {
+  AIR_GROUND_JUDGMENTS,
+  AIR_GROUND_JUDGMENT_META,
   ATTACK_TYPE_META,
   CATEGORY_META,
   GUARD_LEVELS,
@@ -22,6 +24,11 @@ export const ATTACK_TYPE_OPTIONS = MOVE_ATTACK_TYPES.map((attackType) => ({
 export const GUARD_LEVEL_OPTIONS = GUARD_LEVELS.map((level) => ({
   value: level,
   label: GUARD_LEVEL_META[level].label,
+}));
+
+export const AIR_GROUND_OPTIONS = AIR_GROUND_JUDGMENTS.map((judgment) => ({
+  value: judgment,
+  label: AIR_GROUND_JUDGMENT_META[judgment].label,
 }));
 
 /**

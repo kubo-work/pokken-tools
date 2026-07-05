@@ -2,6 +2,7 @@
 
 import { Checkbox, Group, Select, SimpleGrid, TextInput } from "@mantine/core";
 import {
+  AIR_GROUND_JUDGMENTS,
   GUARD_LEVELS,
   MOVE_ATTACK_TYPES,
   MOVE_CATEGORIES,
@@ -17,15 +18,19 @@ import {
 import type { Move } from "@/types/move";
 import { IntegerNumberInput } from "./IntegerNumberInput";
 import {
+  AIR_GROUND_OPTIONS,
   ATTACK_TYPE_OPTIONS,
   CATEGORY_OPTIONS,
   GUARD_LEVEL_OPTIONS,
 } from "./moveFieldsHelpers";
 import { ResonanceFlinchField } from "./ResonanceFlinchField";
 import {
+  setMoveAirGroundJudgment,
   setMoveAttackType,
   setMoveCategory,
   setMoveField,
+  setMoveProjectileNullifyStartFrame,
+  setMoveSpecialAttributes,
   setMoveStrength,
 } from "./moveUpdaters";
 
@@ -142,16 +147,33 @@ export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => {
         <ResonanceFlinchField move={move} onChange={onChange} />
       )}
 
+      <SimpleGrid cols={{ base: 1, sm: 2 }}>
+        <Select
+          label="空・地判定"
+          description="上中下段とは別軸の判定。任意"
+          placeholder="なし"
+          clearable
+          data={AIR_GROUND_OPTIONS}
+          value={move.airGroundJudgment ?? null}
+          onChange={(value) =>
+            onChange(
+              setMoveAirGroundJudgment(
+                move,
+                asOptionalEnumValue(value, AIR_GROUND_JUDGMENTS),
+              ),
+            )
+          }
+        />
+      </SimpleGrid>
+
       <Checkbox.Group
         label="特殊属性（複数可・なくても可）"
         value={move.specialAttributes ?? []}
         onChange={(value) => {
-          const filtered = pickEnumValues(value, MOVE_SPECIAL_ATTRIBUTES);
           onChange(
-            setMoveField(
+            setMoveSpecialAttributes(
               move,
-              "specialAttributes",
-              filtered.length === 0 ? undefined : filtered,
+              pickEnumValues(value, MOVE_SPECIAL_ATTRIBUTES),
             ),
           );
         }}
@@ -166,6 +188,21 @@ export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => {
           ))}
         </Group>
       </Checkbox.Group>
+
+      {(move.specialAttributes?.includes("projectileNullify") ?? false) && (
+        <SimpleGrid cols={{ base: 1, sm: 2 }}>
+          <IntegerNumberInput
+            key={`${move.id}-projectileNullifyStartFrame`}
+            label="弾消し開始フレーム"
+            description="動作開始を1F目とした経過フレーム。未計測なら空欄"
+            min={1}
+            value={move.projectileNullifyStartFrame}
+            onChange={(value) =>
+              onChange(setMoveProjectileNullifyStartFrame(move, value))
+            }
+          />
+        </SimpleGrid>
+      )}
     </>
   );
 };

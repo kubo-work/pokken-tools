@@ -16,7 +16,12 @@ const resonanceFlinchSchema = z.union([
   z.enum(["weak", "strong"]),
   z.object({ switchActiveFrame: z.number().int().positive() }),
 ]);
-const specialAttributeSchema = z.enum(["blockPiercing", "armor"]);
+const specialAttributeSchema = z.enum([
+  "blockPiercing",
+  "armor",
+  "projectileNullify",
+]);
+const airGroundJudgmentSchema = z.enum(["air", "ground"]);
 const variantSchema = z.enum(["normal", "charge", "derivative"]);
 
 const resonanceOverrideSchema = z.object({
@@ -41,6 +46,8 @@ export const moveSchema = z
     strength: strengthSchema.optional(),
     resonanceFlinch: resonanceFlinchSchema.optional(),
     specialAttributes: z.array(specialAttributeSchema).optional(),
+    projectileNullifyStartFrame: z.number().int().positive().optional(),
+    airGroundJudgment: airGroundJudgmentSchema.optional(),
     variant: variantSchema.optional(),
     parentMoveId: z.string().min(1).optional(),
     chargeLevel: z.number().int().positive().optional(),
@@ -108,6 +115,17 @@ export const moveSchema = z
           message: `共鳴中の強度は${range.min}〜${range.max}で入力してください`,
         });
       }
+    }
+    if (
+      move.projectileNullifyStartFrame !== undefined &&
+      !(move.specialAttributes?.includes("projectileNullify") ?? false)
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["projectileNullifyStartFrame"],
+        message:
+          "弾消し開始フレームは特殊属性「弾消し」を持つ技にのみ設定できます",
+      });
     }
     const isChildVariant =
       move.variant === "charge" || move.variant === "derivative";
