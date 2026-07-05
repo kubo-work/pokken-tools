@@ -5,6 +5,10 @@ import type { PunishException, ResonanceState } from "@/types/move";
 import { FrameNumber } from "@/components/FrameNumber";
 import { CategoryBadge, GuardBadge } from "@/components/badges";
 import { usePunishSearch } from "@/hooks/punish/usePunishSearch";
+import { formatPunishWindow } from "@/lib/frame/frameAdvantage";
+
+/** 範囲登録された硬直差の不利側でのみ確定する反撃に付ける注記。 */
+const SPACING_DEPENDENT_NOTE = "当て方・距離次第で確定しない場合あり";
 
 const RESONANCE_OPTIONS: { value: ResonanceState; label: string }[] = [
   { value: "normal", label: "通常" },
@@ -96,9 +100,10 @@ export const PunishSearch = ({
       ) : (
         <>
           <p className="page-lead" style={{ marginBottom: 12 }}>
-            余裕フレーム: {-attackerContext.move.guardFrameAdvantage}F（攻撃側{" "}
-            {attackerContext.character.name} / {attackerContext.move.name}{" "}
-            がガードされた前提）
+            余裕フレーム:{" "}
+            {formatPunishWindow(attackerContext.move.guardFrameAdvantage)}
+            F（攻撃側 {attackerContext.character.name} /{" "}
+            {attackerContext.move.name} がガードされた前提）
           </p>
           {results.length === 0 ? (
             <div className="empty">確定反撃はありません。</div>
@@ -130,7 +135,14 @@ export const PunishSearch = ({
                     </td>
                     <td className="num">{result.defenderMove.startup}</td>
                     <td style={{ fontSize: 12, color: "#9095a0" }}>
-                      {result.forcedBy?.note ?? ""}
+                      {[
+                        result.spacingDependent
+                          ? SPACING_DEPENDENT_NOTE
+                          : undefined,
+                        result.forcedBy?.note,
+                      ]
+                        .filter((note) => note !== undefined)
+                        .join(" / ")}
                     </td>
                   </tr>
                 ))}

@@ -8,6 +8,7 @@ import { findMoveInCharacter } from "@/lib/moves/findMove";
 import { formatMoveCommand } from "@/lib/moves/command";
 import { groupMovesByParent } from "@/lib/moves/grouping";
 import { CategoryBadge } from "@/components/badges";
+import { FrameAdvantageText } from "@/components/FrameAdvantageText";
 import { FrameNumber } from "@/components/FrameNumber";
 import {
   MoveComparisonTable,
@@ -118,7 +119,7 @@ const FRAME_ROWS: ComparisonRow[] = [
     header: "ガード硬直差",
     renderCell: (move) => (
       <>
-        <FrameNumber value={move.guardFrameAdvantage} />
+        <FrameAdvantageText value={move.guardFrameAdvantage} />
         {move.resonance?.guardFrameAdvantage !== undefined && (
           <ResonanceArrow>
             <FrameNumber value={move.resonance.guardFrameAdvantage} />
@@ -134,7 +135,7 @@ const FRAME_ROWS: ComparisonRow[] = [
         {move.hitFrameAdvantage === undefined ? (
           "-"
         ) : (
-          <FrameNumber value={move.hitFrameAdvantage} />
+          <FrameAdvantageText value={move.hitFrameAdvantage} />
         )}
         {move.resonance?.hitFrameAdvantage !== undefined && (
           <ResonanceArrow>
