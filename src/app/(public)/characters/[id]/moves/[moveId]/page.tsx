@@ -149,10 +149,12 @@ export default async function MoveDetailPage({
       <div className="move-detail__columns">
         <section className="move-detail__section">
           <h2 className="move-detail__section-title">フレームデータ</h2>
+          {/* 技一覧の子技リンク（#変種ID）の着地点。アンカーはこのテーブルだけに付ける。 */}
           <MoveComparisonTable
             columns={columns}
             rows={FRAME_ROWS}
             resonanceOnlyLabel={RESONANCE_ONLY_LABEL.full}
+            withColumnAnchors
           />
         </section>
 

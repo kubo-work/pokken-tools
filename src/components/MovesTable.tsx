@@ -33,22 +33,18 @@ const MoveRow = ({
   const isChild = isChildMove(move);
   const command = formatMoveCommand(move, parentCommand);
   const variantLabel = childVariantLabel(move, chargeMaxLevel);
+  // ため/派生は親の詳細ページに集約されているため、該当変種列へのアンカー付きで親ページへ飛ばす。
+  const detailPageHref = isChild
+    ? `/characters/${characterId}/moves/${move.parentMoveId ?? move.id}#${move.id}`
+    : `/characters/${characterId}/moves/${move.id}`;
   return (
     <tr className={isChild ? "moves-table__child" : undefined}>
       <td>
         <span style={isChild ? { paddingLeft: 16 } : undefined}>
           <CategoryBadge category={move.category} />
-          {isChild ? (
-            // ため/派生は親の詳細ページにまとめて表示するため、子はリンクにしない。
-            <span className="moves-table__move-name">{move.name}</span>
-          ) : (
-            <Link
-              href={`/characters/${characterId}/moves/${move.id}`}
-              className="moves-table__move-link"
-            >
-              {move.name}
-            </Link>
-          )}
+          <Link href={detailPageHref} className="moves-table__move-link">
+            {move.name}
+          </Link>
         </span>
         {move.resonanceOnly === true && (
           <span

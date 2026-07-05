@@ -23,6 +23,11 @@ interface MoveComparisonTableProps {
   align?: "number" | "text";
   /** 指定すると、resonanceOnly の列見出しの下にこのラベルをフラグ表示する。 */
   resonanceOnlyLabel?: string;
+  /**
+   * true なら変種列の見出しに id（技 ID）を付け、技一覧からのアンカーリンクの着地点にする。
+   * id はページ内で一意にする必要があるため、複数テーブルを並べるページでは 1 つだけに指定する。
+   */
+  withColumnAnchors?: boolean;
 }
 
 /**
@@ -34,6 +39,7 @@ export const MoveComparisonTable = ({
   rows,
   align = "number",
   resonanceOnlyLabel,
+  withColumnAnchors = false,
 }: MoveComparisonTableProps) => (
   <div className="move-detail__table-scroll">
     <table
@@ -49,7 +55,10 @@ export const MoveComparisonTable = ({
             </span>
           </th>
           {columns.map((column) => (
-            <th key={column.move.id}>
+            <th
+              key={column.move.id}
+              id={withColumnAnchors ? column.move.id : undefined}
+            >
               {column.label}
               {resonanceOnlyLabel !== undefined &&
                 column.move.resonanceOnly === true && (
