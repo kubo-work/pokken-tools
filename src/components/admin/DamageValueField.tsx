@@ -1,11 +1,11 @@
 "use client";
 
+import { useState } from "react";
+import { NumberInput } from "@mantine/core";
 import type { DamageValue } from "@/types/move";
-import { IntegerNumberInput } from "./IntegerNumberInput";
+import { PLACEHOLDER_NOT_MEASURED } from "./moveFieldsHelpers";
 
 export interface DamageValueFieldProps {
-  /** IntegerNumberInput 再マウント用キーの前置き（例: `${move.id}-baseDamage`）。 */
-  inputKeyPrefix: string;
   label: string;
   /** 値入力の placeholder。技本体は「未計測」、共鳴差分は「変化なし」。 */
   placeholder?: string;
@@ -18,49 +18,63 @@ export interface DamageValueFieldProps {
  * - 値が空欄 → 未計測 (undefined)
  * - ヒット数が空欄 → 単発技（数値のみ）
  * - 両方入力 → 多段技（値×ヒット数）
+ *
+ * ヒット数だけ先に入力されると DamageValue では表現できない下書き状態になるため、
+ * 両入力の下書きをローカル state で保持し、確定できる組み合わせだけを onChange に流す。
+ * 別の技を選び直したときは、呼び出し側で key（例 `${move.id}-baseDamage`）を付けて
+ * 再マウントさせること（IntegerNumberInput と同じ契約）。
  */
 export const DamageValueField = ({
-  inputKeyPrefix,
   label,
-  placeholder = "未計測",
+  placeholder = PLACEHOLDER_NOT_MEASURED,
   value,
   onChange,
 }: DamageValueFieldProps) => {
-  const perHit = typeof value === "object" ? value.perHit : value;
-  const hitCount = typeof value === "object" ? value.hitCount : undefined;
+  const [perHitDraft, setPerHitDraft] = useState<number | string>(
+    typeof value === "object" ? value.perHit : (value ?? ""),
+  );
+  const [hitCountDraft, setHitCountDraft] = useState<number | string>(
+    typeof value === "object" ? value.hitCount : "",
+  );
 
   const emitChange = (
-    nextPerHit: number | undefined,
-    nextHitCount: number | undefined,
+    nextPerHit: number | string,
+    nextHitCount: number | string,
   ) => {
-    if (nextPerHit === undefined) {
+    if (typeof nextPerHit !== "number") {
       onChange(undefined);
       return;
     }
     onChange(
-      nextHitCount === undefined
-        ? nextPerHit
-        : { perHit: nextPerHit, hitCount: nextHitCount },
+      typeof nextHitCount === "number"
+        ? { perHit: nextPerHit, hitCount: nextHitCount }
+        : nextPerHit,
     );
   };
 
   return (
     <>
-      <IntegerNumberInput
-        key={`${inputKeyPrefix}-perHit`}
+      <NumberInput
         label={label}
         placeholder={placeholder}
+        allowDecimal={false}
         min={0}
-        value={perHit}
-        onChange={(nextValue) => emitChange(nextValue, hitCount)}
+        value={perHitDraft}
+        onChange={(nextValue) => {
+          setPerHitDraft(nextValue);
+          emitChange(nextValue, hitCountDraft);
+        }}
       />
-      <IntegerNumberInput
-        key={`${inputKeyPrefix}-hitCount`}
+      <NumberInput
         label={`${label}のヒット数`}
         description="多段技のみ（例: 20×3 の 3）"
+        allowDecimal={false}
         min={2}
-        value={hitCount}
-        onChange={(nextValue) => emitChange(perHit, nextValue)}
+        value={hitCountDraft}
+        onChange={(nextValue) => {
+          setHitCountDraft(nextValue);
+          emitChange(perHitDraft, nextValue);
+        }}
       />
     </>
   );

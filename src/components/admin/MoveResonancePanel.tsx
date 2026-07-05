@@ -16,6 +16,7 @@ import { asOptionalEnumValue } from "@/lib/optionGuards";
 import type { Move } from "@/types/move";
 import {
   GUARD_LEVEL_OPTIONS,
+  PLACEHOLDER_UNCHANGED,
   RESONANCE_NUMBER_FIELDS,
 } from "./moveFieldsHelpers";
 import { DamageValueField } from "./DamageValueField";
@@ -23,11 +24,7 @@ import { IntegerNumberInput } from "./IntegerNumberInput";
 import { DAMAGE_VALUE_FIELDS } from "./MoveDamageFields";
 import {
   setMoveField,
-  setResonanceDamageValue,
-  setResonanceGuardLevel,
-  setResonanceNumber,
-  setResonancePhaseChangePoints,
-  setResonanceStrength,
+  setOptionalResonanceField,
   toggleResonance,
 } from "./moveUpdaters";
 
@@ -83,23 +80,24 @@ export const MoveResonancePanel = ({
                   min={negative ? undefined : 0}
                   value={move.resonance?.[key]}
                   onChange={(value) =>
-                    onChange(
-                      setResonanceNumber(move, key, value ?? ""),
-                    )
+                    onChange(setOptionalResonanceField(move, key, value))
                   }
                 />
               ))}
               <NumberInput
                 label="強度"
-                placeholder={strengthRange === undefined ? "強度なし" : "変化なし"}
+                placeholder={
+                  strengthRange === undefined ? "強度なし" : PLACEHOLDER_UNCHANGED
+                }
                 disabled={strengthRange === undefined}
                 min={strengthRange?.min}
                 max={strengthRange?.max}
                 value={move.resonance?.strength ?? ""}
                 onChange={(value) =>
                   onChange(
-                    setResonanceStrength(
+                    setOptionalResonanceField(
                       move,
+                      "strength",
                       typeof value === "number" ? value : undefined,
                     ),
                   )
@@ -107,14 +105,15 @@ export const MoveResonancePanel = ({
               />
               <Select
                 label="判定"
-                placeholder="変化なし"
+                placeholder={PLACEHOLDER_UNCHANGED}
                 clearable
                 data={GUARD_LEVEL_OPTIONS}
                 value={move.resonance?.guardLevel ?? null}
                 onChange={(value) =>
                   onChange(
-                    setResonanceGuardLevel(
+                    setOptionalResonanceField(
                       move,
+                      "guardLevel",
                       asOptionalEnumValue(value, GUARD_LEVELS),
                     ),
                   )
@@ -123,23 +122,24 @@ export const MoveResonancePanel = ({
               {DAMAGE_VALUE_FIELDS.map(({ key, label }) => (
                 <DamageValueField
                   key={`${move.id}-resonance-${key}`}
-                  inputKeyPrefix={`${move.id}-resonance-${key}`}
                   label={label}
-                  placeholder="変化なし"
+                  placeholder={PLACEHOLDER_UNCHANGED}
                   value={move.resonance?.[key]}
                   onChange={(value) =>
-                    onChange(setResonanceDamageValue(move, key, value))
+                    onChange(setOptionalResonanceField(move, key, value))
                   }
                 />
               ))}
               <IntegerNumberInput
                 key={`${move.id}-resonance-phaseChangePoints`}
                 label="PCH値"
-                placeholder="変化なし"
+                placeholder={PLACEHOLDER_UNCHANGED}
                 min={0}
                 value={move.resonance?.phaseChangePoints}
                 onChange={(value) =>
-                  onChange(setResonancePhaseChangePoints(move, value))
+                  onChange(
+                    setOptionalResonanceField(move, "phaseChangePoints", value),
+                  )
                 }
               />
             </SimpleGrid>

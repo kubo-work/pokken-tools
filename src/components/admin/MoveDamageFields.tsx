@@ -4,9 +4,9 @@ import { SimpleGrid } from "@mantine/core";
 import type { Move } from "@/types/move";
 import { DamageValueField } from "./DamageValueField";
 import { IntegerNumberInput } from "./IntegerNumberInput";
+import { PLACEHOLDER_NOT_MEASURED } from "./moveFieldsHelpers";
 import {
-  setMoveDamageValue,
-  setMovePhaseChangePoints,
+  setOptionalMoveField,
   type MoveDamageValueFieldKey,
 } from "./moveUpdaters";
 
@@ -31,20 +31,21 @@ export const MoveDamageFields = ({ move, onChange }: MoveDamageFieldsProps) => (
     {DAMAGE_VALUE_FIELDS.map(({ key, label }) => (
       <DamageValueField
         key={`${move.id}-${key}`}
-        inputKeyPrefix={`${move.id}-${key}`}
         label={label}
         value={move[key]}
-        onChange={(value) => onChange(setMoveDamageValue(move, key, value))}
+        onChange={(value) => onChange(setOptionalMoveField(move, key, value))}
       />
     ))}
     <IntegerNumberInput
       key={`${move.id}-phaseChangePoints`}
       label="PCH値"
       description="フェイズチェンジポイント"
-      placeholder="未計測"
+      placeholder={PLACEHOLDER_NOT_MEASURED}
       min={0}
       value={move.phaseChangePoints}
-      onChange={(value) => onChange(setMovePhaseChangePoints(move, value))}
+      onChange={(value) =>
+        onChange(setOptionalMoveField(move, "phaseChangePoints", value))
+      }
     />
   </SimpleGrid>
 );

@@ -1,4 +1,9 @@
-import type { Move, PunishException, ResonanceState } from "@/types/move";
+import type {
+  GuardFrameAdvantage,
+  Move,
+  PunishException,
+  ResonanceState,
+} from "@/types/move";
 import {
   bestGuardFrameAdvantage,
   worstGuardFrameAdvantage,
@@ -49,6 +54,67 @@ export interface SearchPunishParams {
 }
 
 /**
+ * 防御側の余裕フレーム。max=攻撃側が最も不利な当て方、min=最も有利な当て方のときの値。
+ * 単一値の硬直差では max と min が一致する。
+ */
+interface AvailableFrames {
+  max: number;
+  min: number;
+}
+
+const availableFramesOf = (
+  guardFrameAdvantage: GuardFrameAdvantage,
+): AvailableFrames => ({
+  max: -worstGuardFrameAdvantage(guardFrameAdvantage),
+  min: -bestGuardFrameAdvantage(guardFrameAdvantage),
+});
+
+/** 例外なしの通常判定。最大余裕でも間に合わない技は undefined（確定しない）。 */
+const punishResultOf = (
+  defenderMove: Move,
+  availableFrames: AvailableFrames,
+): PunishResult | undefined => {
+  const frameAdvantage = availableFrames.max - defenderMove.startup;
+  if (frameAdvantage < 0) {
+    return undefined;
+  }
+  return {
+    defenderMove,
+    frameAdvantage,
+    spacingDependent: availableFrames.min - defenderMove.startup < 0,
+  };
+};
+
+/**
+ * action="hit" の例外を結果にする。フレーム上不成立でも強制的に表示する（先端当て等）。
+ * guardFrameAdvantageOverride があればその状況専用の単一値（符号付き）から再計算し、
+ * 当て方依存の注記は付けない。
+ */
+const forcedPunishResultOf = (
+  defenderMove: Move,
+  availableFrames: AvailableFrames,
+  exception: PunishException,
+): PunishResult => {
+  if (exception.guardFrameAdvantageOverride !== undefined) {
+    return {
+      defenderMove,
+      frameAdvantage:
+        -exception.guardFrameAdvantageOverride - defenderMove.startup,
+      spacingDependent: false,
+      forcedBy: exception,
+    };
+  }
+  const frameAdvantage = availableFrames.max - defenderMove.startup;
+  return {
+    defenderMove,
+    frameAdvantage,
+    spacingDependent:
+      frameAdvantage >= 0 && availableFrames.min - defenderMove.startup < 0,
+    forcedBy: exception,
+  };
+};
+
+/**
  * ガードされた攻撃側の技に対する確定反撃を検索する。
  *
  * 余裕フレーム = -攻撃側のガード硬直差（guardFrameAdvantage）。
@@ -57,70 +123,38 @@ export interface SearchPunishParams {
  *
  * ガード硬直差が範囲（当て方・距離で変わる技）の場合:
  *   - 最も不利側（min）の余裕フレームで成立判定し、候補を最大まで表示する。
- *   - 最も有利側（max）では成立しない反撃は spacingDependent=true とし、
- *     「当て方次第で確定しない場合あり」を UI で注記する。
+ *   - 最も有利側（max）では成立しない反撃は spacingDependent=true とする。
  *
  * 例外ペアが登録されている場合は action で上書きする。
  *   - "exclude": フレーム上確定でも結果から除外（ノックバック等）。
- *   - "hit":     フレーム上不可でも強制的に表示（先端当て等）。
- *                guardFrameAdvantageOverride が指定されていればそれ（符号付き・単一値）から
- *                余裕フレームを再計算する。
+ *   - "hit":     フレーム上不可でも強制的に表示（forcedPunishResultOf 参照）。
  */
 export const searchPunishes = (params: SearchPunishParams): PunishResult[] => {
   const { attackerMove, defenderMoves, defenderState, exceptions } = params;
-  // 最大余裕 = 攻撃側が最も不利な当て方。単一値の技は最大・最小が一致する。
-  const maxAvailableFrames = -worstGuardFrameAdvantage(
-    attackerMove.guardFrameAdvantage,
-  );
-  const minAvailableFrames = -bestGuardFrameAdvantage(
-    attackerMove.guardFrameAdvantage,
-  );
+  const availableFrames = availableFramesOf(attackerMove.guardFrameAdvantage);
 
   const results: PunishResult[] = [];
   for (const candidate of defenderMoves) {
-    if (!isDefenderCandidate(candidate)) {
+    if (
+      !isDefenderCandidate(candidate) ||
+      !isMoveAvailable(candidate, defenderState)
+    ) {
       continue;
     }
-    if (!isMoveAvailable(candidate, defenderState)) {
-      continue;
-    }
-
     const defenderMove = resolveMove(candidate, defenderState);
     const exception = exceptions.find(
       (entry) =>
         entry.attackerMoveId === attackerMove.id &&
         entry.defenderMoveId === candidate.id,
     );
-
-    if (exception !== undefined) {
-      if (exception.action === "exclude") {
-        continue;
-      }
-      const overrideAdvantage = exception.guardFrameAdvantageOverride;
-      const availableFrames =
-        overrideAdvantage !== undefined
-          ? -overrideAdvantage
-          : maxAvailableFrames;
-      results.push({
-        defenderMove,
-        frameAdvantage: availableFrames - defenderMove.startup,
-        // 上書き値があるときはその状況専用の単一値なので当て方依存の注記は不要。
-        spacingDependent:
-          overrideAdvantage === undefined &&
-          maxAvailableFrames - defenderMove.startup >= 0 &&
-          minAvailableFrames - defenderMove.startup < 0,
-        forcedBy: exception,
-      });
-      continue;
-    }
-
-    const frameAdvantage = maxAvailableFrames - defenderMove.startup;
-    if (frameAdvantage >= 0) {
-      results.push({
-        defenderMove,
-        frameAdvantage,
-        spacingDependent: minAvailableFrames - defenderMove.startup < 0,
-      });
+    const result =
+      exception === undefined
+        ? punishResultOf(defenderMove, availableFrames)
+        : exception.action === "exclude"
+          ? undefined
+          : forcedPunishResultOf(defenderMove, availableFrames, exception);
+    if (result !== undefined) {
+      results.push(result);
     }
   }
 
