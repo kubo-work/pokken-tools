@@ -246,6 +246,35 @@ export const setMovePhaseChangePoints = (
   return next;
 };
 
+/** 共鳴差分のダメージ系フィールド（基礎/削り/ガード削り）を更新。undefined なら削除。 */
+export const setResonanceDamageValue = (
+  move: Move,
+  key: MoveDamageValueFieldKey,
+  value: DamageValue | undefined,
+): Move => {
+  const next: ResonanceOverride = { ...move.resonance };
+  if (value === undefined) {
+    delete next[key];
+  } else {
+    next[key] = value;
+  }
+  return { ...move, resonance: next };
+};
+
+/** 共鳴差分の PCH値を更新。undefined なら削除。 */
+export const setResonancePhaseChangePoints = (
+  move: Move,
+  phaseChangePoints: number | undefined,
+): Move => {
+  const next: ResonanceOverride = { ...move.resonance };
+  if (phaseChangePoints === undefined) {
+    delete next.phaseChangePoints;
+  } else {
+    next.phaseChangePoints = phaseChangePoints;
+  }
+  return { ...move, resonance: next };
+};
+
 /** 共鳴差分の strength を更新。undefined なら削除。 */
 export const setResonanceStrength = (
   move: Move,

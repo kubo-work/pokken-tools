@@ -7,6 +7,8 @@ export interface DamageValueFieldProps {
   /** IntegerNumberInput 再マウント用キーの前置き（例: `${move.id}-baseDamage`）。 */
   inputKeyPrefix: string;
   label: string;
+  /** 値入力の placeholder。技本体は「未計測」、共鳴差分は「変化なし」。 */
+  placeholder?: string;
   value: DamageValue | undefined;
   onChange: (value: DamageValue | undefined) => void;
 }
@@ -20,6 +22,7 @@ export interface DamageValueFieldProps {
 export const DamageValueField = ({
   inputKeyPrefix,
   label,
+  placeholder = "未計測",
   value,
   onChange,
 }: DamageValueFieldProps) => {
@@ -46,7 +49,7 @@ export const DamageValueField = ({
       <IntegerNumberInput
         key={`${inputKeyPrefix}-perHit`}
         label={label}
-        placeholder="未計測"
+        placeholder={placeholder}
         min={0}
         value={perHit}
         onChange={(nextValue) => emitChange(nextValue, hitCount)}
