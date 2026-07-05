@@ -19,6 +19,8 @@ export interface FrameAdvantageFieldProps {
   clearable: boolean;
   /** true なら「ダウン」を選べる（ヒット硬直差用）。 */
   allowDown: boolean;
+  /** 必須項目のラベルに * を付ける（ガード硬直差用）。 */
+  withAsterisk?: boolean;
   value: FrameAdvantageFieldValue | undefined;
   onChange: (value: FrameAdvantageFieldValue | undefined) => void;
 }
@@ -63,6 +65,7 @@ export const FrameAdvantageField = ({
   description,
   clearable,
   allowDown,
+  withAsterisk,
   value,
   onChange,
 }: FrameAdvantageFieldProps) => {
@@ -81,6 +84,7 @@ export const FrameAdvantageField = ({
         label={label}
         description={description}
         placeholder={clearable ? "未計測" : undefined}
+        withAsterisk={withAsterisk}
         clearable={clearable}
         data={modeOptions}
         value={mode}

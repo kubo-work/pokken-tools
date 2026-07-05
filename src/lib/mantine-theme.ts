@@ -52,6 +52,17 @@ export const adminTheme = createTheme({
   components: {
     Card: { defaultProps: { withBorder: true, radius: "md" } },
     Paper: { defaultProps: { withBorder: true, radius: "md" } },
+    /*
+     * 説明文 (description) はラベルと入力欄の間ではなく入力欄の下に出す。
+     * 既定の label→description→input だと、説明文の行数差が同じグリッド行の
+     * 入力欄の縦位置ズレになりフォームがガタつくため。InputWrapper への指定で
+     * TextInput / NumberInput / Select / Textarea すべてに一括適用される。
+     */
+    InputWrapper: {
+      defaultProps: {
+        inputWrapperOrder: ["label", "input", "description", "error"],
+      },
+    },
     // 入力欄を filled にして、カード面 (surface-1) から一段浮かせ「入力できる場所」を明示
     TextInput: { defaultProps: { variant: "filled" } },
     NumberInput: { defaultProps: { variant: "filled" } },

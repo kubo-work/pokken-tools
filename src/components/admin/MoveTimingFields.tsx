@@ -22,6 +22,7 @@ export const MoveTimingFields = ({ move, onChange }: MoveTimingFieldsProps) => (
         key={`${move.id}-startup`}
         label="発生"
         description="技が出るまでのフレーム"
+        withAsterisk
         min={0}
         value={move.startup}
         onChange={(value) =>
@@ -33,6 +34,7 @@ export const MoveTimingFields = ({ move, onChange }: MoveTimingFieldsProps) => (
       inputKeyPrefix={`${move.id}-guardFrameAdvantage`}
       label="ガード硬直差"
       description="攻撃側不利は負の値。当て方で変わる技は範囲"
+      withAsterisk
       clearable={false}
       allowDown={false}
       value={move.guardFrameAdvantage}
@@ -49,7 +51,7 @@ export const MoveTimingFields = ({ move, onChange }: MoveTimingFieldsProps) => (
     <FrameAdvantageField
       inputKeyPrefix={`${move.id}-hitFrameAdvantage`}
       label="ヒット硬直差"
-      description="未計測なら空欄。ダウンする技は「ダウン」"
+      description="ダウンする技は「ダウン」"
       clearable
       allowDown
       value={move.hitFrameAdvantage}
