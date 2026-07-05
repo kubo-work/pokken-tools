@@ -1,5 +1,6 @@
 import type {
   AirGroundJudgment,
+  DamageValue,
   GuardFrameAdvantage,
   GuardLevel,
   HitFrameAdvantage,
@@ -206,6 +207,41 @@ export const setMoveAirGroundJudgment = (
     delete next.airGroundJudgment;
   } else {
     next.airGroundJudgment = airGroundJudgment;
+  }
+  return next;
+};
+
+/** DamageValue を持つフィールド名。PCH値 (phaseChangePoints) は単一数値のため含めない。 */
+export type MoveDamageValueFieldKey =
+  | "baseDamage"
+  | "chipDamage"
+  | "guardCrushValue";
+
+/** ダメージ系フィールド（基礎/削り/ガード削り）を更新。undefined（未計測）なら削除する。 */
+export const setMoveDamageValue = (
+  move: Move,
+  key: MoveDamageValueFieldKey,
+  value: DamageValue | undefined,
+): Move => {
+  const next: Move = { ...move };
+  if (value === undefined) {
+    delete next[key];
+  } else {
+    next[key] = value;
+  }
+  return next;
+};
+
+/** PCH値を更新。undefined（未計測）なら削除する。 */
+export const setMovePhaseChangePoints = (
+  move: Move,
+  phaseChangePoints: number | undefined,
+): Move => {
+  const next: Move = { ...move };
+  if (phaseChangePoints === undefined) {
+    delete next.phaseChangePoints;
+  } else {
+    next.phaseChangePoints = phaseChangePoints;
   }
   return next;
 };

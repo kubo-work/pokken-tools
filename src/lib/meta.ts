@@ -1,5 +1,6 @@
 import type {
   AirGroundJudgment,
+  DamageValue,
   GuardLevel,
   Move,
   MoveAttackType,
@@ -180,6 +181,20 @@ export const resonanceFlinchLabel = (
     return RESONANCE_FLINCH_META[value].label;
   }
   return `${RESONANCE_FLINCH_META.weak.label}→${RESONANCE_FLINCH_META.strong.label}（持続${value.switchActiveFrame}〜）`;
+};
+
+/**
+ * ダメージ系の値の表示ラベル。未計測 (undefined) は「-」、
+ * 多段ヒットは「20×3」形式で返す。
+ */
+export const formatDamageValue = (value: DamageValue | undefined): string => {
+  if (value === undefined) {
+    return "-";
+  }
+  if (typeof value === "number") {
+    return `${value}`;
+  }
+  return `${value.perHit}×${value.hitCount}`;
 };
 
 /** ヒット硬直差 "down"（相手がダウンする技）の表示ラベル。 */

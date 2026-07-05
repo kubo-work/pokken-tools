@@ -8,6 +8,7 @@ import {
   ATTACK_TYPE_META,
   RESONANCE_ONLY_LABEL,
   childVariantLabel,
+  formatDamageValue,
   maxChargeLevel,
 } from "@/lib/meta";
 import { formatMoveCommand } from "@/lib/moves/command";
@@ -108,6 +109,9 @@ const MoveRow = ({
           <FrameAdvantageText value={move.hitFrameAdvantage} />
         )}
       </td>
+      <td className="num moves-table__secondary">
+        {formatDamageValue(move.baseDamage)}
+      </td>
     </tr>
   );
 };
@@ -143,6 +147,7 @@ export const MovesTable = ({
             <th className="num">発生</th>
             <th className="num">ガード硬直差</th>
             <th className="num moves-table__secondary">ヒット硬直差</th>
+            <th className="num moves-table__secondary">基礎ダメージ</th>
           </tr>
         </thead>
         <tbody>

@@ -37,6 +37,13 @@ const hitFrameAdvantageSchema = z.union([
   frameAdvantageRangeSchema,
   z.literal("down"),
 ]);
+const damageValueSchema = z.union([
+  z.number().int().nonnegative(),
+  z.object({
+    perHit: z.number().int().positive(),
+    hitCount: z.number().int().min(2, "多段表記のヒット数は2以上です"),
+  }),
+]);
 
 const resonanceOverrideSchema = z.object({
   startup: z.number().optional(),
@@ -67,6 +74,10 @@ export const moveSchema = z
     chargeLevel: z.number().int().positive().optional(),
     resonance: resonanceOverrideSchema.optional(),
     resonanceOnly: z.boolean().optional(),
+    baseDamage: damageValueSchema.optional(),
+    chipDamage: damageValueSchema.optional(),
+    guardCrushValue: damageValueSchema.optional(),
+    phaseChangePoints: z.number().int().nonnegative().optional(),
     note: z.string().optional(),
     description: z.string().optional(),
   })
