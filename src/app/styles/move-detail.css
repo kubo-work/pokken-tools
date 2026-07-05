@@ -92,6 +92,12 @@
   color: var(--text-dim);
 }
 
+/* 技一覧の子技リンク（#変種ID）から飛んできた変種列の見出しを強調する */
+.frame-table thead th:target {
+  color: var(--accent);
+  scroll-margin-top: 16px;
+}
+
 .frame-table tbody th {
   text-align: left;
   font-weight: 600;

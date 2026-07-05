@@ -61,18 +61,13 @@
   margin-bottom: 6px;
 }
 
-/* 親技: 詳細ページへのリンク。色＋常時下線でクリック可能と分かるようにする */
+/* 技名: 詳細ページへのリンク。色＋常時下線でクリック可能と分かるようにする。
+   ため/派生も親詳細ページの該当変種列へアンカーで飛ぶ */
 .moves-table__move-link {
   margin-left: 6px;
   color: var(--link);
   font-weight: 600;
   text-decoration: underline;
-}
-
-/* ため/派生: リンクではないプレーンな技名。通常テキスト色・下線なしで非リンクと分かるようにする */
-.moves-table__move-name {
-  margin-left: 6px;
-  color: var(--text);
 }
 
 /* スマホでは副次列（判定・攻撃属性・ヒット硬直差）を隠し、詳細ページに委ねる */
