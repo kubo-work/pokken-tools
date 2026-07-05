@@ -92,16 +92,33 @@
   color: var(--text-dim);
 }
 
-/* 技一覧の子技リンク（#変種ID）から飛んできた変種列の見出しを強調する */
+/* 技一覧の子技リンク（#変種ID）から飛んできた変種列の見出しを強調する。
+   scroll-margin-left は着地列が sticky 行見出し列の裏に潜らないよう、
+   行見出しの最大幅（ガード硬直差）より広く取る */
 .frame-table thead th:target {
   color: var(--accent);
   scroll-margin-top: 16px;
+  scroll-margin-left: 9em;
 }
 
 .frame-table tbody th {
   text-align: left;
   font-weight: 600;
   color: var(--text-dim);
+}
+
+/*
+ * 変種が多い技のスマホ表示対策。横スクロールしても行見出し（発生・強度など）が
+ * 左端に固定され、右端の変種列を見ていても項目名を見失わないようにする。
+ * 背景と z-index で、下を通過するセルが透けないようにする。
+ * PC 幅ではスクロール自体が発生しないため見た目は変わらない。
+ */
+.frame-table thead th:first-child,
+.frame-table tbody th {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--bg-elevated);
 }
 
 .frame-table tr:last-child th,
