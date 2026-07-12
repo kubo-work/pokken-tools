@@ -1,4 +1,10 @@
+import {
+  HIT_BREAKDOWN_DAMAGE_KEYS,
+  type HitBreakdownDamageKey,
+  hitBreakdownDefines,
+} from "@/lib/meta";
 import type {
+  HitBreakdownEntry,
   Move,
   MoveAttackType,
   MoveCategory,
@@ -131,10 +137,7 @@ export const setMoveResonanceFlinchMode = (
 };
 
 /** DamageValue を持つフィールド名。PCH値 (phaseChangePoints) は単一数値のため含めない。 */
-export type MoveDamageValueFieldKey =
-  | "baseDamage"
-  | "chipDamage"
-  | "guardCrushValue";
+export type MoveDamageValueFieldKey = HitBreakdownDamageKey;
 
 /**
  * 特殊属性を更新する。空配列なら specialAttributes 自体を削除する。
@@ -160,3 +163,92 @@ export const toggleResonance = (move: Move, enabled: boolean): Move => ({
   ...move,
   resonance: enabled ? (move.resonance ?? {}) : undefined,
 });
+
+/** ヒット内訳の初期値（グループ×1）。ON にしたときに使う。 */
+const createDefaultHitBreakdown = (): HitBreakdownEntry[] => [{ hitCount: 1 }];
+
+/**
+ * ヒット内訳 ON/OFF を切り替える。ON は既存内容があれば維持し、無ければ既定の1グループで初期化。
+ * OFF は undefined（削除）。Move / ResonanceOverride どちらの hitBreakdown にも使える。
+ */
+export const toggleHitBreakdown = (
+  entries: HitBreakdownEntry[] | undefined,
+  enabled: boolean,
+): HitBreakdownEntry[] | undefined =>
+  enabled ? (entries ?? createDefaultHitBreakdown()) : undefined;
+
+/**
+ * ヒット内訳の1グループ・1フィールドを更新する。undefined ならキーごと削除する
+ * （setOptionalMoveField / setOptionalResonanceField と同じ「省略＝未計測」の規約）。
+ */
+export const setHitBreakdownEntryField = <Key extends keyof HitBreakdownEntry>(
+  entries: HitBreakdownEntry[],
+  index: number,
+  key: Key,
+  value: HitBreakdownEntry[Key] | undefined,
+): HitBreakdownEntry[] =>
+  entries.map((entry, i) => {
+    if (i !== index) {
+      return entry;
+    }
+    const next: HitBreakdownEntry = { ...entry };
+    if (value === undefined) {
+      Reflect.deleteProperty(next, key);
+    } else {
+      next[key] = value;
+    }
+    return next;
+  });
+
+/** ヒット内訳にグループを1つ追加する。 */
+export const addHitBreakdownEntry = (
+  entries: HitBreakdownEntry[],
+): HitBreakdownEntry[] => [...entries, { hitCount: 1 }];
+
+/**
+ * ヒット内訳から指定インデックスのグループを削除する。
+ * スキーマ上グループは1以上必須のため、1個のときは呼び出し側で削除ボタンを disable すること。
+ */
+export const removeHitBreakdownEntry = (
+  entries: HitBreakdownEntry[],
+  index: number,
+): HitBreakdownEntry[] => entries.filter((_, i) => i !== index);
+
+/**
+ * hitBreakdown といずれかの単一値フィールドが同時設定にならないよう、
+ * entries が新たに定義したダメージ系キー（相互排他の対象）を返す。
+ */
+const conflictingDamageKeys = (
+  entries: HitBreakdownEntry[] | undefined,
+): MoveDamageValueFieldKey[] =>
+  HIT_BREAKDOWN_DAMAGE_KEYS.filter((key) => hitBreakdownDefines(entries, key));
+
+/**
+ * 技単位の hitBreakdown を更新する。新たに内訳が定義したダメージ系フィールドは、
+ * schema の相互排他ルールに違反しないよう技単位の単一値も同時に削除する。
+ */
+export const setMoveHitBreakdown = (
+  move: Move,
+  entries: HitBreakdownEntry[] | undefined,
+): Move => {
+  let next = setOptionalMoveField(move, "hitBreakdown", entries);
+  for (const key of conflictingDamageKeys(entries)) {
+    next = setOptionalMoveField(next, key, undefined);
+  }
+  return next;
+};
+
+/**
+ * 共鳴差分の hitBreakdown を更新する。新たに内訳が定義したダメージ系フィールドは、
+ * schema の相互排他ルールに違反しないよう共鳴の単一値も同時に削除する。
+ */
+export const setResonanceHitBreakdown = (
+  move: Move,
+  entries: HitBreakdownEntry[] | undefined,
+): Move => {
+  let next = setOptionalResonanceField(move, "hitBreakdown", entries);
+  for (const key of conflictingDamageKeys(entries)) {
+    next = setOptionalResonanceField(next, key, undefined);
+  }
+  return next;
+};

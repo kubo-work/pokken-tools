@@ -10,6 +10,8 @@ export interface DamageValueFieldProps {
   /** 値入力の placeholder。技本体は「未計測」、共鳴差分は「変化なし」。 */
   placeholder?: string;
   value: DamageValue | undefined;
+  /** true ならヒット内訳でこの項目が設定済み（併用不可）のため入力を無効化する。 */
+  disabled?: boolean;
   onChange: (value: DamageValue | undefined) => void;
 }
 
@@ -28,6 +30,7 @@ export const DamageValueField = ({
   label,
   placeholder = PLACEHOLDER_NOT_MEASURED,
   value,
+  disabled = false,
   onChange,
 }: DamageValueFieldProps) => {
   const [perHitDraft, setPerHitDraft] = useState<number | string>(
@@ -57,6 +60,7 @@ export const DamageValueField = ({
       <NumberInput
         label={label}
         placeholder={placeholder}
+        disabled={disabled}
         allowDecimal={false}
         min={0}
         value={perHitDraft}
@@ -68,6 +72,7 @@ export const DamageValueField = ({
       <NumberInput
         label={`${label}のヒット数`}
         description="多段技のみ（例: 20×3 の 3）"
+        disabled={disabled}
         allowDecimal={false}
         min={2}
         value={hitCountDraft}
