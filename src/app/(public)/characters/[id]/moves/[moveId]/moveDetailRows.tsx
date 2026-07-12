@@ -3,7 +3,6 @@ import { FrameAdvantageText } from "@/components/FrameAdvantageText";
 import { FrameNumber } from "@/components/FrameNumber";
 import type { ComparisonRow } from "@/components/MoveComparisonTable";
 import {
-  AIR_GROUND_JUDGMENT_META,
   ATTACK_TYPE_META,
   GUARD_LEVEL_META,
   HIT_BREAKDOWN_DAMAGE_KEYS,
@@ -11,9 +10,11 @@ import {
   MOVE_VARIANT_META,
   childVariantLabel,
   formatDamageValue,
-  formatHitBreakdownCategorical,
   formatHitBreakdownDamage,
+  hitBreakdownCategoricalLines,
   hitBreakdownDefines,
+  moveAirGroundJudgmentLines,
+  moveGuardLevelLines,
   resonanceFlinchLabel,
   specialAttributeLabel,
 } from "@/lib/meta";
@@ -25,17 +26,6 @@ import type { Move } from "@/types/move";
  * ページ本体はデータ取得と画面構成に専念させ、行の描画ロジックはここに集約する。
  */
 
-/** 「判定」の表示。ヒット内訳が guardLevel を含む場合は内訳表示、無ければ技単位の代表値。 */
-const guardLevelLabel = (move: Move): string => {
-  if (
-    move.hitBreakdown !== undefined &&
-    hitBreakdownDefines(move.hitBreakdown, "guardLevel")
-  ) {
-    return formatHitBreakdownCategorical(move.hitBreakdown, "guardLevel");
-  }
-  return move.guardLevel === null ? "-" : GUARD_LEVEL_META[move.guardLevel].label;
-};
-
 const attackTypeLabel = (move: Move): string =>
   move.attackType === undefined ? "-" : ATTACK_TYPE_META[move.attackType].label;
 
@@ -46,23 +36,30 @@ const specialAttributesLabel = (move: Move): string =>
         .map((attribute) => specialAttributeLabel(attribute, move))
         .join(" / ");
 
-/** 「空・地」の表示。ヒット内訳が airGroundJudgment を含む場合は内訳表示、無ければ技単位の代表値。 */
-const airGroundJudgmentLabel = (move: Move): string => {
-  if (
-    move.hitBreakdown !== undefined &&
-    hitBreakdownDefines(move.hitBreakdown, "airGroundJudgment")
-  ) {
-    return formatHitBreakdownCategorical(move.hitBreakdown, "airGroundJudgment");
-  }
-  return move.airGroundJudgment === undefined
-    ? "-"
-    : AIR_GROUND_JUDGMENT_META[move.airGroundJudgment].label;
-};
-
 /** 共鳴中の上書き値を amber の「→値」でセル内に併記する。 */
 const ResonanceArrow = ({ children }: { children: ReactNode }) => (
   <span className="move-detail__override"> →{children}</span>
 );
+
+/**
+ * 判定系（判定・空地）の表示行をセル内に描画する。ヒット内訳で複数行になる場合は
+ * グループごとに行を分ける。1行だけならインラインのまま（共鳴の→を同じ行に併記するため）。
+ */
+const CategoricalLines = ({ lines }: { lines: string[] }) => {
+  if (lines.length === 0) {
+    return <>-</>;
+  }
+  if (lines.length === 1) {
+    return <>{lines[0]}</>;
+  }
+  return (
+    <>
+      {lines.map((line) => (
+        <div key={line}>{line}</div>
+      ))}
+    </>
+  );
+};
 
 /** 変種の列ラベル。親は「通常」、子はため段階/派生のラベルを使う。 */
 export const variantColumnLabel = (
@@ -221,7 +218,10 @@ const resonanceGuardLevelText = (move: Move): string | undefined => {
     resonanceHitBreakdown !== undefined &&
     hitBreakdownDefines(resonanceHitBreakdown, "guardLevel")
   ) {
-    return formatHitBreakdownCategorical(resonanceHitBreakdown, "guardLevel");
+    // 「→」の後にインラインで併記するため、行に分けず「 / 」で連結する。
+    return hitBreakdownCategoricalLines(resonanceHitBreakdown, "guardLevel").join(
+      " / ",
+    );
   }
   return move.resonance?.guardLevel !== undefined
     ? GUARD_LEVEL_META[move.resonance.guardLevel].label
@@ -236,7 +236,10 @@ const resonanceAirGroundJudgmentText = (move: Move): string | undefined => {
   const resonanceHitBreakdown = move.resonance?.hitBreakdown;
   return resonanceHitBreakdown !== undefined &&
     hitBreakdownDefines(resonanceHitBreakdown, "airGroundJudgment")
-    ? formatHitBreakdownCategorical(resonanceHitBreakdown, "airGroundJudgment")
+    ? hitBreakdownCategoricalLines(
+        resonanceHitBreakdown,
+        "airGroundJudgment",
+      ).join(" / ")
     : undefined;
 };
 
@@ -252,7 +255,7 @@ export const buildAttributeRows = (parentMove: Move): ComparisonRow[] => [
       const resonanceText = resonanceGuardLevelText(move);
       return (
         <>
-          {guardLevelLabel(move)}
+          <CategoricalLines lines={moveGuardLevelLines(move)} />
           {resonanceText !== undefined && (
             <ResonanceArrow>{resonanceText}</ResonanceArrow>
           )}
@@ -266,7 +269,7 @@ export const buildAttributeRows = (parentMove: Move): ComparisonRow[] => [
       const resonanceText = resonanceAirGroundJudgmentText(move);
       return (
         <>
-          {airGroundJudgmentLabel(move)}
+          <CategoricalLines lines={moveAirGroundJudgmentLines(move)} />
           {resonanceText !== undefined && (
             <ResonanceArrow>{resonanceText}</ResonanceArrow>
           )}

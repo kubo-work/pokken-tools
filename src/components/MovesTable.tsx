@@ -1,17 +1,18 @@
 import { Fragment } from "react";
 import Link from "next/link";
 import type { Move } from "@/types/move";
-import { CategoryBadge, GuardBadge } from "@/components/badges";
+import { CategoryBadge } from "@/components/badges";
 import { FrameAdvantageText } from "@/components/FrameAdvantageText";
 import { StrengthHelpPopover } from "@/components/StrengthHelpPopover";
 import {
-  AIR_GROUND_JUDGMENT_META,
   ATTACK_TYPE_META,
   RESONANCE_ONLY_LABEL,
   childVariantLabel,
   formatDamageValue,
   hitBreakdownDefines,
   maxChargeLevel,
+  moveAirGroundJudgmentLabel,
+  moveGuardLevelShortLabel,
   totalHitBreakdownDamage,
 } from "@/lib/meta";
 import { formatMoveCommand } from "@/lib/moves/command";
@@ -35,6 +36,7 @@ const MoveRow = ({
   const isChild = isChildMove(move);
   const command = formatMoveCommand(move, parentCommand);
   const variantLabel = childVariantLabel(move, chargeMaxLevel);
+  const airGroundJudgmentText = moveAirGroundJudgmentLabel(move);
   // ため/派生は親の詳細ページに集約されているため、該当変種列へのアンカー付きで親ページへ飛ばす。
   const detailPageHref = isChild
     ? `/characters/${characterId}/moves/${move.parentMoveId ?? move.id}#${move.id}`
@@ -77,8 +79,8 @@ const MoveRow = ({
         )}
       </td>
       <td className="moves-table__secondary">
-        <GuardBadge level={move.guardLevel} />
-        {move.airGroundJudgment !== undefined && (
+        {moveGuardLevelShortLabel(move)}
+        {airGroundJudgmentText !== undefined && (
           <span
             style={{
               marginLeft: 4,
@@ -86,7 +88,7 @@ const MoveRow = ({
               color: UI_COLORS.mute,
             }}
           >
-            {AIR_GROUND_JUDGMENT_META[move.airGroundJudgment].label}
+            {airGroundJudgmentText}
           </span>
         )}
       </td>
