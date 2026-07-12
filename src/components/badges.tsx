@@ -1,5 +1,5 @@
-import { CATEGORY_META, GUARD_LEVEL_META } from "@/lib/meta";
-import type { GuardLevel, MoveCategory } from "@/types/move";
+import { CATEGORY_META } from "@/lib/meta";
+import type { MoveCategory } from "@/types/move";
 
 export const CategoryBadge = ({
   category,
@@ -15,11 +15,4 @@ export const CategoryBadge = ({
       {meta.shortLabel}
     </span>
   );
-};
-
-export const GuardBadge = ({ level }: { level: GuardLevel | null }) => {
-  if (level === null) {
-    return null;
-  }
-  return <span>{GUARD_LEVEL_META[level].shortLabel}</span>;
 };

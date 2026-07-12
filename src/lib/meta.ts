@@ -229,10 +229,10 @@ const hitBreakdownStartPositions = (entries: HitBreakdownEntry[]): number[] => {
   return starts;
 };
 
-/** 開始位置とヒット数から「1」「2〜4」のようなヒット範囲ラベルを作る。 */
+/** 開始位置とヒット数から「1ヒット目」「2〜4ヒット目」のようなヒット範囲ラベルを作る。 */
 const hitRangeLabel = (start: number, hitCount: number): string => {
   const end = start + hitCount - 1;
-  return start === end ? `${start}` : `${start}〜${end}`;
+  return start === end ? `${start}ヒット目` : `${start}〜${end}ヒット目`;
 };
 
 /**
@@ -254,40 +254,155 @@ export const formatHitBreakdownDamage = (
     })
     .join("+");
 
+/**
+ * ラベルの詳細度。"full" は詳細ページ向けのフルラベル（例:「上段」）、
+ * "short" は一覧など省スペースな表示向けの短縮ラベル（例:「上」）。
+ */
+type LabelStyle = "full" | "short";
+const GUARD_LEVEL_LABEL_KEY_BY_STYLE: Record<LabelStyle, "label" | "shortLabel"> = {
+  full: "label",
+  short: "shortLabel",
+};
+
 /** ヒット内訳1グループ分の判定系フィールドの表示ラベル。未設定なら undefined。 */
 const hitBreakdownCategoricalEntryLabel = (
   entry: HitBreakdownEntry,
   key: HitBreakdownCategoricalKey,
+  labelStyle: LabelStyle,
 ): string | undefined => {
   if (key === "guardLevel") {
     return entry.guardLevel === undefined
       ? undefined
-      : GUARD_LEVEL_META[entry.guardLevel].label;
+      : GUARD_LEVEL_META[entry.guardLevel][
+          GUARD_LEVEL_LABEL_KEY_BY_STYLE[labelStyle]
+        ];
   }
+  // 空・地は元々 label が短いため labelStyle に関わらず同じ表記を使う。
   return entry.airGroundJudgment === undefined
     ? undefined
     : AIR_GROUND_JUDGMENT_META[entry.airGroundJudgment].label;
 };
 
 /**
- * ヒット内訳の判定系フィールドを「1: 上段 / 2〜4: 空」形式で表示する。
- * 未設定のグループはヒット範囲ラベルごと省略する（位置は範囲ラベル自体が示すため）。
+ * ヒット内訳の判定系フィールドを「1ヒット目: 上段」「2〜4ヒット目: 空」の行の配列にする。
+ * 詳細ページ向けで、1グループ1行で表示する想定。未設定のグループは行ごと省略する。
  */
-export const formatHitBreakdownCategorical = (
+export const hitBreakdownCategoricalLines = (
   entries: HitBreakdownEntry[],
   key: HitBreakdownCategoricalKey,
-): string => {
+): string[] => {
   const starts = hitBreakdownStartPositions(entries);
   return entries
     .map((entry, index) => {
-      const label = hitBreakdownCategoricalEntryLabel(entry, key);
+      const label = hitBreakdownCategoricalEntryLabel(entry, key, "full");
       return label === undefined
         ? undefined
         : `${hitRangeLabel(starts[index], entry.hitCount)}: ${label}`;
     })
-    .filter((text): text is string => text !== undefined)
-    .join(" / ");
+    .filter((text): text is string => text !== undefined);
 };
+
+/**
+ * ヒット内訳の判定系フィールドの値だけを重複を除いて「上/空」のように連結する（一覧向け）。
+ * 「何ヒット目か」はゲーム内訳を知らない閲覧者には伝わりにくいため一覧では出さず、
+ * 詳細ページ（hitBreakdownCategoricalLines）に委譲する。どのグループにも値が無ければ undefined。
+ */
+const hitBreakdownCategoricalValueSummary = (
+  entries: HitBreakdownEntry[],
+  key: HitBreakdownCategoricalKey,
+  labelStyle: LabelStyle,
+): string | undefined => {
+  const labels = entries
+    .map((entry) => hitBreakdownCategoricalEntryLabel(entry, key, labelStyle))
+    .filter((label): label is string => label !== undefined);
+  const uniqueLabels = [...new Set(labels)];
+  return uniqueLabels.length === 0 ? undefined : uniqueLabels.join("/");
+};
+
+/**
+ * 判定系1フィールド分の「hitBreakdown が無いときに技単位の代表値をどう解決するか」の定義。
+ * guardLevel（必須・null で概念なし）と airGroundJudgment（任意）で意味は異なるが、
+ * どちらも「値が無ければ undefined」という同じ形に正規化して categoricalLinesFor /
+ * categoricalSummaryFor から共通に扱えるようにする。
+ */
+interface CategoricalFieldResolver {
+  hitBreakdownKey: HitBreakdownCategoricalKey;
+  representativeLabel: (move: Move, labelStyle: LabelStyle) => string | undefined;
+}
+
+const GUARD_LEVEL_RESOLVER: CategoricalFieldResolver = {
+  hitBreakdownKey: "guardLevel",
+  representativeLabel: (move, labelStyle) =>
+    move.guardLevel === null
+      ? undefined
+      : GUARD_LEVEL_META[move.guardLevel][
+          GUARD_LEVEL_LABEL_KEY_BY_STYLE[labelStyle]
+        ],
+};
+
+const AIR_GROUND_JUDGMENT_RESOLVER: CategoricalFieldResolver = {
+  hitBreakdownKey: "airGroundJudgment",
+  // 空・地は元々 label が短いため labelStyle に関わらず同じ表記を使う。
+  representativeLabel: (move) =>
+    move.airGroundJudgment === undefined
+      ? undefined
+      : AIR_GROUND_JUDGMENT_META[move.airGroundJudgment].label,
+};
+
+/**
+ * 詳細ページ向け表示行。ヒット内訳が対象フィールドを含む場合はヒット範囲ごとの行、
+ * 無ければ技単位の代表値1行。どちらも値が無ければ空配列。
+ */
+const categoricalLinesFor = (
+  move: Move,
+  resolver: CategoricalFieldResolver,
+): string[] => {
+  if (
+    move.hitBreakdown !== undefined &&
+    hitBreakdownDefines(move.hitBreakdown, resolver.hitBreakdownKey)
+  ) {
+    return hitBreakdownCategoricalLines(move.hitBreakdown, resolver.hitBreakdownKey);
+  }
+  const label = resolver.representativeLabel(move, "full");
+  return label === undefined ? [] : [label];
+};
+
+/**
+ * 一覧向け表示。ヒット内訳がある技は値だけを「上/下」のように出し、ヒット位置は
+ * 詳細ページ（categoricalLinesFor）に委譲する。単一値の技は従来通り短縮ラベル。
+ */
+const categoricalSummaryFor = (
+  move: Move,
+  resolver: CategoricalFieldResolver,
+): string | undefined => {
+  if (
+    move.hitBreakdown !== undefined &&
+    hitBreakdownDefines(move.hitBreakdown, resolver.hitBreakdownKey)
+  ) {
+    return hitBreakdownCategoricalValueSummary(
+      move.hitBreakdown,
+      resolver.hitBreakdownKey,
+      "short",
+    );
+  }
+  return resolver.representativeLabel(move, "short");
+};
+
+/** 「判定」の詳細ページ向け表示行。判定という概念自体が無い技（guardLevel === null）は空配列。 */
+export const moveGuardLevelLines = (move: Move): string[] =>
+  categoricalLinesFor(move, GUARD_LEVEL_RESOLVER);
+
+/** 「判定」の一覧向け表示。 */
+export const moveGuardLevelShortLabel = (move: Move): string | undefined =>
+  categoricalSummaryFor(move, GUARD_LEVEL_RESOLVER);
+
+/** 「空・地」の詳細ページ向け表示行。技単位の値も未設定なら空配列。 */
+export const moveAirGroundJudgmentLines = (move: Move): string[] =>
+  categoricalLinesFor(move, AIR_GROUND_JUDGMENT_RESOLVER);
+
+/** 「空・地」の一覧向け表示。 */
+export const moveAirGroundJudgmentLabel = (move: Move): string | undefined =>
+  categoricalSummaryFor(move, AIR_GROUND_JUDGMENT_RESOLVER);
 
 /**
  * ヒット内訳のダメージ系フィールドの合計値（一覧テーブル向け）。

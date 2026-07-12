@@ -1,11 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import {
-  formatHitBreakdownCategorical,
   formatHitBreakdownDamage,
+  hitBreakdownCategoricalLines,
   hitBreakdownDefines,
+  moveAirGroundJudgmentLabel,
+  moveGuardLevelShortLabel,
   totalHitBreakdownDamage,
 } from "@/lib/meta";
-import type { HitBreakdownEntry } from "@/types/move";
+import type { HitBreakdownEntry, Move } from "@/types/move";
 
 /** 瞑想3段階アシストパワー相当: 1ヒット目50、2〜4ヒット目45×3。 */
 const meditationBreakdown: HitBreakdownEntry[] = [
@@ -61,33 +63,96 @@ describe("formatHitBreakdownDamage", () => {
   });
 });
 
-describe("formatHitBreakdownCategorical", () => {
-  test("サーナイト8Y の guardLevel: 1: 上段", () => {
+describe("hitBreakdownCategoricalLines", () => {
+  test("サーナイト8Y の guardLevel: 1ヒット目: 上段", () => {
     expect(
-      formatHitBreakdownCategorical(gardevoirBreakdown, "guardLevel"),
-    ).toBe("1: 上段");
+      hitBreakdownCategoricalLines(gardevoirBreakdown, "guardLevel"),
+    ).toEqual(["1ヒット目: 上段"]);
   });
 
-  test("サーナイト8Y の airGroundJudgment: 2〜4: 空", () => {
+  test("サーナイト8Y の airGroundJudgment: 2〜4ヒット目: 空", () => {
     expect(
-      formatHitBreakdownCategorical(gardevoirBreakdown, "airGroundJudgment"),
-    ).toBe("2〜4: 空");
+      hitBreakdownCategoricalLines(gardevoirBreakdown, "airGroundJudgment"),
+    ).toEqual(["2〜4ヒット目: 空"]);
   });
 
-  test("どのグループにも値が無ければ空文字", () => {
+  test("どのグループにも値が無ければ空配列", () => {
     expect(
-      formatHitBreakdownCategorical(meditationBreakdown, "guardLevel"),
-    ).toBe("");
+      hitBreakdownCategoricalLines(meditationBreakdown, "guardLevel"),
+    ).toEqual([]);
   });
 
-  test("単一ヒットのグループは範囲表記にならない", () => {
+  test("単一ヒットのグループは範囲表記にならず、グループごとに行が分かれる", () => {
     const entries: HitBreakdownEntry[] = [
       { hitCount: 1, guardLevel: "high" },
       { hitCount: 1, guardLevel: "low" },
     ];
-    expect(formatHitBreakdownCategorical(entries, "guardLevel")).toBe(
-      "1: 上段 / 2: 下段",
-    );
+    expect(hitBreakdownCategoricalLines(entries, "guardLevel")).toEqual([
+      "1ヒット目: 上段",
+      "2ヒット目: 下段",
+    ]);
+  });
+});
+
+/** 一覧向けサマリーのテスト用に最小限の必須フィールドを持つ技を作る。 */
+const buildMove = (overrides: Partial<Move>): Move => ({
+  id: "test_move",
+  name: "テスト技",
+  command: "5Y",
+  guardLevel: null,
+  startup: 10,
+  guardFrameAdvantage: -5,
+  ...overrides,
+});
+
+describe("moveGuardLevelShortLabel（一覧向け）", () => {
+  test("ヒット内訳がある技は値だけを表示し、ヒット位置を出さない", () => {
+    expect(
+      moveGuardLevelShortLabel(buildMove({ hitBreakdown: gardevoirBreakdown })),
+    ).toBe("上");
+  });
+
+  test("グループごとに値が違えば重複を除いて / で連結する", () => {
+    const move = buildMove({
+      hitBreakdown: [
+        { hitCount: 1, guardLevel: "high" },
+        { hitCount: 1, guardLevel: "low" },
+        { hitCount: 1, guardLevel: "low" },
+      ],
+    });
+    expect(moveGuardLevelShortLabel(move)).toBe("上/下");
+  });
+
+  test("内訳が guardLevel を定義していなければ技単位の代表値", () => {
+    const move = buildMove({
+      guardLevel: "mid",
+      hitBreakdown: meditationBreakdown,
+    });
+    expect(moveGuardLevelShortLabel(move)).toBe("中");
+  });
+
+  test("guardLevel が null で内訳も無ければ undefined", () => {
+    expect(moveGuardLevelShortLabel(buildMove({}))).toBeUndefined();
+  });
+});
+
+describe("moveAirGroundJudgmentLabel（一覧向け）", () => {
+  test("ヒット内訳がある技は値だけを表示し、ヒット位置を出さない", () => {
+    expect(
+      moveAirGroundJudgmentLabel(
+        buildMove({ hitBreakdown: gardevoirBreakdown }),
+      ),
+    ).toBe("空");
+  });
+
+  test("内訳が無ければ技単位の値", () => {
+    expect(
+      moveAirGroundJudgmentLabel(buildMove({ airGroundJudgment: "ground" })),
+    ).toBe("地");
+  });
+
+  test("どちらも無ければ undefined", () => {
+    expect(moveAirGroundJudgmentLabel(buildMove({}))).toBeUndefined();
   });
 });
 

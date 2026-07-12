@@ -3,9 +3,10 @@
 import type { Character } from "@/types/character";
 import type { PunishException, ResonanceState } from "@/types/move";
 import { FrameNumber } from "@/components/FrameNumber";
-import { CategoryBadge, GuardBadge } from "@/components/badges";
+import { CategoryBadge } from "@/components/badges";
 import { usePunishSearch } from "@/hooks/punish/usePunishSearch";
 import { formatPunishWindow } from "@/lib/frame/frameAdvantage";
+import { moveGuardLevelShortLabel } from "@/lib/meta";
 
 /** 範囲登録された硬直差の不利側でのみ確定する反撃に付ける注記。 */
 const SPACING_DEPENDENT_NOTE = "当て方・距離次第で確定しない場合あり";
@@ -130,9 +131,7 @@ export const PunishSearch = ({
                       {result.defenderMove.name}
                     </td>
                     <td>{result.defenderMove.command}</td>
-                    <td>
-                      <GuardBadge level={result.defenderMove.guardLevel} />
-                    </td>
+                    <td>{moveGuardLevelShortLabel(result.defenderMove)}</td>
                     <td className="num">{result.defenderMove.startup}</td>
                     <td style={{ fontSize: 12, color: "#9095a0" }}>
                       {[
