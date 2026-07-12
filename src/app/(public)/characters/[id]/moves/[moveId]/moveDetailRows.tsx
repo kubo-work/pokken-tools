@@ -26,6 +26,9 @@ import type { Move } from "@/types/move";
  * ページ本体はデータ取得と画面構成に専念させ、行の描画ロジックはここに集約する。
  */
 
+/** テキストの複数値を区切って併記する際のセパレータ。「貫通 / アーマー」のような表記に使う。 */
+const INLINE_LIST_SEPARATOR = " / ";
+
 const attackTypeLabel = (move: Move): string =>
   move.attackType === undefined ? "-" : ATTACK_TYPE_META[move.attackType].label;
 
@@ -34,7 +37,7 @@ const specialAttributesLabel = (move: Move): string =>
     ? "-"
     : move.specialAttributes
         .map((attribute) => specialAttributeLabel(attribute, move))
-        .join(" / ");
+        .join(INLINE_LIST_SEPARATOR);
 
 /** 共鳴中の上書き値を amber の「→値」でセル内に併記する。 */
 const ResonanceArrow = ({ children }: { children: ReactNode }) => (
@@ -211,37 +214,38 @@ export const DAMAGE_ROWS: ComparisonRow[] = [
   },
 ];
 
-/** 共鳴の判定（guardLevel）の表示テキスト。内訳優先、無ければ共鳴の単一値、どちらも無ければ undefined。 */
-const resonanceGuardLevelText = (move: Move): string | undefined => {
+/**
+ * 共鳴のヒット内訳が判定系フィールドを定義していれば、「→」の後にインラインで併記するため
+ * 行に分けず INLINE_LIST_SEPARATOR で連結して返す。定義していなければ undefined。
+ * 技単位の代表値へのフォールバックは呼び出し側が個別に行う（guardLevel は
+ * ResonanceOverride が単一値も持つが、airGroundJudgment は持たないため）。
+ */
+const resonanceHitBreakdownCategoricalText = (
+  move: Move,
+  key: "guardLevel" | "airGroundJudgment",
+): string | undefined => {
   const resonanceHitBreakdown = move.resonance?.hitBreakdown;
-  if (
-    resonanceHitBreakdown !== undefined &&
-    hitBreakdownDefines(resonanceHitBreakdown, "guardLevel")
-  ) {
-    // 「→」の後にインラインで併記するため、行に分けず「 / 」で連結する。
-    return hitBreakdownCategoricalLines(resonanceHitBreakdown, "guardLevel").join(
-      " / ",
-    );
-  }
-  return move.resonance?.guardLevel !== undefined
-    ? GUARD_LEVEL_META[move.resonance.guardLevel].label
+  return resonanceHitBreakdown !== undefined &&
+    hitBreakdownDefines(resonanceHitBreakdown, key)
+    ? hitBreakdownCategoricalLines(resonanceHitBreakdown, key).join(
+        INLINE_LIST_SEPARATOR,
+      )
     : undefined;
 };
+
+/** 共鳴の判定（guardLevel）の表示テキスト。内訳優先、無ければ共鳴の単一値、どちらも無ければ undefined。 */
+const resonanceGuardLevelText = (move: Move): string | undefined =>
+  resonanceHitBreakdownCategoricalText(move, "guardLevel") ??
+  (move.resonance?.guardLevel !== undefined
+    ? GUARD_LEVEL_META[move.resonance.guardLevel].label
+    : undefined);
 
 /**
  * 共鳴の空・地判定の表示テキスト。ResonanceOverride は単一値の airGroundJudgment を
  * 持たないため、ヒット内訳で定義されている場合のみ表示する。
  */
-const resonanceAirGroundJudgmentText = (move: Move): string | undefined => {
-  const resonanceHitBreakdown = move.resonance?.hitBreakdown;
-  return resonanceHitBreakdown !== undefined &&
-    hitBreakdownDefines(resonanceHitBreakdown, "airGroundJudgment")
-    ? hitBreakdownCategoricalLines(
-        resonanceHitBreakdown,
-        "airGroundJudgment",
-      ).join(" / ")
-    : undefined;
-};
+const resonanceAirGroundJudgmentText = (move: Move): string | undefined =>
+  resonanceHitBreakdownCategoricalText(move, "airGroundJudgment");
 
 /** コマンドは親コマンド基準で変わるため parentMove を受けて行を組み立てる。 */
 export const buildAttributeRows = (parentMove: Move): ComparisonRow[] => [
