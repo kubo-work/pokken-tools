@@ -37,6 +37,9 @@ export const PLACEHOLDER_NOT_MEASURED = "未計測";
 /** 共鳴差分が未入力（通常時と同じ）であることを示す placeholder。 */
 export const PLACEHOLDER_UNCHANGED = "変化なし";
 
+/** ヒット内訳側で設定済みのため、この入力欄では設定できないことを示す placeholder。 */
+export const PLACEHOLDER_SET_BY_HIT_BREAKDOWN = "ヒット内訳で設定済み";
+
 /**
  * 共鳴怯ませ強度の入力モード。"transition" は「出始め弱→途中から強」で、
  * 選択時に切替フレーム (switchActiveFrame) を別途入力する。

@@ -37,6 +37,24 @@ export type ResonanceFlinch =
  */
 export type DamageValue = number | { perHit: number; hitCount: number };
 /**
+ * ヒットごとに性能が変わる技の、同じ性能が連続するヒットのまとまり（グループ）。
+ * 値はすべて「グループ内の1ヒットあたり」の値（例: 45×3 なら baseDamage: 45, hitCount: 3）。
+ * 未設定のフィールドは「その打点では値なし（-表示）」であり、技単位の値の継承ではない。
+ * ダメージ系3項目（baseDamage/chipDamage/guardCrushValue）はいずれかのグループで定義したら、
+ * 技単位・共鳴単位の同名フィールド（単一値）は設定禁止（二重入力防止、schema で検証）。
+ * guardLevel/airGroundJudgment は技単位の値との共存を許可し、技単位の値は代表値
+ * （通常は1ヒット目）として扱う。
+ */
+export interface HitBreakdownEntry {
+  /** グループ内の連続ヒット数。1以上（DamageValue の hitCount は総ヒット数で min 2 だが、これは別物）。 */
+  hitCount: number;
+  baseDamage?: number;
+  chipDamage?: number;
+  guardCrushValue?: number;
+  guardLevel?: GuardLevel;
+  airGroundJudgment?: AirGroundJudgment;
+}
+/**
  * 硬直差の範囲。当て方や距離で硬直差が変わる技に使う。
  * min が最も不利側（小さい値）、max が最も有利側で、min <= max。
  */
@@ -62,6 +80,8 @@ export interface ResonanceOverride {
   chipDamage?: DamageValue;
   guardCrushValue?: DamageValue;
   phaseChangePoints?: number;
+  /** 共鳴中だけヒットごとの性能が変わる技向け。技単位の hitBreakdown と同じ規約。 */
+  hitBreakdown?: HitBreakdownEntry[];
 }
 
 export interface Move {
@@ -123,6 +143,12 @@ export interface Move {
   guardCrushValue?: DamageValue;
   /** PCH値（フェイズチェンジポイント）。未計測なら省略。 */
   phaseChangePoints?: number;
+  /**
+   * ヒットごとに性能が変わる技の内訳（1グループ以上）。
+   * baseDamage/chipDamage/guardCrushValue/guardLevel/airGroundJudgment のうち
+   * ヒットごとに変わる項目だけを各グループに設定する。詳細は HitBreakdownEntry を参照。
+   */
+  hitBreakdown?: HitBreakdownEntry[];
   /** 技名直下に常時表示する短い注記。1 行向け。 */
   note?: string;
   /** 詳細ページでクリック展開する長文の説明。段落 OK。 */

@@ -2,6 +2,7 @@ import type {
   AirGroundJudgment,
   DamageValue,
   GuardLevel,
+  HitBreakdownEntry,
   Move,
   MoveAttackType,
   MoveCategory,
@@ -195,6 +196,114 @@ export const formatDamageValue = (value: DamageValue | undefined): string => {
     return `${value}`;
   }
   return `${value.perHit}×${value.hitCount}`;
+};
+
+/**
+ * ヒット内訳のダメージ系フィールド。値は「グループ内の1ヒットあたり」。
+ * 相互排他バリデーション（schema.ts）や更新処理（moveUpdaters.ts）でも同じキー集合を
+ * 参照するため、配列そのものをここで一元管理し、型もそこから導出する。
+ */
+export const HIT_BREAKDOWN_DAMAGE_KEYS = [
+  "baseDamage",
+  "chipDamage",
+  "guardCrushValue",
+] as const;
+export type HitBreakdownDamageKey = (typeof HIT_BREAKDOWN_DAMAGE_KEYS)[number];
+/** ヒット内訳系の判定系フィールド。 */
+type HitBreakdownCategoricalKey = "guardLevel" | "airGroundJudgment";
+
+/** ヒット内訳のいずれかのグループでフィールドが設定されているか。 */
+export const hitBreakdownDefines = (
+  entries: HitBreakdownEntry[] | undefined,
+  key: HitBreakdownDamageKey | HitBreakdownCategoricalKey,
+): boolean => entries?.some((entry) => entry[key] !== undefined) ?? false;
+
+/** 各グループの開始ヒット位置（1始まり）を1回の走査で求める。 */
+const hitBreakdownStartPositions = (entries: HitBreakdownEntry[]): number[] => {
+  const starts: number[] = [];
+  let nextStart = 1;
+  for (const entry of entries) {
+    starts.push(nextStart);
+    nextStart += entry.hitCount;
+  }
+  return starts;
+};
+
+/** 開始位置とヒット数から「1」「2〜4」のようなヒット範囲ラベルを作る。 */
+const hitRangeLabel = (start: number, hitCount: number): string => {
+  const end = start + hitCount - 1;
+  return start === end ? `${start}` : `${start}〜${end}`;
+};
+
+/**
+ * ヒット内訳のダメージ系フィールドを「50+45×3」形式で表示する。
+ * 各グループは formatDamageValue と同じ規約（hitCount>1 なら 値×hitCount）、
+ * 未設定グループは「-」。連結は「+」（「/」は択一表記と紛れるため使わない）。
+ */
+export const formatHitBreakdownDamage = (
+  entries: HitBreakdownEntry[],
+  key: HitBreakdownDamageKey,
+): string =>
+  entries
+    .map((entry) => {
+      const value = entry[key];
+      if (value === undefined) {
+        return "-";
+      }
+      return entry.hitCount > 1 ? `${value}×${entry.hitCount}` : `${value}`;
+    })
+    .join("+");
+
+/** ヒット内訳1グループ分の判定系フィールドの表示ラベル。未設定なら undefined。 */
+const hitBreakdownCategoricalEntryLabel = (
+  entry: HitBreakdownEntry,
+  key: HitBreakdownCategoricalKey,
+): string | undefined => {
+  if (key === "guardLevel") {
+    return entry.guardLevel === undefined
+      ? undefined
+      : GUARD_LEVEL_META[entry.guardLevel].label;
+  }
+  return entry.airGroundJudgment === undefined
+    ? undefined
+    : AIR_GROUND_JUDGMENT_META[entry.airGroundJudgment].label;
+};
+
+/**
+ * ヒット内訳の判定系フィールドを「1: 上段 / 2〜4: 空」形式で表示する。
+ * 未設定のグループはヒット範囲ラベルごと省略する（位置は範囲ラベル自体が示すため）。
+ */
+export const formatHitBreakdownCategorical = (
+  entries: HitBreakdownEntry[],
+  key: HitBreakdownCategoricalKey,
+): string => {
+  const starts = hitBreakdownStartPositions(entries);
+  return entries
+    .map((entry, index) => {
+      const label = hitBreakdownCategoricalEntryLabel(entry, key);
+      return label === undefined
+        ? undefined
+        : `${hitRangeLabel(starts[index], entry.hitCount)}: ${label}`;
+    })
+    .filter((text): text is string => text !== undefined)
+    .join(" / ");
+};
+
+/**
+ * ヒット内訳のダメージ系フィールドの合計値（一覧テーブル向け）。
+ * 各グループは「1ヒットあたりの値 × hitCount」の合計。どのグループにも値が無ければ undefined。
+ */
+export const totalHitBreakdownDamage = (
+  entries: HitBreakdownEntry[],
+  key: HitBreakdownDamageKey,
+): number | undefined => {
+  if (!hitBreakdownDefines(entries, key)) {
+    return undefined;
+  }
+  return entries.reduce(
+    (sum, entry) => sum + (entry[key] ?? 0) * entry.hitCount,
+    0,
+  );
 };
 
 /** ヒット硬直差 "down"（相手がダウンする技）の表示ラベル。 */

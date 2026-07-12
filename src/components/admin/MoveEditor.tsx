@@ -4,11 +4,13 @@ import type { CSSProperties, ReactNode, Ref } from "react";
 import { Badge, Button, Card, Group, Stack, Text } from "@mantine/core";
 import { MOVE_VARIANT_META } from "@/lib/meta";
 import type { Move } from "@/types/move";
+import { HitBreakdownFields } from "./HitBreakdownFields";
 import { MoveDamageFields } from "./MoveDamageFields";
 import { MoveFields } from "./MoveFields";
 import { MoveResonancePanel } from "./MoveResonancePanel";
 import { MoveTextFields } from "./MoveTextFields";
 import { MoveTimingFields } from "./MoveTimingFields";
+import { setMoveHitBreakdown } from "./moveUpdaters";
 
 export interface MoveEditorProps {
   move: Move;
@@ -77,6 +79,13 @@ export const MoveEditor = ({
         <MoveFields move={move} isChild={isChild} onChange={onChange} />
         <MoveTimingFields move={move} onChange={onChange} />
         <MoveDamageFields move={move} onChange={onChange} />
+        <HitBreakdownFields
+          idPrefix={`${move.id}-hitBreakdown`}
+          switchLabel="ヒットごとに性能が変わる"
+          switchDescription="ダメージ・判定・空地判定がヒットごとに異なる技のみ ON"
+          entries={move.hitBreakdown}
+          onChange={(entries) => onChange(setMoveHitBreakdown(move, entries))}
+        />
         <MoveTextFields move={move} onChange={onChange} />
         <MoveResonancePanel move={move} onChange={onChange} />
 

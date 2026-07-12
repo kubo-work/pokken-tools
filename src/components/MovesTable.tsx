@@ -10,7 +10,9 @@ import {
   RESONANCE_ONLY_LABEL,
   childVariantLabel,
   formatDamageValue,
+  hitBreakdownDefines,
   maxChargeLevel,
+  totalHitBreakdownDamage,
 } from "@/lib/meta";
 import { formatMoveCommand } from "@/lib/moves/command";
 import { groupMovesByParent, isChildMove } from "@/lib/moves/grouping";
@@ -107,7 +109,10 @@ const MoveRow = ({
         )}
       </td>
       <td className="num moves-table__secondary">
-        {formatDamageValue(move.baseDamage)}
+        {move.hitBreakdown !== undefined &&
+        hitBreakdownDefines(move.hitBreakdown, "baseDamage")
+          ? totalHitBreakdownDamage(move.hitBreakdown, "baseDamage")
+          : formatDamageValue(move.baseDamage)}
       </td>
     </tr>
   );

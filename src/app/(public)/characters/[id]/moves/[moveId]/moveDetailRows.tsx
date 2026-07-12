@@ -6,9 +6,14 @@ import {
   AIR_GROUND_JUDGMENT_META,
   ATTACK_TYPE_META,
   GUARD_LEVEL_META,
+  HIT_BREAKDOWN_DAMAGE_KEYS,
+  type HitBreakdownDamageKey,
   MOVE_VARIANT_META,
   childVariantLabel,
   formatDamageValue,
+  formatHitBreakdownCategorical,
+  formatHitBreakdownDamage,
+  hitBreakdownDefines,
   resonanceFlinchLabel,
   specialAttributeLabel,
 } from "@/lib/meta";
@@ -20,8 +25,16 @@ import type { Move } from "@/types/move";
  * ページ本体はデータ取得と画面構成に専念させ、行の描画ロジックはここに集約する。
  */
 
-const guardLevelLabel = (move: Move): string =>
-  move.guardLevel === null ? "-" : GUARD_LEVEL_META[move.guardLevel].label;
+/** 「判定」の表示。ヒット内訳が guardLevel を含む場合は内訳表示、無ければ技単位の代表値。 */
+const guardLevelLabel = (move: Move): string => {
+  if (
+    move.hitBreakdown !== undefined &&
+    hitBreakdownDefines(move.hitBreakdown, "guardLevel")
+  ) {
+    return formatHitBreakdownCategorical(move.hitBreakdown, "guardLevel");
+  }
+  return move.guardLevel === null ? "-" : GUARD_LEVEL_META[move.guardLevel].label;
+};
 
 const attackTypeLabel = (move: Move): string =>
   move.attackType === undefined ? "-" : ATTACK_TYPE_META[move.attackType].label;
@@ -33,10 +46,18 @@ const specialAttributesLabel = (move: Move): string =>
         .map((attribute) => specialAttributeLabel(attribute, move))
         .join(" / ");
 
-const airGroundJudgmentLabel = (move: Move): string =>
-  move.airGroundJudgment === undefined
+/** 「空・地」の表示。ヒット内訳が airGroundJudgment を含む場合は内訳表示、無ければ技単位の代表値。 */
+const airGroundJudgmentLabel = (move: Move): string => {
+  if (
+    move.hitBreakdown !== undefined &&
+    hitBreakdownDefines(move.hitBreakdown, "airGroundJudgment")
+  ) {
+    return formatHitBreakdownCategorical(move.hitBreakdown, "airGroundJudgment");
+  }
+  return move.airGroundJudgment === undefined
     ? "-"
     : AIR_GROUND_JUDGMENT_META[move.airGroundJudgment].label;
+};
 
 /** 共鳴中の上書き値を amber の「→値」でセル内に併記する。 */
 const ResonanceArrow = ({ children }: { children: ReactNode }) => (
@@ -115,26 +136,66 @@ export const FRAME_ROWS: ComparisonRow[] = [
 /** DamageValue を持つダメージ行。renderCell が同型のため定義から生成する。 */
 const DAMAGE_VALUE_ROW_DEFINITIONS: {
   header: string;
-  key: "baseDamage" | "chipDamage" | "guardCrushValue";
+  key: HitBreakdownDamageKey;
 }[] = [
   { header: "基礎ダメージ", key: "baseDamage" },
   { header: "削りダメージ", key: "chipDamage" },
   { header: "ガード削り値", key: "guardCrushValue" },
 ];
 
+/**
+ * 技（技単位・共鳴ヒット内訳のどちらか）がダメージ系フィールド
+ * （baseDamage/chipDamage/guardCrushValue）をヒット内訳で定義しているか。
+ * page.tsx の hasAnyDamage 判定で使う（内訳のみの技でダメージセクションが消えるのを防ぐ）。
+ */
+export const hasBreakdownDamage = (move: Move): boolean =>
+  HIT_BREAKDOWN_DAMAGE_KEYS.some(
+    (key) =>
+      hitBreakdownDefines(move.hitBreakdown, key) ||
+      hitBreakdownDefines(move.resonance?.hitBreakdown, key),
+  );
+
+/** 共鳴のダメージ系1項目の表示テキスト。内訳優先、無ければ共鳴の単一値、どちらも無ければ undefined。 */
+const resonanceDamageText = (
+  move: Move,
+  key: HitBreakdownDamageKey,
+): string | undefined => {
+  const resonanceHitBreakdown = move.resonance?.hitBreakdown;
+  if (
+    resonanceHitBreakdown !== undefined &&
+    hitBreakdownDefines(resonanceHitBreakdown, key)
+  ) {
+    return formatHitBreakdownDamage(resonanceHitBreakdown, key);
+  }
+  return move.resonance?.[key] !== undefined
+    ? formatDamageValue(move.resonance[key])
+    : undefined;
+};
+
+/**
+ * ダメージ系1行分のセル。ヒット内訳がそのフィールドを定義していれば内訳表示（例: 50+45×3）、
+ * 無ければ従来通り技単位の単一値。共鳴上書きも同じ優先順位（内訳→単一値）で判定する。
+ */
 const buildDamageValueRow = ({
   header,
   key,
 }: (typeof DAMAGE_VALUE_ROW_DEFINITIONS)[number]): ComparisonRow => ({
   header,
-  renderCell: (move) => (
-    <>
-      {formatDamageValue(move[key])}
-      {move.resonance?.[key] !== undefined && (
-        <ResonanceArrow>{formatDamageValue(move.resonance[key])}</ResonanceArrow>
-      )}
-    </>
-  ),
+  renderCell: (move) => {
+    const primaryText =
+      move.hitBreakdown !== undefined && hitBreakdownDefines(move.hitBreakdown, key)
+        ? formatHitBreakdownDamage(move.hitBreakdown, key)
+        : formatDamageValue(move[key]);
+    const resonanceText = resonanceDamageText(move, key);
+    return (
+      <>
+        {primaryText}
+        {resonanceText !== undefined && (
+          <ResonanceArrow>{resonanceText}</ResonanceArrow>
+        )}
+      </>
+    );
+  },
 });
 
 /** ダメージ系の行。全変種で未入力ならセクションごと表示しない（page 側 hasAnyDamage 参照）。 */
@@ -153,6 +214,32 @@ export const DAMAGE_ROWS: ComparisonRow[] = [
   },
 ];
 
+/** 共鳴の判定（guardLevel）の表示テキスト。内訳優先、無ければ共鳴の単一値、どちらも無ければ undefined。 */
+const resonanceGuardLevelText = (move: Move): string | undefined => {
+  const resonanceHitBreakdown = move.resonance?.hitBreakdown;
+  if (
+    resonanceHitBreakdown !== undefined &&
+    hitBreakdownDefines(resonanceHitBreakdown, "guardLevel")
+  ) {
+    return formatHitBreakdownCategorical(resonanceHitBreakdown, "guardLevel");
+  }
+  return move.resonance?.guardLevel !== undefined
+    ? GUARD_LEVEL_META[move.resonance.guardLevel].label
+    : undefined;
+};
+
+/**
+ * 共鳴の空・地判定の表示テキスト。ResonanceOverride は単一値の airGroundJudgment を
+ * 持たないため、ヒット内訳で定義されている場合のみ表示する。
+ */
+const resonanceAirGroundJudgmentText = (move: Move): string | undefined => {
+  const resonanceHitBreakdown = move.resonance?.hitBreakdown;
+  return resonanceHitBreakdown !== undefined &&
+    hitBreakdownDefines(resonanceHitBreakdown, "airGroundJudgment")
+    ? formatHitBreakdownCategorical(resonanceHitBreakdown, "airGroundJudgment")
+    : undefined;
+};
+
 /** コマンドは親コマンド基準で変わるため parentMove を受けて行を組み立てる。 */
 export const buildAttributeRows = (parentMove: Move): ComparisonRow[] => [
   {
@@ -161,18 +248,32 @@ export const buildAttributeRows = (parentMove: Move): ComparisonRow[] => [
   },
   {
     header: "判定",
-    renderCell: (move) => (
-      <>
-        {guardLevelLabel(move)}
-        {move.resonance?.guardLevel !== undefined && (
-          <ResonanceArrow>
-            {GUARD_LEVEL_META[move.resonance.guardLevel].label}
-          </ResonanceArrow>
-        )}
-      </>
-    ),
+    renderCell: (move) => {
+      const resonanceText = resonanceGuardLevelText(move);
+      return (
+        <>
+          {guardLevelLabel(move)}
+          {resonanceText !== undefined && (
+            <ResonanceArrow>{resonanceText}</ResonanceArrow>
+          )}
+        </>
+      );
+    },
   },
-  { header: "空・地", renderCell: (move) => airGroundJudgmentLabel(move) },
+  {
+    header: "空・地",
+    renderCell: (move) => {
+      const resonanceText = resonanceAirGroundJudgmentText(move);
+      return (
+        <>
+          {airGroundJudgmentLabel(move)}
+          {resonanceText !== undefined && (
+            <ResonanceArrow>{resonanceText}</ResonanceArrow>
+          )}
+        </>
+      );
+    },
+  },
   { header: "攻撃属性", renderCell: (move) => attackTypeLabel(move) },
   {
     header: "強度",

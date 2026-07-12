@@ -11,20 +11,23 @@ import {
   Switch,
   Text,
 } from "@mantine/core";
-import { GUARD_LEVELS, strengthRangeForAttackType } from "@/lib/meta";
+import { GUARD_LEVELS, hitBreakdownDefines, strengthRangeForAttackType } from "@/lib/meta";
 import { asOptionalEnumValue } from "@/lib/optionGuards";
 import type { Move } from "@/types/move";
 import {
   GUARD_LEVEL_OPTIONS,
+  PLACEHOLDER_SET_BY_HIT_BREAKDOWN,
   PLACEHOLDER_UNCHANGED,
   RESONANCE_NUMBER_FIELDS,
 } from "./moveFieldsHelpers";
 import { DamageValueField } from "./DamageValueField";
+import { HitBreakdownFields } from "./HitBreakdownFields";
 import { IntegerNumberInput } from "./IntegerNumberInput";
 import { DAMAGE_VALUE_FIELDS } from "./MoveDamageFields";
 import {
   setMoveField,
   setOptionalResonanceField,
+  setResonanceHitBreakdown,
   toggleResonance,
 } from "./moveUpdaters";
 
@@ -119,17 +122,30 @@ export const MoveResonancePanel = ({
                   )
                 }
               />
-              {DAMAGE_VALUE_FIELDS.map(({ key, label }) => (
-                <DamageValueField
-                  key={`${move.id}-resonance-${key}`}
-                  label={label}
-                  placeholder={PLACEHOLDER_UNCHANGED}
-                  value={move.resonance?.[key]}
-                  onChange={(value) =>
-                    onChange(setOptionalResonanceField(move, key, value))
-                  }
-                />
-              ))}
+              {DAMAGE_VALUE_FIELDS.map(({ key, label }) => {
+                const disabledByBreakdown = hitBreakdownDefines(
+                  move.resonance?.hitBreakdown,
+                  key,
+                );
+                return (
+                  <DamageValueField
+                    // disabled 切替時に DamageValueField 内部の非制御 draft state を
+                    // 破棄するため、key に disabledByBreakdown を含めて強制的に再マウントする。
+                    key={`${move.id}-resonance-${key}-${disabledByBreakdown}`}
+                    label={label}
+                    placeholder={
+                      disabledByBreakdown
+                        ? PLACEHOLDER_SET_BY_HIT_BREAKDOWN
+                        : PLACEHOLDER_UNCHANGED
+                    }
+                    disabled={disabledByBreakdown}
+                    value={move.resonance?.[key]}
+                    onChange={(value) =>
+                      onChange(setOptionalResonanceField(move, key, value))
+                    }
+                  />
+                );
+              })}
               <IntegerNumberInput
                 key={`${move.id}-resonance-phaseChangePoints`}
                 label="PCH値"
@@ -143,6 +159,15 @@ export const MoveResonancePanel = ({
                 }
               />
             </SimpleGrid>
+            <HitBreakdownFields
+              idPrefix={`${move.id}-resonance-hitBreakdown`}
+              switchLabel="共鳴中はヒットごとに性能が変わる"
+              switchDescription="通常時と共鳴中でヒットごとの内訳が異なる場合のみ ON"
+              entries={move.resonance?.hitBreakdown}
+              onChange={(entries) =>
+                onChange(setResonanceHitBreakdown(move, entries))
+              }
+            />
           </Card>
         </Collapse>
       </Stack>

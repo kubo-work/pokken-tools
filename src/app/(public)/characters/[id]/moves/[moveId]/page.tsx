@@ -10,15 +10,12 @@ import {
   MoveComparisonTable,
   type ComparisonColumn,
 } from "@/components/MoveComparisonTable";
-import {
-  PHASE_META,
-  RESONANCE_ONLY_LABEL,
-  maxChargeLevel,
-} from "@/lib/meta";
+import { PHASE_META, RESONANCE_ONLY_LABEL, maxChargeLevel } from "@/lib/meta";
 import {
   DAMAGE_ROWS,
   FRAME_ROWS,
   buildAttributeRows,
+  hasBreakdownDamage,
   variantColumnLabel,
 } from "./moveDetailRows";
 
@@ -123,7 +120,8 @@ export default async function MoveDetailPage({
       move.baseDamage !== undefined ||
       move.chipDamage !== undefined ||
       move.guardCrushValue !== undefined ||
-      move.phaseChangePoints !== undefined,
+      move.phaseChangePoints !== undefined ||
+      hasBreakdownDamage(move),
   );
 
   return (

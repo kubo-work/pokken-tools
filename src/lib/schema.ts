@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { ATTACK_TYPE_META, STRENGTH_RANGE_BY_ATTACK_TYPE } from "@/lib/meta";
+import {
+  ATTACK_TYPE_META,
+  HIT_BREAKDOWN_DAMAGE_KEYS,
+  STRENGTH_RANGE_BY_ATTACK_TYPE,
+  hitBreakdownDefines,
+} from "@/lib/meta";
 
 const guardLevelSchema = z.enum([
   "high",
@@ -44,6 +49,27 @@ const damageValueSchema = z.union([
     hitCount: z.number().int().min(2, "多段表記のヒット数は2以上です"),
   }),
 ]);
+const hitBreakdownEntrySchema = z
+  .object({
+    hitCount: z.number().int().min(1),
+    baseDamage: z.number().int().nonnegative().optional(),
+    chipDamage: z.number().int().nonnegative().optional(),
+    guardCrushValue: z.number().int().nonnegative().optional(),
+    guardLevel: guardLevelSchema.optional(),
+    airGroundJudgment: airGroundJudgmentSchema.optional(),
+  })
+  .refine(
+    (entry) =>
+      entry.baseDamage !== undefined ||
+      entry.chipDamage !== undefined ||
+      entry.guardCrushValue !== undefined ||
+      entry.guardLevel !== undefined ||
+      entry.airGroundJudgment !== undefined,
+    { message: "ヒット数以外に最低1項目は設定してください" },
+  );
+const hitBreakdownSchema = z
+  .array(hitBreakdownEntrySchema)
+  .min(1, "ヒットごとの内訳は1グループ以上で入力してください");
 
 const resonanceOverrideSchema = z.object({
   startup: z.number().optional(),
@@ -55,6 +81,7 @@ const resonanceOverrideSchema = z.object({
   chipDamage: damageValueSchema.optional(),
   guardCrushValue: damageValueSchema.optional(),
   phaseChangePoints: z.number().int().nonnegative().optional(),
+  hitBreakdown: hitBreakdownSchema.optional(),
 });
 
 export const moveSchema = z
@@ -82,6 +109,7 @@ export const moveSchema = z
     chipDamage: damageValueSchema.optional(),
     guardCrushValue: damageValueSchema.optional(),
     phaseChangePoints: z.number().int().nonnegative().optional(),
+    hitBreakdown: hitBreakdownSchema.optional(),
     note: z.string().optional(),
     description: z.string().optional(),
   })
@@ -108,6 +136,13 @@ export const moveSchema = z
           code: "custom",
           path: ["guardLevel"],
           message: "攻撃属性を持たない技に判定は設定できません",
+        });
+      }
+      if (hitBreakdownDefines(move.hitBreakdown, "guardLevel")) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["hitBreakdown"],
+          message: "攻撃属性を持たない技のヒット内訳に判定は設定できません",
         });
       }
       if (move.resonanceFlinch !== undefined) {
@@ -156,6 +191,39 @@ export const moveSchema = z
           "弾消し開始フレームは特殊属性「弾消し」を持つ技にのみ設定できます",
       });
     }
+    HIT_BREAKDOWN_DAMAGE_KEYS.forEach((key) => {
+      if (!hitBreakdownDefines(move.hitBreakdown, key)) {
+        return;
+      }
+      if (move[key] !== undefined) {
+        ctx.addIssue({
+          code: "custom",
+          path: [key],
+          message: "ヒット内訳で設定済みの項目は技単位の値と併用できません",
+        });
+      }
+      if (move.resonance?.[key] !== undefined) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["resonance", key],
+          message:
+            "ヒット内訳で設定済みの項目は共鳴時の単一値と併用できません（共鳴中も内訳を変えたい場合は resonance.hitBreakdown を使ってください）",
+        });
+      }
+    });
+    HIT_BREAKDOWN_DAMAGE_KEYS.forEach((key) => {
+      if (
+        hitBreakdownDefines(move.resonance?.hitBreakdown, key) &&
+        move.resonance?.[key] !== undefined
+      ) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["resonance", key],
+          message:
+            "共鳴のヒット内訳で設定済みの項目は共鳴の単一値と併用できません",
+        });
+      }
+    });
     const isChildVariant =
       move.variant === "charge" || move.variant === "derivative";
     if (isChildVariant && move.parentMoveId === undefined) {

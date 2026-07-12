@@ -1,10 +1,14 @@
 "use client";
 
 import { SimpleGrid } from "@mantine/core";
+import { hitBreakdownDefines } from "@/lib/meta";
 import type { Move } from "@/types/move";
 import { DamageValueField } from "./DamageValueField";
 import { IntegerNumberInput } from "./IntegerNumberInput";
-import { PLACEHOLDER_NOT_MEASURED } from "./moveFieldsHelpers";
+import {
+  PLACEHOLDER_NOT_MEASURED,
+  PLACEHOLDER_SET_BY_HIT_BREAKDOWN,
+} from "./moveFieldsHelpers";
 import {
   setOptionalMoveField,
   type MoveDamageValueFieldKey,
@@ -25,17 +29,32 @@ export const DAMAGE_VALUE_FIELDS: {
   { key: "guardCrushValue", label: "ガード削り値" },
 ];
 
-/** ダメージ系（基礎/削り/ガード削り/PCH値）の入力欄。全項目任意で、空欄は未計測扱い。 */
+/**
+ * ダメージ系（基礎/削り/ガード削り/PCH値）の入力欄。全項目任意で、空欄は未計測扱い。
+ * ヒット内訳（hitBreakdown）が定義済みの項目は、schema の相互排他ルールに合わせて
+ * ここでの入力を無効化する（内訳側の入力欄を使う）。
+ */
 export const MoveDamageFields = ({ move, onChange }: MoveDamageFieldsProps) => (
   <SimpleGrid cols={{ base: 2, sm: 4 }}>
-    {DAMAGE_VALUE_FIELDS.map(({ key, label }) => (
-      <DamageValueField
-        key={`${move.id}-${key}`}
-        label={label}
-        value={move[key]}
-        onChange={(value) => onChange(setOptionalMoveField(move, key, value))}
-      />
-    ))}
+    {DAMAGE_VALUE_FIELDS.map(({ key, label }) => {
+      const disabledByBreakdown = hitBreakdownDefines(move.hitBreakdown, key);
+      return (
+        <DamageValueField
+          // disabled 切替時に DamageValueField 内部の非制御 draft state を
+          // 破棄するため、key に disabledByBreakdown を含めて強制的に再マウントする。
+          key={`${move.id}-${key}-${disabledByBreakdown}`}
+          label={label}
+          placeholder={
+            disabledByBreakdown
+              ? PLACEHOLDER_SET_BY_HIT_BREAKDOWN
+              : PLACEHOLDER_NOT_MEASURED
+          }
+          disabled={disabledByBreakdown}
+          value={move[key]}
+          onChange={(value) => onChange(setOptionalMoveField(move, key, value))}
+        />
+      );
+    })}
     <IntegerNumberInput
       key={`${move.id}-phaseChangePoints`}
       label="PCH値"
