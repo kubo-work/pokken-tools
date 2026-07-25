@@ -1,6 +1,6 @@
 # ポッ拳フレーム表
 
-ポッ拳DXのキャラ別フレームデータと確定反撃検索を提供する Next.js アプリ。
+ポッ拳DXのキャラ別フレームデータと確定反撃検索を提供する React Router (Vite) アプリ。
 
 > **これは個人が学習目的で作成した非公式のファンプロジェクトです。**
 > 株式会社ポケモン、任天堂株式会社、株式会社バンダイナムコエンターテインメント
@@ -9,12 +9,15 @@
 
 ## 構成
 
-- **Next.js 16 (App Router) + React 19 + React Compiler**
-- **Cloudflare Workers** + `@opennextjs/cloudflare` でデプロイ
-- **Cloudflare KV**: 技データ・例外データを格納（SSR で都度読み込み）
+- **React Router v8 (framework mode) + React 19 + Vite**
+- **Cloudflare Workers** + `@cloudflare/vite-plugin` でビルド・デプロイ
+- **Cloudflare KV**: 技データ・例外データを格納（SSR の loader で都度読み込み）
 - **Cloudflare D1**: 管理画面アクセス許可メールアドレスを格納
-- **Auth.js v5 + Google OAuth**: `/admin/*` を保護。JWT セッション戦略
+- **remix-auth + Google OAuth**: `/admin/*` を保護。署名付き Cookie セッション
 - **Mantine UI**: 管理画面のみ（公開ページは独自軽量 CSS）
+
+> Node.js は **22.22 以上**が必要（`react-router` CLI の要件。`.node-version` は 24.18.0 を指定）。
+> 本番は Cloudflare Workers（workerd）で実行されるため、Node が要るのはローカル/CI のビルド時のみ。
 
 ### ディレクトリ
 
@@ -25,33 +28,48 @@ pokken/
 │   └── exceptions.json
 ├── migrations/                    # D1 マイグレーション
 ├── scripts/                       # seed スクリプト群
+├── workers/
+│   └── app.ts                     # Worker エントリ（env を AsyncLocalStorage に格納）
+├── app/                           # React Router (framework mode)
+│   ├── root.tsx                   # ルートレイアウト (html/body/テーマ初期化)
+│   ├── routes.ts                  # ルート定義（設定ベース）
+│   ├── entry.server.tsx           # SSR エントリ
+│   └── routes/
+│       ├── public/                # 公開ページ（layout + 各ルート）
+│       ├── admin/                 # 管理画面（layout の middleware で保護）
+│       ├── auth/                  # ログイン / OAuth 開始・コールバック / サインアウト
+│       └── api/                   # API resource route（/api/admin/*）
 └── src/
-    ├── app/
-    │   ├── layout.tsx             # 最小ルート (html/body)
-    │   ├── (public)/              # 公開ページのレイアウト・ルート
-    │   ├── admin/                 # 管理画面（middleware で保護）
-    │   ├── auth/signin/           # ログインページ
-    │   └── api/                   # API ルート
+    ├── auth/
+    │   ├── session.server.ts      # Cookie セッション（getSessionUser / requireApiUser 等）
+    │   ├── authenticator.server.ts# remix-auth の Google OAuth ストラテジー
+    │   ├── context.ts             # middleware → loader へユーザーを渡す RouterContext
+    │   └── authConstants.ts       # エラーコード / Cookie 名 / セッション有効期限
     ├── components/                # 公開ページ用コンポーネント
     │   └── admin/                 # 管理画面用 (Mantine)
     ├── lib/
     │   ├── frame/calcPunish.ts    # 確定反撃ロジック
     │   ├── kv/                    # KV アクセス
     │   ├── d1/                    # D1 アクセス
-    │   ├── auth/config.ts         # Auth.js 設定
+    │   ├── cloudflare.ts          # getEnv()（AsyncLocalStorage 経由で env 取得）
     │   ├── characters/registry.ts # 23キャラ固定レジストリ
     │   ├── meta.ts                # 表示用メタ
     │   ├── schema.ts              # Zod バリデーション
-    │   └── factory.ts
-    ├── types/                     # 型定義
-    └── middleware.ts              # /admin/* 保護
+    │   ├── parseJsonBody.ts       # API resource route 共通の JSON 検証
+    │   └── characterTiles.ts      # キャラタイル集計（公開/管理トップ共通）
+    ├── styles/                    # グローバル CSS（トークン→ベース→機能別で分割）
+    └── types/                     # 型定義
 ```
 
 ## 初回セットアップ
 
 ### 0. 前提
 
-パッケージマネージャ / ランタイムに [bun](https://bun.sh/)（`packageManager` で `bun@1.2.15` を指定）を使う。
+- パッケージマネージャ / ランタイムに [bun](https://bun.sh/)（`packageManager` で `bun@1.2.15` を指定）
+- Node.js **22.22 以上**（`.node-version` は 24.18.0）。nodebrew 等でインストールする:
+  ```bash
+  nodebrew install v24.18.0 && nodebrew use v24.18.0
+  ```
 
 ### 1. 依存インストール
 
@@ -108,14 +126,14 @@ bun run kv:seed:remote
 
 [Google Cloud Console](https://console.cloud.google.com/) で OAuth 2.0 クライアントIDを作成し、以下の Redirect URI を登録:
 
-- `http://localhost:3000/api/auth/callback/google` （開発用）
-- `https://<本番ドメイン>/api/auth/callback/google` （本番用）
+- `http://localhost:2015/auth/google/callback` （開発用）
+- `https://<本番ドメイン>/auth/google/callback` （本番用）
 
 ### 7. ローカル環境変数
 
 ```bash
 cp .dev.vars.example .dev.vars
-# AUTH_SECRET = openssl rand -base64 32 の出力
+# AUTH_SECRET = openssl rand -base64 32 の出力（セッション Cookie の署名に使う）
 # AUTH_GOOGLE_ID / AUTH_GOOGLE_SECRET = OAuth クライアントの値
 ```
 
@@ -133,7 +151,7 @@ bunx wrangler secret put AUTH_GOOGLE_SECRET
 bun run dev
 ```
 
-[http://localhost:3000](http://localhost:3000) で起動。`next dev` 経由でローカル KV/D1 (Miniflare) に接続される。
+[http://localhost:2015](http://localhost:2015) で起動。`react-router dev`（Vite）経由でローカル KV/D1 (Miniflare) と `.dev.vars` に接続される。
 
 ### 本番ビルド動作確認
 
@@ -141,13 +159,15 @@ bun run dev
 bun run preview
 ```
 
-OpenNext でビルドして `wrangler dev` で起動する。デプロイ前の最終確認用。
+Vite でビルドして Workers ランタイム（workerd）上で起動する（`vite preview`）。デプロイ前の最終確認用。
 
 ## デプロイ
 
 ```bash
 bun run deploy
 ```
+
+`react-router build`（Vite）→ `wrangler deploy` の順で実行される。`wrangler` は `@cloudflare/vite-plugin` のビルド出力を自動検出して配信する。
 
 ## 主要 URL
 
@@ -180,6 +200,7 @@ bun run deploy
 ## トラブルシュート
 
 - **管理画面に入れない**: D1 の `allowed_emails` に自分のメールが登録されているか `bunx wrangler d1 execute DB --remote --command "SELECT * FROM allowed_emails"` で確認
-- **OAuth リダイレクトエラー**: Google Cloud Console の Authorized redirect URIs が本番ドメインを含んでいるか確認
+- **OAuth リダイレクトエラー (`redirect_uri_mismatch`)**: Google Cloud Console の Authorized redirect URIs に `<origin>/auth/google/callback` が登録されているか確認（開発は `http://localhost:2015/auth/google/callback`）
 - **ローカルD1の中身が消えた**: `.wrangler/state` を消したか確認。再度 `bun run db:migrate:local && bun run db:seed:local` を実行
 - **KV書き込みが反映されない**: KV は最大60秒の結果整合性あり。少し待つ
+- **`Node version ... requires > 22.22.0` の警告**: ローカル/CI の Node を 22.22 以上（推奨 24）に上げる。本番（workerd）には影響しない
