@@ -1,10 +1,16 @@
 name = "app"
-main = ".open-next/worker.js"
+main = "./workers/app.ts"
 compatibility_date = "2026-05-27"
+# nodejs_compat: getEnv() が使う node:async_hooks（AsyncLocalStorage）に必要。
 compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
 
+[observability]
+enabled = true
+
+# 静的アセット（クライアントビルド成果物）。@cloudflare/vite-plugin が
+# `react-router build` の出力（build/client）を配信する。
 [assets]
-directory = ".open-next/assets"
+directory = "./build/client"
 binding = "ASSETS"
 
 # `wrangler kv namespace create FRAME_DATA_KV` で取得した実 ID。

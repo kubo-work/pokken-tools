@@ -4,7 +4,7 @@ import { useEffect } from "react";
 
 export const DevTools = () => {
   useEffect(() => {
-    if (process.env.NODE_ENV === "development") {
+    if (import.meta.env.DEV) {
       import("@locator/runtime")
         .then((mod) => mod.default())
         .catch((error) => {

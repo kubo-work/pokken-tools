@@ -43,18 +43,31 @@ jobs:
         # バージョンは package.json の packageManager から解決させる（単一ソース化）。
         uses: oven-sh/setup-bun@v2
 
+      - name: Setup Node
+        # React Router v8 は Node >=22.22 を要求する。バージョンは .node-version を単一ソースにする。
+        # `react-router build` は node シェバンで動くため、ランナー既定 Node ではなくここで固定する。
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".node-version"
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
       # cloudflare-env.d.ts は .gitignore 対象（自動生成）でリポジトリに無いため、
-      # ビルドの型チェックが通るよう wrangler.toml から再生成する。リモート通信は無い。
+      # 型チェックが通るよう wrangler.toml から再生成する。リモート通信は無い。
       - name: Generate Cloudflare types
         run: bun run cf-typegen
+
+      # Vite ビルドは型検査をしないため、デプロイ前に tsc で型エラーを弾く（D1 適用より前に fail fast）。
+      - name: Typecheck
+        run: bun run typecheck
 
       # 追加された migrations を本番 D1 に適用する。デプロイより先に流すことで
       # 新スキーマ前提のコードが古い DB に当たる事故を防ぐ。
       - name: Apply D1 migrations (remote)
         run: bun run db:migrate:remote
 
+      # `bun run deploy` = react-router build（Vite）→ wrangler deploy。
+      # wrangler は @cloudflare/vite-plugin のビルド出力を自動検出して配信する。
       - name: Build and deploy
         run: bun run deploy

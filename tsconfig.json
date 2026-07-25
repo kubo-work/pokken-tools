@@ -17,10 +17,9 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
+    "rootDirs": [
+      ".",
+      "./.react-router/types"
     ],
     "baseUrl": ".",
     "paths": {
@@ -31,17 +30,21 @@
     "ignoreDeprecations": "6.0"
   },
   "include": [
-    "next-env.d.ts",
     "cloudflare-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    "cloudflare-secrets.d.ts",
+    "bun-test-env.d.ts",
+    "app/env.d.ts",
+    ".react-router/types/**/*",
+    "app/**/*",
+    "workers/**/*",
+    "src/**/*",
+    "vite.config.ts",
+    "react-router.config.ts"
   ],
   "exclude": [
     "node_modules",
-    ".next",
-    ".open-next",
-    ".wrangler"
+    ".react-router",
+    ".wrangler",
+    "build"
   ]
 }

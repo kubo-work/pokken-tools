@@ -1,14 +1,10 @@
 # Dependencies
 node_modules/
 
-# Next.js
-.next/
-out/
-next-env.d.ts
+# React Router / Vite build
+build/
+.react-router/
 *.tsbuildinfo
-
-# OpenNext build
-.open-next/
 
 # Wrangler local state (ローカルKV/D1のSQLiteファイル等。チームで共有しない)
 .wrangler/

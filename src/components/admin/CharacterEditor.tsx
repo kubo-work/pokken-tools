@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "react-router";
 import {
   Affix,
   Alert,
@@ -71,7 +71,7 @@ export const CharacterEditor = ({ initial }: { initial: Character }) => {
           <Button variant="default" size="xs" onClick={exportJson}>
             JSON書き出し
           </Button>
-          <Button variant="default" size="xs" component={Link} href="/admin">
+          <Button variant="default" size="xs" component={Link} to="/admin">
             一覧へ戻る
           </Button>
         </Group>
