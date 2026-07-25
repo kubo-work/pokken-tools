@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import Link from "next/link";
+import { Link } from "react-router";
 import type { Move } from "@/types/move";
 import { CategoryBadge } from "@/components/badges";
 import { FrameAdvantageText } from "@/components/FrameAdvantageText";
@@ -46,7 +46,7 @@ const MoveRow = ({
       <td>
         <span style={isChild ? { paddingLeft: 16 } : undefined}>
           <CategoryBadge category={move.category} />
-          <Link href={detailPageHref} className="moves-table__move-link">
+          <Link to={detailPageHref} className="moves-table__move-link">
             {move.name}
           </Link>
         </span>

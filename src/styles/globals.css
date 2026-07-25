@@ -1,0 +1,14 @@
+/*
+ * グローバル CSS のエントリポイント。実体は同ディレクトリ配下に機能別で分割している。
+ * 読み込み順 = カスケード順なので、トークン → ベース → 各機能 の順を維持すること。
+ */
+@import "./tokens.css";
+@import "./base.css";
+@import "./site-chrome.css";
+@import "./characters.css";
+@import "./moves-table.css";
+@import "./move-detail.css";
+@import "./punish.css";
+@import "./signin.css";
+@import "./prose.css";
+@import "./strength-help.css";

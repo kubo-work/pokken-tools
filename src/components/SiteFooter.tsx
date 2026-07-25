@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "react-router";
 
 /**
  * 公開ページ共通フッター。
@@ -12,7 +12,7 @@ export function SiteFooter() {
         非公式のファンサイトです。権利者とは一切関係ありません。
       </p>
       <nav className="site-footer__nav">
-        <Link href="/disclaimer">免責事項・著作権表記</Link>
+        <Link to="/disclaimer">免責事項・著作権表記</Link>
       </nav>
     </footer>
   );

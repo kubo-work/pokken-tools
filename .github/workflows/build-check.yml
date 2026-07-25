@@ -1,8 +1,9 @@
-# PR 時点でビルドが通るかを検証する。デプロイ（deploy.yml）と同じ OpenNext ビルド経路を
-# 通すことで、main にマージする前に「ビルドできない変更」を弾く。
+# PR 時点でビルド・型・テストが通るかを検証する。デプロイ（deploy.yml）と同じ
+# React Router（Vite + @cloudflare/vite-plugin）ビルド経路を通すことで、main に
+# マージする前に「ビルドできない変更」「型エラー」を弾く。
 #
 # デプロイは伴わないため Cloudflare の認可（API トークン等）は不要。
-# cf-typegen / opennextjs-cloudflare build はいずれもローカル完結でリモート通信しない。
+# cf-typegen / typecheck / build はいずれもローカル完結でリモート通信しない。
 name: Build Check
 
 on:
@@ -35,6 +36,13 @@ jobs:
         # バージョンは package.json の packageManager から解決させる（単一ソース化）。
         uses: oven-sh/setup-bun@v2
 
+      - name: Setup Node
+        # React Router v8 は Node >=22.22 を要求する。バージョンは .node-version を単一ソースにする。
+        # `react-router build` は node シェバンで動くため、ランナー既定 Node ではなくここで固定する。
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".node-version"
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
@@ -46,6 +54,11 @@ jobs:
       - name: Generate Cloudflare types
         run: bun run cf-typegen
 
-      # デプロイと同じ OpenNext ビルドを実行。deploy せず build までで検証を止める。
-      - name: Build (OpenNext)
-        run: bunx opennextjs-cloudflare build
+      # Vite ビルドは型検査をしない（トランスパイルのみ）ため、型エラーは tsc で明示的に弾く。
+      # typecheck は react-router typegen（ルート型生成）+ tsc。
+      - name: Typecheck
+        run: bun run typecheck
+
+      # デプロイと同じ Vite ビルドを実行。deploy せず build までで検証を止める。
+      - name: Build
+        run: bun run build
