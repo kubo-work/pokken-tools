@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { Box, Flex, Paper, Text } from "@mantine/core";
 import { DndContext, closestCenter } from "@dnd-kit/core";

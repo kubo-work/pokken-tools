@@ -1,5 +1,3 @@
-"use client";
-
 import { Button, Card, Group, Select, SimpleGrid, Stack, Switch, Text } from "@mantine/core";
 import { AIR_GROUND_JUDGMENTS, GUARD_LEVELS } from "@/lib/meta";
 import { asOptionalEnumValue } from "@/lib/optionGuards";

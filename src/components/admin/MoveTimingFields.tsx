@@ -1,5 +1,3 @@
-"use client";
-
 import { SimpleGrid } from "@mantine/core";
 import type { Move } from "@/types/move";
 import { setMoveField, setOptionalMoveField } from "./moveUpdaters";

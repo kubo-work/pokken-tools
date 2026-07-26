@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { IconMoon, IconSun } from "@tabler/icons-react";
 import { THEME, THEME_STORAGE_KEY, type Theme } from "@/lib/theme";

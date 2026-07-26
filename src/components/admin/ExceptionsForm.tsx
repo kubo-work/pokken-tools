@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Affix,
   Alert,

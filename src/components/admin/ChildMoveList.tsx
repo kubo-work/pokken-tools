@@ -1,5 +1,3 @@
-"use client";
-
 import { Button, Card, Group, Stack, Text } from "@mantine/core";
 import {
   SortableContext,

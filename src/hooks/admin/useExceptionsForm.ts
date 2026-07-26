@@ -1,10 +1,11 @@
-"use client";
-
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { PHASES, PHASE_META } from "@/lib/meta";
 import type { Character } from "@/types/character";
 import type { PunishException } from "@/types/move";
 import type { Feedback } from "@/lib/feedback";
+import { saveWithFeedback } from "@/lib/admin/adminApiClient";
+import { ADMIN_API_ENDPOINTS } from "@/lib/admin/endpoints";
+import { useAutoDismissedFeedback } from "./useAutoDismissedFeedback";
 
 export interface MoveOption {
   value: string;
@@ -48,11 +49,12 @@ export const useExceptionsForm = ({
   characters,
   initialExceptions,
 }: UseExceptionsFormParams): UseExceptionsFormResult => {
-  const moveOptions = useMemo(() => buildMoveOptions(characters), [characters]);
+  // 再計算の抑止は React Compiler の自動メモ化に任せる（手動 useMemo は不要）。
+  const moveOptions = buildMoveOptions(characters);
   const [exceptions, setExceptions] =
     useState<PunishException[]>(initialExceptions);
   const [saving, setSaving] = useState(false);
-  const [feedback, setFeedback] = useState<Feedback | undefined>(undefined);
+  const { feedback, setFeedback } = useAutoDismissedFeedback();
 
   const updateException = (
     index: number,
@@ -86,31 +88,10 @@ export const useExceptionsForm = ({
   const save = async (): Promise<void> => {
     setSaving(true);
     setFeedback(undefined);
-    try {
-      const response = await fetch("/api/admin/exceptions", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(exceptions),
-      });
-      if (response.ok) {
-        setFeedback({ ok: true, message: "保存しました" });
-        return;
-      }
-      const detail = await response.text().catch(() => "");
-      setFeedback({
-        ok: false,
-        message: detail === ""
-          ? "保存に失敗しました"
-          : `保存に失敗しました: ${detail}`,
-      });
-    } catch (error) {
-      console.error("exceptions save failed", error);
-      const message =
-        error instanceof Error ? error.message : String(error);
-      setFeedback({ ok: false, message: `通信エラー: ${message}` });
-    } finally {
-      setSaving(false);
-    }
+    setFeedback(
+      await saveWithFeedback(ADMIN_API_ENDPOINTS.exceptions, exceptions),
+    );
+    setSaving(false);
   };
 
   return {

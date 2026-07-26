@@ -8,7 +8,7 @@ import {
   reorderChildrenInGroup,
   reorderParentGroups,
 } from "@/lib/moves/grouping";
-import { makeMove } from "@/lib/moves/testFixtures";
+import { makeMove } from "./testFixtures";
 import type { Move } from "@/types/move";
 
 const parentA = makeMove({ id: "parent_a" });

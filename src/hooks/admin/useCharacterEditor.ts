@@ -1,6 +1,3 @@
-"use client";
-
-import { useState } from "react";
 import type { Character } from "@/types/character";
 import { useCharacterIO, type UseCharacterIOResult } from "./useCharacterIO";
 import {
@@ -12,6 +9,7 @@ import {
   type UseCharacterStateResult,
 } from "./useCharacterState";
 import type { Feedback } from "@/lib/feedback";
+import { useAutoDismissedFeedback } from "./useAutoDismissedFeedback";
 
 export type { Feedback } from "@/lib/feedback";
 
@@ -28,7 +26,7 @@ export type UseCharacterEditorResult = UseCharacterStateResult &
 export const useCharacterEditor = (
   initial: Character,
 ): UseCharacterEditorResult => {
-  const [feedback, setFeedback] = useState<Feedback | undefined>(undefined);
+  const { feedback, setFeedback } = useAutoDismissedFeedback();
   const state = useCharacterState(initial);
   const io = useCharacterIO(
     state.character,

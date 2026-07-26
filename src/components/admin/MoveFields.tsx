@@ -1,5 +1,3 @@
-"use client";
-
 import { Checkbox, Group, Select, SimpleGrid, TextInput } from "@mantine/core";
 import {
   AIR_GROUND_JUDGMENTS,

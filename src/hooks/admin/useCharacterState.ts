@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import type { Character } from "@/types/character";
 import type { Move, MoveVariant, Phase } from "@/types/move";

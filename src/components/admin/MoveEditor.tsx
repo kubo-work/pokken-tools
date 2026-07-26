@@ -1,5 +1,3 @@
-"use client";
-
 import type { CSSProperties, ReactNode, Ref } from "react";
 import { Badge, Button, Card, Group, Stack, Text } from "@mantine/core";
 import { MOVE_VARIANT_META } from "@/lib/meta";

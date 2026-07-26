@@ -1,5 +1,3 @@
-"use client";
-
 import { Select, SimpleGrid } from "@mantine/core";
 import type {
   FrameAdvantageRange,
