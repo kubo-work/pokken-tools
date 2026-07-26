@@ -39,6 +39,30 @@ export default defineConfig(({ command }) => {
       cloudflare({ viteEnvironment: { name: "ssr" } }),
       reactRouter(),
     ],
+    /**
+     * dev サーバで「後から発見される依存」を事前に宣言し、依存の再最適化を起こさせない。
+     *
+     * 再最適化が走ると browserHash が変わり、それ以前に取得済みのモジュール（?v=旧ハッシュ）と
+     * 以降に取得するモジュール（?v=新ハッシュ）が同居する。React と React DOM が別コピーになると
+     * "Invalid hook call" で画面が落ちる（リロードすると直る、という症状で現れる）。
+     *
+     * とくに react/compiler-runtime は React Compiler が Babel 変換時に注入するため、
+     * 変換前のソースを走査する Vite の事前スキャンからは原理的に見つけられない。必ず後から
+     * 発見されるので、ここでの明示が必須。
+     * 残りは admin 配下でしか使われず遅延読み込みになる依存で、二度目の再最適化を防ぐための保険。
+     */
+    optimizeDeps: {
+      include: [
+        "react/compiler-runtime",
+        "@dnd-kit/core",
+        "@dnd-kit/sortable",
+        "@dnd-kit/utilities",
+        "@mantine/core",
+        "@mantine/hooks",
+        "@tabler/icons-react",
+        ...(isDevServer ? ["@locator/runtime"] : []),
+      ],
+    },
     // tsconfig の paths（@/* → src/*）を Vite 側でも解決する（Vite 8 のビルトイン機能）。
     resolve: {
       tsconfigPaths: true,
