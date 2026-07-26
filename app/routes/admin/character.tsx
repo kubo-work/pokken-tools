@@ -22,6 +22,15 @@ export async function loader({ params }: Route.LoaderArgs) {
   return { initial };
 }
 
+/**
+ * key にキャラ ID を渡し、別キャラへ遷移したときだけ CharacterEditor を再マウントさせる。
+ * これで編集中の state がリセットされる（hook 側で props を state へ同期しないで済む）。
+ */
 export default function AdminCharacterPage({ loaderData }: Route.ComponentProps) {
-  return <CharacterEditor initial={loaderData.initial} />;
+  return (
+    <CharacterEditor
+      key={loaderData.initial.id}
+      initial={loaderData.initial}
+    />
+  );
 }

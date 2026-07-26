@@ -8,7 +8,6 @@ import {
 } from "react-router";
 import { mantineHtmlProps } from "@mantine/core";
 import type { Route } from "./+types/root";
-import { DevTools } from "@/components/DevTools";
 import { THEME, THEME_STORAGE_KEY } from "@/lib/theme";
 import "@/styles/globals.css";
 
@@ -70,7 +69,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
-        <DevTools />
         <ScrollRestoration />
         <Scripts />
       </body>
