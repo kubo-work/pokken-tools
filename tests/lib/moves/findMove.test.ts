@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { findMoveInCharacter } from "@/lib/moves/findMove";
-import { makeMove } from "@/lib/moves/testFixtures";
+import { makeMove } from "./testFixtures";
 import type { Character } from "@/types/character";
 
 const duelParent = makeMove({ id: "duel_parent" });

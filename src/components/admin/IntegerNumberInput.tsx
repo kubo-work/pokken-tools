@@ -1,5 +1,3 @@
-"use client";
-
 import { NumberInput } from "@mantine/core";
 
 export interface IntegerNumberInputProps {

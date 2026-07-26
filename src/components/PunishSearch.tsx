@@ -1,5 +1,3 @@
-"use client";
-
 import type { Character } from "@/types/character";
 import type { PunishException, ResonanceState } from "@/types/move";
 import { FrameNumber } from "@/components/FrameNumber";

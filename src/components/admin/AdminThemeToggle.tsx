@@ -1,5 +1,3 @@
-"use client";
-
 import { ActionIcon, useMantineColorScheme } from "@mantine/core";
 import { IconMoon, IconSun } from "@tabler/icons-react";
 import { THEME } from "@/lib/theme";

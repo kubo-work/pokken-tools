@@ -38,6 +38,7 @@
     "app/**/*",
     "workers/**/*",
     "src/**/*",
+    "tests/**/*",
     "vite.config.ts",
     "react-router.config.ts"
   ],

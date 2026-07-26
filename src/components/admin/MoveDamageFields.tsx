@@ -1,5 +1,3 @@
-"use client";
-
 import { SimpleGrid } from "@mantine/core";
 import { hitBreakdownDefines } from "@/lib/meta";
 import type { Move } from "@/types/move";

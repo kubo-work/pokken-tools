@@ -1,5 +1,3 @@
-"use client";
-
 import { Textarea, TextInput } from "@mantine/core";
 import type { Move } from "@/types/move";
 import { setMoveField } from "./moveUpdaters";

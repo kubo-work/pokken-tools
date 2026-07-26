@@ -46,15 +46,20 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
+    "@babel/core": "7.29.7",
+    "@babel/preset-typescript": "7.29.7",
     "@cloudflare/vite-plugin": "1.45.1",
+    "@locator/babel-jsx": "0.5.1",
     "@locator/runtime": "^0.5.1",
     "@react-router/dev": "8.2.0",
     "@types/bun": "^1.3.14",
     "@types/node": "24.13.3",
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
+    "babel-plugin-react-compiler": "1.0.0",
     "typescript": "6.0.3",
     "vite": "8.1.5",
+    "vite-plugin-babel": "1.7.3",
     "wrangler": "4.112.0"
   }
 }

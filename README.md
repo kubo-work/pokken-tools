@@ -15,6 +15,10 @@
 - **Cloudflare D1**: 管理画面アクセス許可メールアドレスを格納
 - **remix-auth + Google OAuth**: `/admin/*` を保護。署名付き Cookie セッション
 - **Mantine UI**: 管理画面のみ（公開ページは独自軽量 CSS）
+- **React Compiler**: `vite.config.ts` の `vite-plugin-babel` 経由で有効。手動の
+  `useMemo` / `useCallback` は原則書かず、メモ化はコンパイラに任せる
+- **locator.js**: 開発時のみ `@locator/babel-jsx` で JSX にソース位置を埋め込み、
+  ブラウザ上の要素を Option+クリックでエディタで開ける
 
 > Node.js は **22.22 以上**が必要（`react-router` CLI の要件。`.node-version` は 24.18.0 を指定）。
 > 本番は Cloudflare Workers（workerd）で実行されるため、Node が要るのはローカル/CI のビルド時のみ。
@@ -27,7 +31,12 @@ pokken/
 │   ├── characters/*.json          # 23キャラ分
 │   └── exceptions.json
 ├── migrations/                    # D1 マイグレーション
-├── scripts/                       # seed スクリプト群
+├── scripts/                       # seed スクリプト群 / favicon 生成
+├── public/                        # 静的アセット（favicon）
+├── tests/                         # テストは実装から分離し src・app の階層をミラーする
+│   ├── lib/ components/           # src/ 配下の対応するモジュールのテスト
+│   ├── routes/api/                # API resource route の action テスト
+│   └── helpers/                   # テスト共通ヘルパー（認証モック等）
 ├── workers/
 │   └── app.ts                     # Worker エントリ（env を AsyncLocalStorage に格納）
 ├── app/                           # React Router (framework mode)

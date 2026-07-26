@@ -8,7 +8,6 @@ import {
 } from "react-router";
 import { mantineHtmlProps } from "@mantine/core";
 import type { Route } from "./+types/root";
-import { DevTools } from "@/components/DevTools";
 import { THEME, THEME_STORAGE_KEY } from "@/lib/theme";
 import "@/styles/globals.css";
 
@@ -19,6 +18,16 @@ import "@/styles/globals.css";
  * 自前の meta で index 許可へ上書きする。個別 title を出すページ（disclaimer / 技詳細）は
  * 置換になるため、それぞれの meta 側で noindex を明示する。
  */
+/**
+ * favicon。Next.js は app/favicon.* を自動配信していたが Vite にその仕組みはないため、
+ * public/ に置いたファイルを明示的に宣言する。SVG を読まないブラウザ向けに .ico も併記する
+ * （どちらも public/favicon.svg と scripts/generate-favicon.ts で同じ意匠を維持している）。
+ */
+export const links: Route.LinksFunction = () => [
+  { rel: "icon", href: "/favicon.ico", sizes: "32x32" },
+  { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+];
+
 export const meta: Route.MetaFunction = () => [
   { title: "ポッ拳フレーム表" },
   {
@@ -60,7 +69,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
-        <DevTools />
         <ScrollRestoration />
         <Scripts />
       </body>

@@ -1,5 +1,3 @@
-"use client";
-
 import { NumberInput, Select, SimpleGrid } from "@mantine/core";
 import { asNullableEnumValue } from "@/lib/optionGuards";
 import type { Move } from "@/types/move";

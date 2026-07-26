@@ -5,7 +5,7 @@ import {
   removeHitBreakdownEntry,
   setHitBreakdownEntryField,
   toggleHitBreakdown,
-} from "./moveUpdaters";
+} from "@/components/admin/moveUpdaters";
 
 describe("toggleHitBreakdown", () => {
   test("ON かつ未設定なら既定の1グループで初期化する", () => {

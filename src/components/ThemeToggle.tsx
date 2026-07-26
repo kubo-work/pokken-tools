@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { IconMoon, IconSun } from "@tabler/icons-react";
 import { THEME, THEME_STORAGE_KEY, type Theme } from "@/lib/theme";
@@ -13,19 +11,23 @@ import { THEME, THEME_STORAGE_KEY, type Theme } from "@/lib/theme";
  * SSR 時点では実際のテーマが未確定でサーバーとクライアントで食い違うため、
  * マウント完了までアイコンを描画せず同サイズのプレースホルダを返し、
  * hydration ミスマッチとレイアウトシフトを防ぐ。
+ * この「マウント前」は theme が undefined であることで表すため、専用の state は持たない。
  */
-export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>(THEME.DARK);
-  const [isMounted, setIsMounted] = useState(false);
+export const ThemeToggle = () => {
+  // 実際のテーマは <html> の data-theme にしかなく、hydration 後でないと読めない。
+  const [theme, setTheme] = useState<Theme | undefined>(undefined);
 
   useEffect(() => {
-    const currentTheme =
+    setTheme(
       document.documentElement.dataset.theme === THEME.LIGHT
         ? THEME.LIGHT
-        : THEME.DARK;
-    setTheme(currentTheme);
-    setIsMounted(true);
+        : THEME.DARK,
+    );
   }, []);
+
+  if (theme === undefined) {
+    return <span className="theme-toggle" aria-hidden="true" />;
+  }
 
   const toggleTheme = () => {
     const nextTheme: Theme = theme === THEME.LIGHT ? THEME.DARK : THEME.LIGHT;
@@ -33,10 +35,6 @@ export function ThemeToggle() {
     localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
     setTheme(nextTheme);
   };
-
-  if (!isMounted) {
-    return <span className="theme-toggle" aria-hidden="true" />;
-  }
 
   const isDark = theme === THEME.DARK;
 
@@ -51,4 +49,4 @@ export function ThemeToggle() {
       {isDark ? <IconSun size={18} /> : <IconMoon size={18} />}
     </button>
   );
-}
+};

@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { NumberInput } from "@mantine/core";
 import type { DamageValue } from "@/types/move";

@@ -1,6 +1,4 @@
-"use client";
-
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { Character } from "@/types/character";
 import type {
   Move,
@@ -110,18 +108,13 @@ export const usePunishSearch = ({
   exceptions,
   fixedDefenderCharacterId,
 }: UsePunishSearchParams): UsePunishSearchResult => {
-  const allMoveOptions = useMemo(
-    () => buildMoveOptions(characters),
-    [characters],
-  );
+  // 以下の派生値の再計算抑止は React Compiler の自動メモ化に任せる（手動 useMemo は不要）。
+  const allMoveOptions = buildMoveOptions(characters);
 
-  const fixedDefender = useMemo(
-    () =>
-      fixedDefenderCharacterId === undefined
-        ? undefined
-        : characters.find((c) => c.id === fixedDefenderCharacterId),
-    [characters, fixedDefenderCharacterId],
-  );
+  const fixedDefender =
+    fixedDefenderCharacterId === undefined
+      ? undefined
+      : characters.find((c) => c.id === fixedDefenderCharacterId);
 
   const [attackerMoveId, setAttackerMoveId] = useState<string>(
     allMoveOptions[0]?.value ?? "",
@@ -131,25 +124,20 @@ export const usePunishSearch = ({
   );
   const [defenderState, setDefenderState] = useState<ResonanceState>("normal");
 
-  const attackerContext = useMemo(
-    () => findMoveById(characters, attackerMoveId),
-    [characters, attackerMoveId],
-  );
+  const attackerContext = findMoveById(characters, attackerMoveId);
 
   const defender =
     fixedDefender ?? characters.find((c) => c.id === defenderCharacterId);
 
-  const results = useMemo<PunishResult[]>(() => {
-    if (attackerContext === undefined || defender === undefined) {
-      return [];
-    }
-    return searchPunishes({
-      attackerMove: attackerContext.move,
-      defenderMoves: [...defender.duelMoves, ...defender.fieldMoves],
-      defenderState,
-      exceptions,
-    });
-  }, [attackerContext, defender, defenderState, exceptions]);
+  const results: PunishResult[] =
+    attackerContext === undefined || defender === undefined
+      ? []
+      : searchPunishes({
+          attackerMove: attackerContext.move,
+          defenderMoves: [...defender.duelMoves, ...defender.fieldMoves],
+          defenderState,
+          exceptions,
+        });
 
   return {
     allMoveOptions,

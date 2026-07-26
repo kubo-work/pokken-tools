@@ -1,6 +1,4 @@
-"use client";
-
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Character } from "@/types/character";
 import type { Move, MoveVariant, Phase } from "@/types/move";
 import { createMove } from "@/lib/factory";
@@ -86,12 +84,9 @@ export interface UseCharacterStateResult {
 export const useCharacterState = (
   initial: Character,
 ): UseCharacterStateResult => {
+  // 編集対象のキャラが変わったときのリセットは、呼び出し元が key を付け替えて
+  // React に再マウントさせることで行う（effect で props を state へ同期しない）。
   const [character, setCharacter] = useState<Character>(initial);
-
-  // 外部から initial が差し替わったらリセット（編集中の入力は破棄される）
-  useEffect(() => {
-    setCharacter(initial);
-  }, [initial]);
 
   const replaceCharacter = (next: Character): void => {
     setCharacter(next);

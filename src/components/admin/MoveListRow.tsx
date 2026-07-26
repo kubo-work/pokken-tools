@@ -1,5 +1,3 @@
-"use client";
-
 import { Badge, Group, Stack, Text, UnstyledButton } from "@mantine/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
