@@ -5,6 +5,9 @@
 export const FrameNumber = ({ value }: { value: number }) => {
   const className =
     value > 0 ? "frame-num frame-num--good" : value < 0 ? "frame-num frame-num--bad" : "frame-num";
+  if (value === 0) {
+    return <span className={className}>±0</span>;
+  }
   const sign = value > 0 ? "+" : "";
   return <span className={className}>{`${sign}${value}`}</span>;
 };

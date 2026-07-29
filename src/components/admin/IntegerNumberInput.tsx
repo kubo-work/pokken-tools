@@ -1,4 +1,4 @@
-import { NumberInput } from "@mantine/core";
+import { NumberInput, type NumberInputProps } from "@mantine/core";
 
 export interface IntegerNumberInputProps {
   label: string;
@@ -13,6 +13,8 @@ export interface IntegerNumberInputProps {
   min?: number;
   max?: number;
   onChange: (value: number | undefined) => void;
+  /** Mantine の Styles API 経由でラッパー要素にクラスを当てたい場合に指定（例: subgrid 整列）。 */
+  classNames?: NumberInputProps["classNames"];
 }
 
 /**
@@ -35,6 +37,7 @@ export const IntegerNumberInput = ({
   min,
   max,
   onChange,
+  classNames,
 }: IntegerNumberInputProps) => (
   <NumberInput
     label={label}
@@ -47,5 +50,6 @@ export const IntegerNumberInput = ({
     max={max}
     defaultValue={value}
     onChange={(next) => onChange(typeof next === "number" ? next : undefined)}
+    classNames={classNames}
   />
 );

@@ -63,7 +63,9 @@ export const RESONANCE_FLINCH_MODES: ResonanceFlinchMode[] =
 export type ResonanceNumberField =
   | "startup"
   | "guardFrameAdvantage"
-  | "hitFrameAdvantage";
+  | "guardFrameAdvantageOnPokemonMoveCancel"
+  | "hitFrameAdvantage"
+  | "hitFrameAdvantageOnPokemonMoveCancel";
 
 export const RESONANCE_NUMBER_FIELDS: {
   key: ResonanceNumberField;
@@ -72,5 +74,15 @@ export const RESONANCE_NUMBER_FIELDS: {
 }[] = [
   { key: "startup", label: "発生", negative: false },
   { key: "guardFrameAdvantage", label: "ガード硬直差", negative: true },
+  {
+    key: "guardFrameAdvantageOnPokemonMoveCancel",
+    label: "ポケモン技キャンセル時のガード硬直差",
+    negative: true,
+  },
   { key: "hitFrameAdvantage", label: "ヒット硬直差", negative: true },
+  {
+    key: "hitFrameAdvantageOnPokemonMoveCancel",
+    label: "ポケモン技キャンセル時のヒット硬直差",
+    negative: true,
+  },
 ];

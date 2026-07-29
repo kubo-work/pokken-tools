@@ -1,0 +1,36 @@
+/*
+ * 管理画面の硬直差入力行（FrameAdvantageField）。
+ * 形式選択・数値入力・ポケモン技キャンセル用入力を横に並べたとき、項目ごとに
+ * ラベル/説明文の行数が違っても入力欄の位置が揃うよう、各項目のルート要素
+ * （.frame-advantage-field__item）を CSS subgrid で親の行に揃える。
+ * 折り返し（範囲入力3個 + キャンセル欄など）が発生しても2セット分は縦に
+ * 揃うよう行トラックを6本（3行×2セット）用意している。
+ */
+.frame-advantage-field {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(6, auto);
+  column-gap: var(--mantine-spacing-md, 16px);
+  row-gap: var(--mantine-spacing-md, 16px);
+}
+
+@media (min-width: 48em) {
+  .frame-advantage-field {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.frame-advantage-field__item {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 3;
+}
+
+/* ラベルは常に1つ目の子、入力欄は常に最後の子（説明文の有無に関わらず）。 */
+.frame-advantage-field__item > :first-child {
+  grid-row: 1;
+}
+
+.frame-advantage-field__item > :last-child {
+  grid-row: 3;
+}

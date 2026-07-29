@@ -34,6 +34,24 @@ export const MoveTimingFields = ({ move, onChange }: MoveTimingFieldsProps) => (
       onChange={(value) =>
         onChange(setMoveField(move, "guardFrameAdvantage", value))
       }
+      extraField={
+        <IntegerNumberInput
+          key={`${move.id}-guardFrameAdvantageOnPokemonMoveCancel`}
+          label="ポケモン技キャンセル時のガード硬直差"
+          description="ポケモン技にキャンセルした場合の硬直差。未計測なら空欄"
+          allowNegative
+          value={move.guardFrameAdvantageOnPokemonMoveCancel}
+          onChange={(value) =>
+            onChange(
+              setOptionalMoveField(
+                move,
+                "guardFrameAdvantageOnPokemonMoveCancel",
+                value,
+              ),
+            )
+          }
+        />
+      }
     />
     <FrameAdvantageField
       kind="hit"
@@ -43,6 +61,24 @@ export const MoveTimingFields = ({ move, onChange }: MoveTimingFieldsProps) => (
       value={move.hitFrameAdvantage}
       onChange={(value) =>
         onChange(setOptionalMoveField(move, "hitFrameAdvantage", value))
+      }
+      extraField={
+        <IntegerNumberInput
+          key={`${move.id}-hitFrameAdvantageOnPokemonMoveCancel`}
+          label="ポケモン技キャンセル時のヒット硬直差"
+          description="ポケモン技にキャンセルした場合の硬直差。未計測なら空欄"
+          allowNegative
+          value={move.hitFrameAdvantageOnPokemonMoveCancel}
+          onChange={(value) =>
+            onChange(
+              setOptionalMoveField(
+                move,
+                "hitFrameAdvantageOnPokemonMoveCancel",
+                value,
+              ),
+            )
+          }
+        />
       }
     />
   </>

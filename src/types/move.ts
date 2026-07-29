@@ -73,7 +73,9 @@ export type MoveVariant = "normal" | "charge" | "derivative";
 export interface ResonanceOverride {
   startup?: number;
   guardFrameAdvantage?: number;
+  guardFrameAdvantageOnPokemonMoveCancel?: number;
   hitFrameAdvantage?: number;
+  hitFrameAdvantageOnPokemonMoveCancel?: number;
   strength?: number;
   guardLevel?: GuardLevel;
   baseDamage?: DamageValue;
@@ -100,8 +102,19 @@ export interface Move {
    * 「当て方次第」の印を付ける（calcPunish 参照）。
    */
   guardFrameAdvantage: GuardFrameAdvantage;
+  /**
+   * ポケモン技にキャンセルした場合のガード硬直差。攻撃側視点、符号付き。
+   * ポケモン技へキャンセルすることで通常のガード硬直差より有利になる技
+   * （マイナスからプラスに転じる等）向け。未計測・非対応なら省略。
+   */
+  guardFrameAdvantageOnPokemonMoveCancel?: number;
   /** ヒット硬直差。攻撃側視点の有利/不利フレーム。ダウンする技は "down"。表示専用で、未計測なら省略。 */
   hitFrameAdvantage?: HitFrameAdvantage;
+  /**
+   * ポケモン技にキャンセルした場合のヒット硬直差。攻撃側視点、符号付き。
+   * guardFrameAdvantageOnPokemonMoveCancel と同様、単一値のみ。未計測・非対応なら省略。
+   */
+  hitFrameAdvantageOnPokemonMoveCancel?: number;
   /**
    * 攻撃の強度。攻撃属性 (attackType) に応じた範囲で入力する：打撃 (strike) は 1〜6、弾 (projectile) は 1〜8。
    * 攻撃属性を持たない「つかみ」技には強度がないため省略する。

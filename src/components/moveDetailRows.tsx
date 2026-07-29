@@ -88,6 +88,33 @@ const variantCommand = (move: Move, parentMove: Move): string =>
     move.id === parentMove.id ? undefined : parentMove.command,
   );
 
+/** ポケモン技キャンセル時の硬直差フィールド名。ガード/ヒット共通の行構造で扱う。 */
+type CancelFrameAdvantageKey =
+  | "guardFrameAdvantageOnPokemonMoveCancel"
+  | "hitFrameAdvantageOnPokemonMoveCancel";
+
+/**
+ * ポケモン技キャンセル時の硬直差1行分のセル。ガード/ヒットで renderCell が同型のため
+ * buildDamageValueRow と同様に定義から生成する。技単位の値が未計測なら "-"、
+ * 共鳴上書きがあれば「→」で併記する。
+ */
+const buildCancelFrameAdvantageRow = (
+  header: string,
+  key: CancelFrameAdvantageKey,
+): ComparisonRow => ({
+  header,
+  renderCell: (move) => (
+    <>
+      {move[key] === undefined ? "-" : <FrameNumber value={move[key]} />}
+      {move.resonance?.[key] !== undefined && (
+        <ResonanceArrow>
+          <FrameNumber value={move.resonance[key]} />
+        </ResonanceArrow>
+      )}
+    </>
+  ),
+});
+
 /** 発生・ガード硬直差・ヒット硬直差。変種に依存しない静的な行定義。 */
 export const FRAME_ROWS: ComparisonRow[] = [
   {
@@ -114,6 +141,10 @@ export const FRAME_ROWS: ComparisonRow[] = [
       </>
     ),
   },
+  buildCancelFrameAdvantageRow(
+    "ポケモン技キャンセル時のガード硬直差",
+    "guardFrameAdvantageOnPokemonMoveCancel",
+  ),
   {
     header: "ヒット硬直差",
     renderCell: (move) => (
@@ -131,6 +162,10 @@ export const FRAME_ROWS: ComparisonRow[] = [
       </>
     ),
   },
+  buildCancelFrameAdvantageRow(
+    "ポケモン技キャンセル時のヒット硬直差",
+    "hitFrameAdvantageOnPokemonMoveCancel",
+  ),
 ];
 
 /** DamageValue を持つダメージ行。renderCell が同型のため定義から生成する。 */
