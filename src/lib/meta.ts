@@ -424,6 +424,9 @@ export const totalHitBreakdownDamage = (
 /** ヒット硬直差 "down"（相手がダウンする技）の表示ラベル。 */
 export const HIT_FRAME_ADVANTAGE_DOWN_LABEL = "ダウン";
 
+/** 技一覧のガード/ヒット硬直差セルで、ポケモン技キャンセル時の値の前に付ける接頭ラベル。 */
+export const POKEMON_MOVE_CANCEL_LABEL = "ポ: ";
+
 export const GUARD_LEVEL_META: Record<
   GuardLevel,
   { label: string; shortLabel: string }

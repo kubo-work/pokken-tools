@@ -1,4 +1,5 @@
-import { Select, SimpleGrid } from "@mantine/core";
+import { cloneElement, type ReactElement } from "react";
+import { Select } from "@mantine/core";
 import type {
   FrameAdvantageRange,
   GuardFrameAdvantage,
@@ -6,7 +7,7 @@ import type {
 } from "@/types/move";
 import { HIT_FRAME_ADVANTAGE_DOWN_LABEL } from "@/lib/meta";
 import { asOptionalEnumValue } from "@/lib/optionGuards";
-import { IntegerNumberInput } from "./IntegerNumberInput";
+import { IntegerNumberInput, type IntegerNumberInputProps } from "./IntegerNumberInput";
 import { PLACEHOLDER_NOT_MEASURED } from "./moveFieldsHelpers";
 
 /** 硬直差の入力形式。guard は single / range、hit はさらに down を選べる。 */
@@ -23,6 +24,14 @@ const MODE_LABELS: Record<FrameAdvantageInputMode, string> = {
   down: HIT_FRAME_ADVANTAGE_DOWN_LABEL,
 };
 
+/**
+ * 行内の項目（形式選択・数値入力・extraField）に共通で付けるクラス。
+ * ラベル・説明・入力欄の高さが項目ごとに異なっても、CSS subgrid で行を横に揃えるため
+ * 各項目のルート要素に付与する（frame-advantage-field.css 参照）。extraField には
+ * この関数が cloneElement で自動的に付けるため、呼び出し側で意識する必要はない。
+ */
+const ITEM_CLASS_NAMES = { root: "frame-advantage-field__item" };
+
 interface FrameAdvantageFieldBaseProps {
   /** IntegerNumberInput 再マウント用キーの前置き（例: `${move.id}-guardFrameAdvantage`）。 */
   inputKeyPrefix: string;
@@ -30,6 +39,8 @@ interface FrameAdvantageFieldBaseProps {
   description?: string;
   /** 必須項目のラベルに * を付ける（ガード硬直差用）。 */
   withAsterisk?: boolean;
+  /** 同じ行に並べたい追加の入力欄（例: ポケモン技キャンセル時の硬直差）。 */
+  extraField?: ReactElement<IntegerNumberInputProps>;
 }
 
 /**
@@ -81,7 +92,7 @@ const valueForMode = (
  * 形式に応じた数値入力を表示する。範囲は min=最も不利側・max=最も有利側。
  */
 export const FrameAdvantageField = (props: FrameAdvantageFieldProps) => {
-  const { inputKeyPrefix, label, description, withAsterisk } = props;
+  const { inputKeyPrefix, label, description, withAsterisk, extraField } = props;
   const isHit = props.kind === "hit";
   const value: FrameAdvantageFieldValue | undefined = props.value;
   const availableModes = isHit ? HIT_MODES : GUARD_MODES;
@@ -101,7 +112,7 @@ export const FrameAdvantageField = (props: FrameAdvantageFieldProps) => {
   };
 
   return (
-    <SimpleGrid cols={{ base: 2, sm: 3 }}>
+    <div className="frame-advantage-field">
       <Select
         label={label}
         description={description}
@@ -121,6 +132,7 @@ export const FrameAdvantageField = (props: FrameAdvantageFieldProps) => {
               : valueForMode(matchedMode, value),
           );
         }}
+        classNames={ITEM_CLASS_NAMES}
       />
       {mode === "single" && (
         <IntegerNumberInput
@@ -130,6 +142,7 @@ export const FrameAdvantageField = (props: FrameAdvantageFieldProps) => {
           allowNegative
           value={typeof value === "number" ? value : undefined}
           onChange={(nextValue) => emitChange(nextValue ?? 0)}
+          classNames={ITEM_CLASS_NAMES}
         />
       )}
       {mode === "range" && (
@@ -142,6 +155,7 @@ export const FrameAdvantageField = (props: FrameAdvantageFieldProps) => {
             onChange={(nextValue) =>
               emitChange({ min: nextValue ?? 0, max: range?.max ?? 0 })
             }
+            classNames={ITEM_CLASS_NAMES}
           />
           <IntegerNumberInput
             key={`${inputKeyPrefix}-range-max`}
@@ -151,9 +165,12 @@ export const FrameAdvantageField = (props: FrameAdvantageFieldProps) => {
             onChange={(nextValue) =>
               emitChange({ min: range?.min ?? 0, max: nextValue ?? 0 })
             }
+            classNames={ITEM_CLASS_NAMES}
           />
         </>
       )}
-    </SimpleGrid>
+      {extraField !== undefined &&
+        cloneElement(extraField, { classNames: ITEM_CLASS_NAMES })}
+    </div>
   );
 };

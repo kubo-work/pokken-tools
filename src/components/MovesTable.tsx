@@ -3,9 +3,11 @@ import { Link } from "react-router";
 import type { Move } from "@/types/move";
 import { CategoryBadge } from "@/components/badges";
 import { FrameAdvantageText } from "@/components/FrameAdvantageText";
+import { FrameNumber } from "@/components/FrameNumber";
 import { StrengthHelpPopover } from "@/components/StrengthHelpPopover";
 import {
   ATTACK_TYPE_META,
+  POKEMON_MOVE_CANCEL_LABEL,
   RESONANCE_ONLY_LABEL,
   childVariantLabel,
   formatDamageValue,
@@ -18,6 +20,19 @@ import {
 import { formatMoveCommand } from "@/lib/moves/command";
 import { groupMovesByParent, isChildMove } from "@/lib/moves/grouping";
 import { UI_COLORS, UI_SIZES } from "@/lib/uiTokens";
+
+/** ガード/ヒット硬直差セルの下段に「ポ: xx」を表示する。値が無い技では何も描画しない。 */
+const PokemonMoveCancelNote = ({ value }: { value: number | undefined }) => {
+  if (value === undefined) {
+    return null;
+  }
+  return (
+    <div style={{ fontSize: UI_SIZES.caption, color: UI_COLORS.mute }}>
+      {POKEMON_MOVE_CANCEL_LABEL}
+      <FrameNumber value={value} />
+    </div>
+  );
+};
 
 interface MoveRowProps {
   move: Move;
@@ -102,6 +117,9 @@ const MoveRow = ({
       <td className="num">{move.startup}</td>
       <td className="num">
         <FrameAdvantageText value={move.guardFrameAdvantage} />
+        <PokemonMoveCancelNote
+          value={move.guardFrameAdvantageOnPokemonMoveCancel}
+        />
       </td>
       <td className="num moves-table__secondary">
         {move.hitFrameAdvantage === undefined ? (
@@ -109,6 +127,9 @@ const MoveRow = ({
         ) : (
           <FrameAdvantageText value={move.hitFrameAdvantage} />
         )}
+        <PokemonMoveCancelNote
+          value={move.hitFrameAdvantageOnPokemonMoveCancel}
+        />
       </td>
       <td className="num moves-table__secondary">
         {move.hitBreakdown !== undefined &&
