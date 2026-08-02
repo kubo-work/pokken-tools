@@ -9,7 +9,7 @@ export const StrengthHelpPopover = () => {
       <summary className="strength-help__trigger">強度とは？</summary>
       <div className="strength-help__panel">
         <p className="strength-help__lead">
-          打撃や弾がかち合った時の挙動を決める数値。打撃は 1〜6、弾は 1〜8。
+          打撃や弾がかち合った時の挙動を決める数値。打撃・弾ともに 1〜8。
         </p>
         <p className="strength-help__heading">打撃同士</p>
         <ul className="strength-help__list">

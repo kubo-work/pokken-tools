@@ -116,7 +116,7 @@ export interface Move {
    */
   hitFrameAdvantageOnPokemonMoveCancel?: number;
   /**
-   * 攻撃の強度。攻撃属性 (attackType) に応じた範囲で入力する：打撃 (strike) は 1〜6、弾 (projectile) は 1〜8。
+   * 攻撃の強度。攻撃属性 (attackType) に応じた範囲で入力する：打撃 (strike) は 1〜8、弾 (projectile) は 1〜8。
    * 攻撃属性を持たない「つかみ」技には強度がないため省略する。
    */
   strength?: number;

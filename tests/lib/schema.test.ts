@@ -197,9 +197,9 @@ describe("moveSchema: ガード硬直差の範囲", () => {
 });
 
 describe("moveSchema: 攻撃属性と強度の相関", () => {
-  test("打撃の強度は 1〜6（範囲内は通り、範囲外は拒否される）", () => {
-    expectValid({ ...baseMove, attackType: "strike", strength: 6 });
-    expectInvalid({ ...baseMove, attackType: "strike", strength: 7 });
+  test("打撃の強度は 1〜8（範囲内は通り、範囲外は拒否される）", () => {
+    expectValid({ ...baseMove, attackType: "strike", strength: 8 });
+    expectInvalid({ ...baseMove, attackType: "strike", strength: 9 });
   });
 
   test("弾の強度は 1〜8（範囲内は通り、範囲外は拒否される）", () => {
@@ -212,8 +212,8 @@ describe("moveSchema: 攻撃属性と強度の相関", () => {
   });
 
   test("共鳴中の強度も攻撃属性の範囲で検証される", () => {
-    expectValid({ ...baseMove, resonance: { strength: 6 } });
-    expectInvalid({ ...baseMove, resonance: { strength: 7 } });
+    expectValid({ ...baseMove, resonance: { strength: 8 } });
+    expectInvalid({ ...baseMove, resonance: { strength: 9 } });
   });
 
   test("属性（category）が無い技に攻撃属性は設定できない", () => {
