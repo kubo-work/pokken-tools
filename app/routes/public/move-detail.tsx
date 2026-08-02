@@ -9,7 +9,16 @@ import {
   MoveComparisonTable,
   type ComparisonColumn,
 } from "@/components/MoveComparisonTable";
-import { PHASE_META, RESONANCE_ONLY_LABEL, maxChargeLevel } from "@/lib/meta";
+import {
+  JUST_INPUT_LABEL,
+  PHASE_META,
+  RESONANCE_ONLY_LABEL,
+  maxChargeLevel,
+} from "@/lib/meta";
+import {
+  justInputColumnKey,
+  resolveJustInputMove,
+} from "@/lib/moves/resolveMove";
 import {
   DAMAGE_ROWS,
   FRAME_ROWS,
@@ -63,12 +72,12 @@ export function meta({ loaderData }: Route.MetaArgs) {
 /** 変種ごとの注記・説明を、テキストを持つものだけ並べる。 */
 const MoveDescriptions = ({ columns }: { columns: ComparisonColumn[] }) => (
   <>
-    {columns.map(({ move, label }) => {
+    {columns.map(({ key, move, label }) => {
       if (move.note === undefined && move.description === undefined) {
         return null;
       }
       return (
-        <div key={move.id} className="move-detail__desc-block">
+        <div key={key} className="move-detail__desc-block">
           <h3 className="move-detail__desc-label">{label}</h3>
           {move.note !== undefined && (
             <p className="move-detail__note">{move.note}</p>
@@ -86,11 +95,24 @@ export default function MoveDetailPage({ loaderData }: Route.ComponentProps) {
   const { id, characterName, phase, group } = loaderData;
   const parentMove = group.parent;
   const chargeMaxLevel = maxChargeLevel(group.children);
-  const columns: ComparisonColumn[] = [parentMove, ...group.children].map(
-    (move) => ({
-      move,
-      label: variantColumnLabel(move, parentMove, chargeMaxLevel),
-    }),
+  const columns: ComparisonColumn[] = [parentMove, ...group.children].flatMap(
+    (move) => {
+      const label = variantColumnLabel(move, parentMove, chargeMaxLevel);
+      const baseColumn: ComparisonColumn = { key: move.id, move, label };
+      const justInputMove = resolveJustInputMove(move);
+      if (justInputMove === undefined) {
+        return [baseColumn];
+      }
+      return [
+        baseColumn,
+        {
+          key: justInputColumnKey(move.id),
+          move: justInputMove,
+          label: `${label}${JUST_INPUT_LABEL.full}`,
+          isJustInput: true,
+        },
+      ];
+    },
   );
   const hasAnyText = columns.some(
     ({ move }) => move.note !== undefined || move.description !== undefined,

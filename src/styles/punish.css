@@ -29,3 +29,11 @@
   padding: 8px 10px;
   font-size: 14px;
 }
+
+.punish-form__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+  font-size: 14px;
+}

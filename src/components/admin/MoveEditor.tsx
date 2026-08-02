@@ -5,6 +5,7 @@ import type { Move } from "@/types/move";
 import { HitBreakdownFields } from "./HitBreakdownFields";
 import { MoveDamageFields } from "./MoveDamageFields";
 import { MoveFields } from "./MoveFields";
+import { MoveJustInputPanel } from "./MoveJustInputPanel";
 import { MoveResonancePanel } from "./MoveResonancePanel";
 import { MoveTextFields } from "./MoveTextFields";
 import { MoveTimingFields } from "./MoveTimingFields";
@@ -86,6 +87,7 @@ export const MoveEditor = ({
         />
         <MoveTextFields move={move} onChange={onChange} />
         <MoveResonancePanel move={move} onChange={onChange} />
+        <MoveJustInputPanel move={move} onChange={onChange} />
 
         {children}
       </Stack>

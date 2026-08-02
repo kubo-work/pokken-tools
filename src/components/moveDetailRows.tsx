@@ -11,6 +11,7 @@ import {
   childVariantLabel,
   formatDamageValue,
   formatHitBreakdownDamage,
+  formatJustInputAcceptFrames,
   hitBreakdownCategoricalLines,
   hitBreakdownDefines,
   moveAirGroundJudgmentLines,
@@ -166,6 +167,15 @@ export const FRAME_ROWS: ComparisonRow[] = [
     "ポケモン技キャンセル時のヒット硬直差",
     "hitFrameAdvantageOnPokemonMoveCancel",
   ),
+  {
+    header: "ジャスト受付",
+    // 受付フレームはジャスト入力列固有の情報。通常列は非ジャスト時の値を並べているため、
+    // そこに受付フレームを混ぜると別条件の値が同居して読みにくくなるので出さない。
+    renderCell: (move, column) =>
+      (column.isJustInput === true
+        ? formatJustInputAcceptFrames(move.justInput?.acceptFrames)
+        : undefined) ?? "-",
+  },
 ];
 
 /** DamageValue を持つダメージ行。renderCell が同型のため定義から生成する。 */

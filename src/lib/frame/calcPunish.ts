@@ -4,23 +4,13 @@ import type {
   PunishException,
   ResonanceState,
 } from "@/types/move";
+import { moveStateOf, resolveMove } from "@/lib/moves/resolveMove";
 import {
   bestGuardFrameAdvantage,
   worstGuardFrameAdvantage,
 } from "./frameAdvantage";
 
-/**
- * 共鳴状態を解決し、その状態での実効フレーム値を持つ技を返す。
- * resonance 差分があり state が "resonance" のときだけ上書きを適用する。
- */
-export const resolveMove = (move: Move, state: ResonanceState): Move => {
-  if (state === "normal" || move.resonance === undefined) {
-    return move;
-  }
-  return { ...move, ...move.resonance };
-};
-
-/** その状態で使用可能な技か。共鳴専用技は通常状態では使えない。 */
+/** その状態で使用可能な技か。共鳴専用技は通常状態では使えない（ジャスト入力の有無は問わない）。 */
 export const isMoveAvailable = (move: Move, state: ResonanceState): boolean =>
   !(move.resonanceOnly === true && state === "normal");
 
@@ -47,6 +37,11 @@ export interface PunishResult {
 }
 
 export interface SearchPunishParams {
+  /**
+   * ガードされた攻撃側の技。ジャスト入力などの状態は呼び出し側で resolveMove 済みの
+   * ものを渡す（解決を1箇所に集約するため、ここでは再解決しない）。
+   * 例外ペアの照合は解決後も変わらない move.id で行う。
+   */
   attackerMove: Move;
   defenderMoves: Move[];
   defenderState: ResonanceState;
@@ -141,7 +136,8 @@ export const searchPunishes = (params: SearchPunishParams): PunishResult[] => {
     ) {
       continue;
     }
-    const defenderMove = resolveMove(candidate, defenderState);
+    // 反撃側はジャスト入力を考慮しない。攻撃側の技がジャスト入力だったかだけを問う。
+    const defenderMove = resolveMove(candidate, moveStateOf(defenderState));
     const exception = exceptions.find(
       (entry) =>
         entry.attackerMoveId === attackerMove.id &&

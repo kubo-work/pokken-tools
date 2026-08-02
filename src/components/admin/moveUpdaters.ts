@@ -9,7 +9,6 @@ import type {
   MoveAttackType,
   MoveCategory,
   ResonanceFlinch,
-  ResonanceOverride,
   SpecialAttribute,
 } from "@/types/move";
 import {
@@ -18,8 +17,9 @@ import {
 } from "./moveFieldsHelpers";
 
 /**
- * Move 編集の純粋関数群。コンポーネントは onChange に新しい Move を渡すだけで済むよう、
- * 部分更新ロジックはここに集約する。state も副作用も持たない。
+ * 技本体のフィールドを編集する純粋関数群。コンポーネントは onChange に新しい Move を渡すだけで
+ * 済むよう、部分更新ロジックはここに集約する。state も副作用も持たない。
+ * 条件付き差分（共鳴・ジャスト入力）の編集は moveOverrideUpdaters に分けている。
  */
 
 /** 1 フィールドだけ差し替えた Move を返す。 */
@@ -52,21 +52,6 @@ export const setOptionalMoveField = <Key extends OptionalMoveKey>(
     next[key] = value;
   }
   return next;
-};
-
-/** 共鳴差分 (ResonanceOverride) のフィールドを更新する。undefined ならキーごと削除。 */
-export const setOptionalResonanceField = <Key extends keyof ResonanceOverride>(
-  move: Move,
-  key: Key,
-  value: ResonanceOverride[Key] | undefined,
-): Move => {
-  const next: ResonanceOverride = { ...move.resonance };
-  if (value === undefined) {
-    Reflect.deleteProperty(next, key);
-  } else {
-    next[key] = value;
-  }
-  return { ...move, resonance: next };
 };
 
 /**
@@ -158,12 +143,6 @@ export const setMoveSpecialAttributes = (
     : setOptionalMoveField(next, "projectileNullifyStartFrame", undefined);
 };
 
-/** 共鳴差分 ON/OFF を切り替える。OFF にすると resonance を完全に削除。 */
-export const toggleResonance = (move: Move, enabled: boolean): Move => ({
-  ...move,
-  resonance: enabled ? (move.resonance ?? {}) : undefined,
-});
-
 /** ヒット内訳の初期値（グループ×1）。ON にしたときに使う。 */
 const createDefaultHitBreakdown = (): HitBreakdownEntry[] => [{ hitCount: 1 }];
 
@@ -224,31 +203,28 @@ const conflictingDamageKeys = (
   HIT_BREAKDOWN_DAMAGE_KEYS.filter((key) => hitBreakdownDefines(entries, key));
 
 /**
- * 技単位の hitBreakdown を更新する。新たに内訳が定義したダメージ系フィールドは、
- * schema の相互排他ルールに違反しないよう技単位の単一値も同時に削除する。
+ * hitBreakdown を更新しつつ、新たに内訳が定義したダメージ系フィールドの単一値を削除する。
+ * schema の相互排他ルール（内訳と単一値は併用不可）を UI 側でも満たすための共通処理で、
+ * 技単位・各条件付き差分のどこに書くかは setField の差し替えで表す。
  */
-export const setMoveHitBreakdown = (
+export const setHitBreakdownWith = (
   move: Move,
   entries: HitBreakdownEntry[] | undefined,
+  setField: (
+    move: Move,
+    key: "hitBreakdown" | MoveDamageValueFieldKey,
+    value: HitBreakdownEntry[] | undefined,
+  ) => Move,
 ): Move => {
-  let next = setOptionalMoveField(move, "hitBreakdown", entries);
+  let next = setField(move, "hitBreakdown", entries);
   for (const key of conflictingDamageKeys(entries)) {
-    next = setOptionalMoveField(next, key, undefined);
+    next = setField(next, key, undefined);
   }
   return next;
 };
 
-/**
- * 共鳴差分の hitBreakdown を更新する。新たに内訳が定義したダメージ系フィールドは、
- * schema の相互排他ルールに違反しないよう共鳴の単一値も同時に削除する。
- */
-export const setResonanceHitBreakdown = (
+/** 技単位の hitBreakdown を更新する。 */
+export const setMoveHitBreakdown = (
   move: Move,
   entries: HitBreakdownEntry[] | undefined,
-): Move => {
-  let next = setOptionalResonanceField(move, "hitBreakdown", entries);
-  for (const key of conflictingDamageKeys(entries)) {
-    next = setOptionalResonanceField(next, key, undefined);
-  }
-  return next;
-};
+): Move => setHitBreakdownWith(move, entries, setOptionalMoveField);

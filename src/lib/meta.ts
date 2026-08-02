@@ -3,6 +3,7 @@ import type {
   DamageValue,
   GuardLevel,
   HitBreakdownEntry,
+  JustInputAcceptFrames,
   Move,
   MoveAttackType,
   MoveCategory,
@@ -157,6 +158,18 @@ export const strengthRangeForAttackType = (
  * 省スペースの一覧では short、詳細ページでは full を使う。
  */
 export const RESONANCE_ONLY_LABEL = { short: "共鳴", full: "共鳴専用" } as const;
+
+/**
+ * ジャスト入力版の技行・列に付けるラベル。
+ * 省スペースの一覧では short、詳細ページでは full を使う。
+ */
+export const JUST_INPUT_LABEL = { short: "J", full: "ジャスト" } as const;
+
+/** ジャスト入力の受付フレーム範囲の表示テキスト（例: 「8〜10F」）。未計測なら undefined。 */
+export const formatJustInputAcceptFrames = (
+  value: JustInputAcceptFrames | undefined,
+): string | undefined =>
+  value === undefined ? undefined : `${value.start}〜${value.end}F`;
 
 export const RESONANCE_FLINCH_META: Record<
   ResonanceFlinchLevel,

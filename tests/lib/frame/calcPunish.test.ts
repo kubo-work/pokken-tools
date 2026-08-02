@@ -1,9 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import {
-  isMoveAvailable,
-  resolveMove,
-  searchPunishes,
-} from "@/lib/frame/calcPunish";
+import { isMoveAvailable, searchPunishes } from "@/lib/frame/calcPunish";
+import { resolveMove } from "@/lib/moves/resolveMove";
 import type { Move, PunishException } from "@/types/move";
 
 /** テスト用の最小の有効な技。上書きしたい項目だけ指定する。 */
@@ -17,33 +14,6 @@ const makeMove = (overrides: Partial<Move> & { id: string }): Move => ({
   guardFrameAdvantage: -5,
   strength: 1,
   ...overrides,
-});
-
-describe("resolveMove", () => {
-  test("通常状態では技をそのまま返す", () => {
-    const move = makeMove({ id: "move", resonance: { startup: 5 } });
-    expect(resolveMove(move, "normal")).toBe(move);
-  });
-
-  test("共鳴状態でも resonance 差分が無ければそのまま返す", () => {
-    const move = makeMove({ id: "move" });
-    expect(resolveMove(move, "resonance")).toBe(move);
-  });
-
-  test("共鳴状態では resonance 差分で上書きし、元の技は変更しない", () => {
-    const move = makeMove({
-      id: "move",
-      startup: 12,
-      guardFrameAdvantage: -6,
-      resonance: { startup: 8, guardFrameAdvantage: -2 },
-    });
-    const resolved = resolveMove(move, "resonance");
-    expect(resolved.startup).toBe(8);
-    expect(resolved.guardFrameAdvantage).toBe(-2);
-    expect(resolved.name).toBe(move.name);
-    expect(move.startup).toBe(12);
-    expect(move.guardFrameAdvantage).toBe(-6);
-  });
 });
 
 describe("isMoveAvailable", () => {
@@ -242,6 +212,73 @@ describe("searchPunishes: 共鳴状態", () => {
     });
     expect(resonanceResults).toHaveLength(1);
     expect(resonanceResults[0]!.frameAdvantage).toBe(2);
+  });
+});
+
+describe("searchPunishes: 攻撃側のジャスト入力", () => {
+  // 攻撃側の状態解決は呼び出し側（usePunishSearch）の責務なので、ここには解決済みの技を渡す。
+  const justInputState = { resonance: "normal", justInput: true } as const;
+
+  test("解決済みのジャスト入力版を渡すと、その硬直差で余裕フレームが決まる", () => {
+    // 通常は -10（余裕10）だが、ジャスト入力だと -6（余裕6）に変わる技
+    const attacker = makeMove({
+      id: "attacker",
+      guardFrameAdvantage: -10,
+      justInput: { guardFrameAdvantage: -6 },
+    });
+    const defenderMoves = [makeMove({ id: "startup_8", startup: 8 })];
+
+    const normalResults = searchPunishes({
+      attackerMove: attacker,
+      defenderMoves,
+      defenderState: "normal",
+      exceptions: [],
+    });
+    expect(normalResults).toHaveLength(1);
+    expect(normalResults[0]!.frameAdvantage).toBe(2);
+
+    const justInputResults = searchPunishes({
+      attackerMove: resolveMove(attacker, justInputState),
+      defenderMoves,
+      defenderState: "normal",
+      exceptions: [],
+    });
+    expect(justInputResults).toEqual([]);
+  });
+
+  test("解決済みの技を渡しても例外ペアは元の技 ID で照合される", () => {
+    const attacker = makeMove({
+      id: "attacker",
+      guardFrameAdvantage: -10,
+      justInput: { guardFrameAdvantage: -6 },
+    });
+    const exception: PunishException = {
+      attackerMoveId: "attacker",
+      defenderMoveId: "defender",
+      action: "exclude",
+    };
+    const results = searchPunishes({
+      attackerMove: resolveMove(attacker, justInputState),
+      defenderMoves: [makeMove({ id: "defender", startup: 4 })],
+      defenderState: "normal",
+      exceptions: [exception],
+    });
+    expect(results).toEqual([]);
+  });
+
+  test("反撃側は justInput 差分を考慮しない（反撃はジャスト入力しない前提）", () => {
+    const attacker = makeMove({ id: "attacker", guardFrameAdvantage: -10 });
+    // 通常発生12で間に合わないが、ジャスト入力なら発生8になる反撃技
+    const defenderMoves = [
+      makeMove({ id: "defender", startup: 12, justInput: { startup: 8 } }),
+    ];
+    const results = searchPunishes({
+      attackerMove: attacker,
+      defenderMoves,
+      defenderState: "normal",
+      exceptions: [],
+    });
+    expect(results).toEqual([]);
   });
 });
 

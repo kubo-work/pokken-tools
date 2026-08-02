@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import type { ReactNode } from "react";
 import { Link } from "react-router";
 import type { Move } from "@/types/move";
 import { CategoryBadge } from "@/components/badges";
@@ -7,6 +7,7 @@ import { FrameNumber } from "@/components/FrameNumber";
 import { StrengthHelpPopover } from "@/components/StrengthHelpPopover";
 import {
   ATTACK_TYPE_META,
+  JUST_INPUT_LABEL,
   POKEMON_MOVE_CANCEL_LABEL,
   RESONANCE_ONLY_LABEL,
   childVariantLabel,
@@ -18,7 +19,15 @@ import {
   totalHitBreakdownDamage,
 } from "@/lib/meta";
 import { formatMoveCommand } from "@/lib/moves/command";
-import { groupMovesByParent, isChildMove } from "@/lib/moves/grouping";
+import {
+  type MoveGroup,
+  groupMovesByParent,
+  isChildMove,
+} from "@/lib/moves/grouping";
+import {
+  justInputColumnKey,
+  resolveJustInputMove,
+} from "@/lib/moves/resolveMove";
 import { UI_COLORS, UI_SIZES } from "@/lib/uiTokens";
 
 /** ガード/ヒット硬直差セルの下段に「ポ: xx」を表示する。値が無い技では何も描画しない。 */
@@ -40,71 +49,145 @@ interface MoveRowProps {
   parentCommand?: string;
   /** 同じ親グループ内のため段階の最大値。ため子技のラベルを「ためMAX」にするか判定する。 */
   chargeMaxLevel?: number;
+  /** true なら「元の技のジャスト入力版」の行として、通常行より1段深く字下げしバッジを付ける。 */
+  isJustInputRow?: boolean;
 }
+
+/** 技名セルの字下げ段数。子技で1段、ジャスト入力行でさらに1段下げる。 */
+const rowIndentDepth = (isChild: boolean, isJustInputRow: boolean): number =>
+  (isChild ? 1 : 0) + (isJustInputRow ? 1 : 0);
+
+/** 技名の右に並ぶ小さなラベル（ジャスト・共鳴専用・ため/派生・空地判定）の共通スタイル。 */
+const InlineTag = ({ color, children }: { color: string; children: ReactNode }) => (
+  <span
+    style={{ marginLeft: 4, fontSize: UI_SIZES.caption, color }}
+  >
+    {children}
+  </span>
+);
+
+/** ため/派生・ジャスト入力は親の詳細ページに集約されているため、該当列へのアンカー付きで飛ばす。 */
+const detailPageHrefOf = (
+  move: Move,
+  characterId: string,
+  isChild: boolean,
+  isJustInputRow: boolean,
+): string => {
+  const moveId = isChild ? (move.parentMoveId ?? move.id) : move.id;
+  const path = `/characters/${characterId}/moves/${moveId}`;
+  if (!isChild && !isJustInputRow) {
+    return path;
+  }
+  const columnAnchor = isJustInputRow ? justInputColumnKey(move.id) : move.id;
+  return `${path}#${columnAnchor}`;
+};
+
+interface MoveNameCellProps {
+  move: Move;
+  characterId: string;
+  isChild: boolean;
+  isJustInputRow: boolean;
+  /** ため段階/派生のラベル。通常技では undefined。 */
+  variantLabel: string | undefined;
+}
+
+/** 技名セル。詳細ページへのリンクに、条件・変種を表すラベルと注記を添える。 */
+const MoveNameCell = ({
+  move,
+  characterId,
+  isChild,
+  isJustInputRow,
+  variantLabel,
+}: MoveNameCellProps) => {
+  const indentDepth = rowIndentDepth(isChild, isJustInputRow);
+  return (
+    <td>
+      <span
+        style={
+          indentDepth === 0
+            ? undefined
+            : { paddingLeft: indentDepth * UI_SIZES.rowIndentStep }
+        }
+      >
+        <CategoryBadge category={move.category} />
+        <Link
+          to={detailPageHrefOf(move, characterId, isChild, isJustInputRow)}
+          className="moves-table__move-link"
+        >
+          {move.name}
+        </Link>
+      </span>
+      {isJustInputRow && (
+        <InlineTag color={UI_COLORS.justInput}>{JUST_INPUT_LABEL.short}</InlineTag>
+      )}
+      {move.resonanceOnly === true && (
+        <InlineTag color={UI_COLORS.resonance}>
+          {RESONANCE_ONLY_LABEL.short}
+        </InlineTag>
+      )}
+      {variantLabel !== undefined && (
+        <InlineTag color={UI_COLORS.variant}>{variantLabel}</InlineTag>
+      )}
+      {move.note !== undefined && (
+        <div style={{ fontSize: UI_SIZES.caption, color: UI_COLORS.mute }}>
+          {move.note}
+        </div>
+      )}
+    </td>
+  );
+};
+
+/** 強度・発生・硬直差・基礎ダメージの数値セル群。技名まわりと違い状態に依存しない。 */
+const MoveFrameCells = ({ move }: { move: Move }) => (
+  <>
+    <td className="num">{move.strength ?? "-"}</td>
+    <td className="num">{move.startup}</td>
+    <td className="num">
+      <FrameAdvantageText value={move.guardFrameAdvantage} />
+      <PokemonMoveCancelNote
+        value={move.guardFrameAdvantageOnPokemonMoveCancel}
+      />
+    </td>
+    <td className="num moves-table__secondary">
+      {move.hitFrameAdvantage === undefined ? (
+        "-"
+      ) : (
+        <FrameAdvantageText value={move.hitFrameAdvantage} />
+      )}
+      <PokemonMoveCancelNote value={move.hitFrameAdvantageOnPokemonMoveCancel} />
+    </td>
+    <td className="num moves-table__secondary">
+      {move.hitBreakdown !== undefined &&
+      hitBreakdownDefines(move.hitBreakdown, "baseDamage")
+        ? totalHitBreakdownDamage(move.hitBreakdown, "baseDamage")
+        : formatDamageValue(move.baseDamage)}
+    </td>
+  </>
+);
 
 const MoveRow = ({
   move,
   characterId,
   parentCommand,
   chargeMaxLevel = 0,
+  isJustInputRow = false,
 }: MoveRowProps) => {
   const isChild = isChildMove(move);
   const command = formatMoveCommand(move, parentCommand);
-  const variantLabel = childVariantLabel(move, chargeMaxLevel);
   const airGroundJudgmentText = moveAirGroundJudgmentLabel(move);
-  // ため/派生は親の詳細ページに集約されているため、該当変種列へのアンカー付きで親ページへ飛ばす。
-  const detailPageHref = isChild
-    ? `/characters/${characterId}/moves/${move.parentMoveId ?? move.id}#${move.id}`
-    : `/characters/${characterId}/moves/${move.id}`;
   return (
     <tr className={isChild ? "moves-table__child" : undefined}>
-      <td>
-        <span style={isChild ? { paddingLeft: 16 } : undefined}>
-          <CategoryBadge category={move.category} />
-          <Link to={detailPageHref} className="moves-table__move-link">
-            {move.name}
-          </Link>
-        </span>
-        {move.resonanceOnly === true && (
-          <span
-            style={{
-              marginLeft: 4,
-              fontSize: UI_SIZES.caption,
-              color: UI_COLORS.resonance,
-            }}
-          >
-            {RESONANCE_ONLY_LABEL.short}
-          </span>
-        )}
-        {variantLabel !== undefined && (
-          <span
-            style={{
-              marginLeft: 4,
-              fontSize: UI_SIZES.caption,
-              color: UI_COLORS.variant,
-            }}
-          >
-            {variantLabel}
-          </span>
-        )}
-        {move.note !== undefined && (
-          <div style={{ fontSize: UI_SIZES.caption, color: UI_COLORS.mute }}>
-            {move.note}
-          </div>
-        )}
-      </td>
+      <MoveNameCell
+        move={move}
+        characterId={characterId}
+        isChild={isChild}
+        isJustInputRow={isJustInputRow}
+        variantLabel={childVariantLabel(move, chargeMaxLevel)}
+      />
       <td className="moves-table__secondary">
         {moveGuardLevelShortLabel(move)}
         {airGroundJudgmentText !== undefined && (
-          <span
-            style={{
-              marginLeft: 4,
-              fontSize: UI_SIZES.caption,
-              color: UI_COLORS.mute,
-            }}
-          >
-            {airGroundJudgmentText}
-          </span>
+          <InlineTag color={UI_COLORS.mute}>{airGroundJudgmentText}</InlineTag>
         )}
       </td>
       <td>{command}</td>
@@ -113,31 +196,46 @@ const MoveRow = ({
           ? "-"
           : ATTACK_TYPE_META[move.attackType].label}
       </td>
-      <td className="num">{move.strength ?? "-"}</td>
-      <td className="num">{move.startup}</td>
-      <td className="num">
-        <FrameAdvantageText value={move.guardFrameAdvantage} />
-        <PokemonMoveCancelNote
-          value={move.guardFrameAdvantageOnPokemonMoveCancel}
-        />
-      </td>
-      <td className="num moves-table__secondary">
-        {move.hitFrameAdvantage === undefined ? (
-          "-"
-        ) : (
-          <FrameAdvantageText value={move.hitFrameAdvantage} />
-        )}
-        <PokemonMoveCancelNote
-          value={move.hitFrameAdvantageOnPokemonMoveCancel}
-        />
-      </td>
-      <td className="num moves-table__secondary">
-        {move.hitBreakdown !== undefined &&
-        hitBreakdownDefines(move.hitBreakdown, "baseDamage")
-          ? totalHitBreakdownDamage(move.hitBreakdown, "baseDamage")
-          : formatDamageValue(move.baseDamage)}
-      </td>
+      <MoveFrameCells move={move} />
     </tr>
+  );
+};
+
+/** 1 技分の行。ジャスト入力で性能が変わる技は、その直下にジャスト入力版の行を続ける。 */
+const MoveRowWithJustInput = (props: MoveRowProps) => {
+  const justInputMove = resolveJustInputMove(props.move);
+  return (
+    <>
+      <MoveRow {...props} />
+      {justInputMove !== undefined && (
+        <MoveRow {...props} move={justInputMove} isJustInputRow />
+      )}
+    </>
+  );
+};
+
+/** 親技グループ 1 つ分（親技 → ため/派生）の行。 */
+const MoveGroupRows = ({
+  group,
+  characterId,
+}: {
+  group: MoveGroup;
+  characterId: string;
+}) => {
+  const chargeMaxLevel = maxChargeLevel(group.children);
+  return (
+    <>
+      <MoveRowWithJustInput move={group.parent} characterId={characterId} />
+      {group.children.map((child) => (
+        <MoveRowWithJustInput
+          key={child.id}
+          move={child}
+          characterId={characterId}
+          parentCommand={group.parent.command}
+          chargeMaxLevel={chargeMaxLevel}
+        />
+      ))}
+    </>
   );
 };
 
@@ -180,23 +278,13 @@ export const MovesTable = ({
             </tr>
           </thead>
           <tbody>
-            {groups.map(({ parent, children }) => {
-              const chargeMaxLevel = maxChargeLevel(children);
-              return (
-                <Fragment key={parent.id}>
-                  <MoveRow move={parent} characterId={characterId} />
-                  {children.map((child) => (
-                    <MoveRow
-                      key={child.id}
-                      move={child}
-                      characterId={characterId}
-                      parentCommand={parent.command}
-                      chargeMaxLevel={chargeMaxLevel}
-                    />
-                  ))}
-                </Fragment>
-              );
-            })}
+            {groups.map((group) => (
+              <MoveGroupRows
+                key={group.parent.id}
+                group={group}
+                characterId={characterId}
+              />
+            ))}
           </tbody>
         </table>
       </div>
