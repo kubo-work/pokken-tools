@@ -130,14 +130,14 @@ export const childVariantLabel = (
 };
 
 /**
- * 攻撃属性ごとの強度の入力可能範囲。打撃は 1〜6、弾は 1〜8。
+ * 攻撃属性ごとの強度の入力可能範囲。打撃は 1〜8、弾は 1〜8。
  * 攻撃属性を持たない「つかみ」技は強度を持たないため、ここには含めない。
  */
 export const STRENGTH_RANGE_BY_ATTACK_TYPE: Record<
   MoveAttackType,
   StrengthRange
 > = {
-  strike: { min: 1, max: 6 },
+  strike: { min: 1, max: 8 },
   projectile: { min: 1, max: 8 },
 };
 
