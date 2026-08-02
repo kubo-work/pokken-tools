@@ -216,6 +216,13 @@ describe("moveSchema: 攻撃属性と強度の相関", () => {
     expectInvalid({ ...baseMove, resonance: { strength: 9 } });
   });
 
+  test("ジャスト入力時・共鳴中のジャスト入力時の強度も攻撃属性の範囲で検証される", () => {
+    expectValid({ ...baseMove, justInput: { strength: 8 } });
+    expectInvalid({ ...baseMove, justInput: { strength: 9 } });
+    expectValid({ ...baseMove, justInput: { resonance: { strength: 8 } } });
+    expectInvalid({ ...baseMove, justInput: { resonance: { strength: 9 } } });
+  });
+
   test("属性（category）が無い技に攻撃属性は設定できない", () => {
     expectInvalid({ ...baseMove, category: undefined });
   });
@@ -255,6 +262,114 @@ describe("moveSchema: ため・派生の親子関係", () => {
       variant: "derivative",
       parentMoveId: "parent",
       chargeLevel: 2,
+    });
+  });
+});
+
+describe("moveSchema: ジャスト入力", () => {
+  test("ため・派生技にもジャスト入力差分を設定できる", () => {
+    expectValid({
+      ...baseMove,
+      variant: "derivative",
+      parentMoveId: "parent",
+      justInput: { startup: 6, baseDamage: 30 },
+    });
+  });
+
+  test("共鳴中はジャストがさらに変わる差分（justInput.resonance）を設定できる", () => {
+    expectValid({
+      ...baseMove,
+      justInput: { baseDamage: 30, resonance: { baseDamage: 35 } },
+    });
+  });
+
+  test("受付フレームは開始 <= 終了で入力する", () => {
+    expectValid({
+      ...baseMove,
+      justInput: { acceptFrames: { start: 4, end: 4 } },
+    });
+    expectInvalid({
+      ...baseMove,
+      justInput: { acceptFrames: { start: 6, end: 4 } },
+    });
+  });
+
+  test("ジャスト入力のヒット内訳で設定済みの項目はジャスト入力の単一値と併用できない", () => {
+    expectInvalid({
+      ...baseMove,
+      justInput: {
+        baseDamage: 10,
+        hitBreakdown: [
+          { hitCount: 1, baseDamage: 50 },
+          { hitCount: 3, baseDamage: 45 },
+        ],
+      },
+    });
+  });
+
+  test("ジャスト入力のヒット内訳で設定済みの項目は共鳴中のジャスト入力の単一値とも併用できない", () => {
+    expectInvalid({
+      ...baseMove,
+      justInput: {
+        hitBreakdown: [
+          { hitCount: 1, baseDamage: 50 },
+          { hitCount: 3, baseDamage: 45 },
+        ],
+        resonance: { baseDamage: 10 },
+      },
+    });
+  });
+
+  test("共鳴中のジャスト入力のヒット内訳で設定済みの項目は、その単一値と併用できない", () => {
+    expectInvalid({
+      ...baseMove,
+      justInput: {
+        resonance: {
+          baseDamage: 10,
+          hitBreakdown: [
+            { hitCount: 1, baseDamage: 55 },
+            { hitCount: 3, baseDamage: 50 },
+          ],
+        },
+      },
+    });
+  });
+
+  test("技単位の内訳は、共鳴中のジャスト入力の単一値とも併用できない（内訳は上位層から継承される）", () => {
+    expectInvalid({
+      ...baseMove,
+      hitBreakdown: [
+        { hitCount: 1, baseDamage: 50 },
+        { hitCount: 3, baseDamage: 45 },
+      ],
+      justInput: { resonance: { baseDamage: 10 } },
+    });
+  });
+
+  test("共鳴の内訳は、ジャスト入力の単一値とも併用できない", () => {
+    expectInvalid({
+      ...baseMove,
+      resonance: {
+        hitBreakdown: [
+          { hitCount: 1, baseDamage: 50 },
+          { hitCount: 3, baseDamage: 45 },
+        ],
+      },
+      justInput: { baseDamage: 10 },
+    });
+  });
+
+  test("内訳が後段の層で差し替わっていれば、上位層の内訳とは衝突しない", () => {
+    // ジャスト入力時の実効内訳は justInput.hitBreakdown（chipDamage のみ）に差し替わるため、
+    // baseDamage は単一値だけが実効値になり、どちらを採るかの曖昧さが生じない。
+    // 通常時は技単位の内訳が実効値で、こちらも単一値と重ならない。
+    expectValid({
+      ...baseMove,
+      hitBreakdown: [{ hitCount: 1, baseDamage: 50 }],
+      justInput: {
+        baseDamage: 10,
+        hitBreakdown: [{ hitCount: 1, chipDamage: 5 }],
+      },
     });
   });
 });

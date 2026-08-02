@@ -69,8 +69,11 @@ export type HitFrameAdvantage = number | FrameAdvantageRange | "down";
 /** 親技 (normal) / ため (charge) / 派生 (derivative)。undefined は normal 扱い。 */
 export type MoveVariant = "normal" | "charge" | "derivative";
 
-/** 共鳴中の上書き値。硬直差は当面単一値のみ対応（範囲・ダウンが必要になったら拡張する）。 */
-export interface ResonanceOverride {
+/**
+ * 条件付き（共鳴・ジャスト入力）の性能上書き値。硬直差は当面単一値のみ対応
+ * （範囲・ダウンが必要になったら拡張する）。
+ */
+export interface MoveOverride {
   startup?: number;
   guardFrameAdvantage?: number;
   guardFrameAdvantageOnPokemonMoveCancel?: number;
@@ -82,8 +85,28 @@ export interface ResonanceOverride {
   chipDamage?: DamageValue;
   guardCrushValue?: DamageValue;
   phaseChangePoints?: number;
-  /** 共鳴中だけヒットごとの性能が変わる技向け。技単位の hitBreakdown と同じ規約。 */
+  /** その条件下だけヒットごとの性能が変わる技向け。技単位の hitBreakdown と同じ規約。 */
   hitBreakdown?: HitBreakdownEntry[];
+}
+
+/** ジャスト入力の受付フレーム範囲。動作開始を1F目とした経過フレームで、start <= end。 */
+export interface JustInputAcceptFrames {
+  start: number;
+  end: number;
+}
+
+/**
+ * ジャスト入力時の上書き値。共鳴と直交する軸のため、ため・派生技を含むどの技にも設定できる。
+ * 各フィールドは通常時の値からの絶対値差し替え（他の上書き層と同じ規約）。
+ */
+export interface JustInputOverride extends MoveOverride {
+  /** ジャスト入力の受付フレーム範囲。未計測なら省略。 */
+  acceptFrames?: JustInputAcceptFrames;
+  /**
+   * 共鳴中のジャスト入力が通常時のジャスト入力と異なる場合だけ設定する差分。
+   * 未設定なら共鳴中も通常時のジャスト値をそのまま使う。
+   */
+  resonance?: MoveOverride;
 }
 
 export interface Move {
@@ -146,7 +169,12 @@ export interface Move {
    * 単一段階のためでは省略可（その場合は単に「ため」と表示）。
    */
   chargeLevel?: number;
-  resonance?: ResonanceOverride;
+  resonance?: MoveOverride;
+  /**
+   * ジャスト入力時の上書き値。共鳴とは独立した軸で、ため・派生技にも設定できる。
+   * 未設定ならジャスト入力による性能差はない（通常時の値のまま）。
+   */
+  justInput?: JustInputOverride;
   resonanceOnly?: boolean;
   /** 基礎ダメージ。未計測なら省略（「-」表示）。 */
   baseDamage?: DamageValue;

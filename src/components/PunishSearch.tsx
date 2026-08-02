@@ -30,6 +30,8 @@ export const PunishSearch = ({
     allMoveOptions,
     attackerMoveId,
     setAttackerMoveId,
+    attackerJustInput,
+    setAttackerJustInput,
     defenderCharacterId,
     setDefenderCharacterId,
     defenderState,
@@ -59,6 +61,20 @@ export const PunishSearch = ({
               </option>
             ))}
           </select>
+        </div>
+        <div className="punish-form__row">
+          <span>攻撃側の入力</span>
+          <label className="punish-form__checkbox" htmlFor="attackerJustInput">
+            <input
+              type="checkbox"
+              id="attackerJustInput"
+              checked={attackerJustInput}
+              onChange={(event) =>
+                setAttackerJustInput(event.target.checked)
+              }
+            />
+            ジャスト入力で当てた
+          </label>
         </div>
         {!isDefenderFixed && (
           <div className="punish-form__row">
@@ -100,7 +116,9 @@ export const PunishSearch = ({
         <>
           <p className="page-lead" style={{ marginBottom: 12 }}>
             余裕フレーム:{" "}
-            {formatPunishWindow(attackerContext.move.guardFrameAdvantage)}
+            {formatPunishWindow(
+              attackerContext.resolvedMove.guardFrameAdvantage,
+            )}
             F（攻撃側 {attackerContext.character.name} /{" "}
             {attackerContext.move.name} がガードされた前提）
           </p>

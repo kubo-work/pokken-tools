@@ -9,6 +9,7 @@ import type {
 import { MOVE_VARIANT_META, PHASES, PHASE_META } from "@/lib/meta";
 import { formatMoveCommand } from "@/lib/moves/command";
 import { isChildMove } from "@/lib/moves/grouping";
+import { resolveMove } from "@/lib/moves/resolveMove";
 import { searchPunishes, type PunishResult } from "@/lib/frame/calcPunish";
 
 export interface MoveOption {
@@ -21,7 +22,10 @@ export interface MoveOption {
 export interface AttackerContext {
   character: Character;
   phase: Phase;
+  /** 選択された技そのもの。技名・コマンドなど状態に依存しない表示に使う。 */
   move: Move;
+  /** ジャスト入力トグルを適用した実効値。余裕フレーム表示と確定反撃計算はこちらを使う。 */
+  resolvedMove: Move;
 }
 
 const buildLabel = (
@@ -66,10 +70,16 @@ const buildMoveOptions = (characters: Character[]): MoveOption[] => {
   return options;
 };
 
+interface FoundMove {
+  character: Character;
+  phase: Phase;
+  move: Move;
+}
+
 const findMoveById = (
   characters: Character[],
   moveId: string,
-): AttackerContext | undefined => {
+): FoundMove | undefined => {
   for (const character of characters) {
     for (const phase of PHASES) {
       const moves =
@@ -93,6 +103,8 @@ export interface UsePunishSearchResult {
   allMoveOptions: MoveOption[];
   attackerMoveId: string;
   setAttackerMoveId: (id: string) => void;
+  attackerJustInput: boolean;
+  setAttackerJustInput: (value: boolean) => void;
   defenderCharacterId: string;
   setDefenderCharacterId: (id: string) => void;
   defenderState: ResonanceState;
@@ -119,12 +131,25 @@ export const usePunishSearch = ({
   const [attackerMoveId, setAttackerMoveId] = useState<string>(
     allMoveOptions[0]?.value ?? "",
   );
+  const [attackerJustInput, setAttackerJustInput] = useState(false);
   const [defenderCharacterId, setDefenderCharacterId] = useState<string>(
     fixedDefenderCharacterId ?? characters[0]?.id ?? "",
   );
   const [defenderState, setDefenderState] = useState<ResonanceState>("normal");
 
-  const attackerContext = findMoveById(characters, attackerMoveId);
+  // ジャスト入力の解決はここだけで行い、表示（余裕フレーム）と計算（searchPunishes）で
+  // 同じ実効値を使う。攻撃側の共鳴状態は現状 UI を持たないため通常固定。
+  const foundAttackerMove = findMoveById(characters, attackerMoveId);
+  const attackerContext: AttackerContext | undefined =
+    foundAttackerMove === undefined
+      ? undefined
+      : {
+          ...foundAttackerMove,
+          resolvedMove: resolveMove(foundAttackerMove.move, {
+            resonance: "normal",
+            justInput: attackerJustInput,
+          }),
+        };
 
   const defender =
     fixedDefender ?? characters.find((c) => c.id === defenderCharacterId);
@@ -133,7 +158,7 @@ export const usePunishSearch = ({
     attackerContext === undefined || defender === undefined
       ? []
       : searchPunishes({
-          attackerMove: attackerContext.move,
+          attackerMove: attackerContext.resolvedMove,
           defenderMoves: [...defender.duelMoves, ...defender.fieldMoves],
           defenderState,
           exceptions,
@@ -143,6 +168,8 @@ export const usePunishSearch = ({
     allMoveOptions,
     attackerMoveId,
     setAttackerMoveId,
+    attackerJustInput,
+    setAttackerJustInput,
     defenderCharacterId,
     setDefenderCharacterId,
     defenderState,

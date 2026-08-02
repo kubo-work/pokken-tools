@@ -9,6 +9,8 @@ export const UI_COLORS = {
   resonance: "#f59e0b",
   /** ため・派生バッジの紫。 */
   variant: "#c084fc",
+  /** ジャスト入力バッジの緑。 */
+  justInput: "#34d399",
   /** リンクや「説明」サマリーのアクセント青。 */
   accent: "#6ea8fe",
   /** 補助テキスト（備考など）のグレー。テーマ追従。 */
@@ -24,6 +26,8 @@ export const UI_SIZES = {
   small: 12,
   /** 展開された説明本文。 */
   body: 13,
+  /** 技一覧で子技・ジャスト入力行を1段下げるときの字下げ幅 (px)。 */
+  rowIndentStep: 16,
 } as const;
 
 /**

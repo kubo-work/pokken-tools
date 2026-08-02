@@ -34,7 +34,7 @@ export const AIR_GROUND_OPTIONS = AIR_GROUND_JUDGMENTS.map((judgment) => ({
 /** 任意項目が未入力（未計測）であることを示す placeholder。 */
 export const PLACEHOLDER_NOT_MEASURED = "未計測";
 
-/** 共鳴差分が未入力（通常時と同じ）であることを示す placeholder。 */
+/** 条件付き差分（共鳴・ジャスト入力）が未入力＝通常時と同じであることを示す placeholder。 */
 export const PLACEHOLDER_UNCHANGED = "変化なし";
 
 /** ヒット内訳側で設定済みのため、この入力欄では設定できないことを示す placeholder。 */
@@ -60,15 +60,16 @@ export const RESONANCE_FLINCH_OPTIONS: { value: ResonanceFlinchMode; label: stri
 export const RESONANCE_FLINCH_MODES: ResonanceFlinchMode[] =
   RESONANCE_FLINCH_OPTIONS.map((option) => option.value);
 
-export type ResonanceNumberField =
+/** MoveOverride が持つ数値フィールド。共鳴・ジャスト入力など全ての条件付き差分で共通。 */
+export type MoveOverrideNumberField =
   | "startup"
   | "guardFrameAdvantage"
   | "guardFrameAdvantageOnPokemonMoveCancel"
   | "hitFrameAdvantage"
   | "hitFrameAdvantageOnPokemonMoveCancel";
 
-export const RESONANCE_NUMBER_FIELDS: {
-  key: ResonanceNumberField;
+export const MOVE_OVERRIDE_NUMBER_FIELDS: {
+  key: MoveOverrideNumberField;
   label: string;
   negative: boolean;
 }[] = [
