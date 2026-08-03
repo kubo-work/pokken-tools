@@ -255,6 +255,14 @@ const validateVariantRelation = (
       message: "ため段階はため技 (charge) にのみ設定できます",
     });
   }
+  // 通常技には「1つ前の段」が存在しないため、割り込みフレームは値の意味が定まらない。
+  if (move.guardInterruptFrames !== undefined && !isChildVariant) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["guardInterruptFrames"],
+      message: "ガード割り込みはため・派生技にのみ設定できます",
+    });
+  }
 };
 
 /** 技のフィールド同士の整合性をまとめて検証する。 */

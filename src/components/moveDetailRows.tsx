@@ -168,6 +168,11 @@ export const FRAME_ROWS: ComparisonRow[] = [
     "hitFrameAdvantageOnPokemonMoveCancel",
   ),
   {
+    header: "ガード割り込み",
+    // 1つ前の段との隙間なので親技（連携の起点）は値を持たず、常に "-" になる。
+    renderCell: (move) => move.guardInterruptFrames ?? "-",
+  },
+  {
     header: "ジャスト受付",
     // 受付フレームはジャスト入力列固有の情報。通常列は非ジャスト時の値を並べているため、
     // そこに受付フレームを混ぜると別条件の値が同居して読みにくくなるので出さない。

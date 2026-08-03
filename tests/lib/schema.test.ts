@@ -264,6 +264,33 @@ describe("moveSchema: ため・派生の親子関係", () => {
       chargeLevel: 2,
     });
   });
+
+  test("ガード割り込みはため・派生技にのみ設定できる", () => {
+    expectValid({
+      ...baseMove,
+      variant: "derivative",
+      parentMoveId: "parent",
+      guardInterruptFrames: 4,
+    });
+    expectValid({
+      ...baseMove,
+      variant: "charge",
+      parentMoveId: "parent",
+      guardInterruptFrames: 4,
+    });
+    expectInvalid({ ...baseMove, guardInterruptFrames: 4 });
+  });
+
+  test("ガード割り込みは 0 以上の整数のみ", () => {
+    const childMove: Move = {
+      ...baseMove,
+      variant: "derivative",
+      parentMoveId: "parent",
+    };
+    expectValid({ ...childMove, guardInterruptFrames: 0 });
+    expectInvalid({ ...childMove, guardInterruptFrames: -1 });
+    expectInvalid({ ...childMove, guardInterruptFrames: 1.5 });
+  });
 });
 
 describe("moveSchema: ジャスト入力", () => {
