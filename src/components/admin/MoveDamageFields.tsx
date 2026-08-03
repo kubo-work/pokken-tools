@@ -1,6 +1,6 @@
 import { SimpleGrid } from "@mantine/core";
 import { hitBreakdownDefines } from "@/lib/meta";
-import type { Move } from "@/types/move";
+import type { MoveFieldGroupProps } from "./moveFieldProps";
 import { DamageValueField } from "./DamageValueField";
 import { IntegerNumberInput } from "./IntegerNumberInput";
 import {
@@ -11,11 +11,6 @@ import {
   setOptionalMoveField,
   type MoveDamageValueFieldKey,
 } from "./moveUpdaters";
-
-export interface MoveDamageFieldsProps {
-  move: Move;
-  onChange: (move: Move) => void;
-}
 
 /** ダメージ系（DamageValue 型）フィールドの一覧。共鳴差分パネルでも同じ並びで使う。 */
 export const DAMAGE_VALUE_FIELDS: {
@@ -32,7 +27,7 @@ export const DAMAGE_VALUE_FIELDS: {
  * ヒット内訳（hitBreakdown）が定義済みの項目は、schema の相互排他ルールに合わせて
  * ここでの入力を無効化する（内訳側の入力欄を使う）。
  */
-export const MoveDamageFields = ({ move, onChange }: MoveDamageFieldsProps) => (
+export const MoveDamageFields = ({ move, onChange }: MoveFieldGroupProps) => (
   <SimpleGrid cols={{ base: 2, sm: 4 }}>
     {DAMAGE_VALUE_FIELDS.map(({ key, label }) => {
       const disabledByBreakdown = hitBreakdownDefines(move.hitBreakdown, key);

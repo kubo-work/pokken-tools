@@ -1,15 +1,10 @@
 import { SimpleGrid } from "@mantine/core";
-import type { Move } from "@/types/move";
+import type { MoveFieldGroupProps } from "./moveFieldProps";
 import { setMoveField, setOptionalMoveField } from "./moveUpdaters";
 import { FrameAdvantageField } from "./FrameAdvantageField";
 import { IntegerNumberInput } from "./IntegerNumberInput";
 
-export interface MoveTimingFieldsProps {
-  move: Move;
-  onChange: (move: Move) => void;
-}
-
-export const MoveTimingFields = ({ move, onChange }: MoveTimingFieldsProps) => (
+export const MoveTimingFields = ({ move, onChange }: MoveFieldGroupProps) => (
   <>
     <SimpleGrid cols={{ base: 2, sm: 3 }}>
       <IntegerNumberInput

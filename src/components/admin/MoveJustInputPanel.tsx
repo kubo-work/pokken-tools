@@ -1,5 +1,5 @@
 import { Card, Collapse, Stack, Switch, Text } from "@mantine/core";
-import type { Move } from "@/types/move";
+import type { MoveFieldGroupProps } from "./moveFieldProps";
 import { JustInputAcceptFramesFields } from "./JustInputAcceptFramesFields";
 import { JustInputResonanceSection } from "./JustInputResonanceSection";
 import { MoveOverrideFields } from "./MoveOverrideFields";
@@ -9,17 +9,12 @@ import {
   toggleJustInput,
 } from "./moveOverrideUpdaters";
 
-export interface MoveJustInputPanelProps {
-  move: Move;
-  onChange: (move: Move) => void;
-}
-
 /**
  * ジャスト入力による性能差の編集欄。共鳴とは独立した軸のため、共鳴の ON/OFF に関わらず
  * 常に表示する。共鳴中だけジャストの値がさらに変わる技向けに、入れ子で
  * 「共鳴中は別値」差分（justInput.resonance）も編集できる。
  */
-export const MoveJustInputPanel = ({ move, onChange }: MoveJustInputPanelProps) => {
+export const MoveJustInputPanel = ({ move, onChange }: MoveFieldGroupProps) => {
   const hasJustInput = move.justInput !== undefined;
   return (
     <Card withBorder bg="var(--surface-2)" padding="sm">

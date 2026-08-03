@@ -3,6 +3,7 @@ import { Badge, Button, Card, Group, Stack, Text } from "@mantine/core";
 import { MOVE_VARIANT_META } from "@/lib/meta";
 import type { Move } from "@/types/move";
 import { HitBreakdownFields } from "./HitBreakdownFields";
+import { MoveChildVariantFields } from "./MoveChildVariantFields";
 import { MoveDamageFields } from "./MoveDamageFields";
 import { MoveFields } from "./MoveFields";
 import { MoveJustInputPanel } from "./MoveJustInputPanel";
@@ -76,6 +77,9 @@ export const MoveEditor = ({
         </Group>
 
         <MoveFields move={move} isChild={isChild} onChange={onChange} />
+        {isChild && (
+          <MoveChildVariantFields move={move} onChange={onChange} />
+        )}
         <MoveTimingFields move={move} onChange={onChange} />
         <MoveDamageFields move={move} onChange={onChange} />
         <HitBreakdownFields

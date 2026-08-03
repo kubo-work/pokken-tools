@@ -1,6 +1,6 @@
 import { NumberInput, Select, SimpleGrid } from "@mantine/core";
 import { asNullableEnumValue } from "@/lib/optionGuards";
-import type { Move } from "@/types/move";
+import type { MoveFieldGroupProps } from "./moveFieldProps";
 import {
   DEFAULT_SWITCH_ACTIVE_FRAME,
   RESONANCE_FLINCH_MODES,
@@ -8,11 +8,6 @@ import {
   type ResonanceFlinchMode,
 } from "./moveFieldsHelpers";
 import { setMoveResonanceFlinchMode } from "./moveUpdaters";
-
-export interface ResonanceFlinchFieldProps {
-  move: Move;
-  onChange: (move: Move) => void;
-}
 
 /**
  * 共鳴怯ませ強度の入力欄。共鳴中の相手を怯ませられるか（弱／強）を選び、
@@ -22,7 +17,7 @@ export interface ResonanceFlinchFieldProps {
 export const ResonanceFlinchField = ({
   move,
   onChange,
-}: ResonanceFlinchFieldProps) => {
+}: MoveFieldGroupProps) => {
   // object（切替）なら "transition"、それ以外は値そのものを現在モードとする。
   const resonanceFlinch = move.resonanceFlinch;
   const switchActiveFrame =

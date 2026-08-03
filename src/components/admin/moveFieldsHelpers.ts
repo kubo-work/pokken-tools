@@ -10,6 +10,13 @@ import {
   RESONANCE_FLINCH_LEVELS,
   RESONANCE_FLINCH_META,
 } from "@/lib/meta";
+import type { Move } from "@/types/move";
+
+/**
+ * つかみ技かどうか。つかみは攻撃属性・強度・判定を持たないため、
+ * 複数の入力欄コンポーネントが表示条件としてこの判定を使う。
+ */
+export const isGrabMove = (move: Move): boolean => move.category === "grab";
 
 export const CATEGORY_OPTIONS = MOVE_CATEGORIES.map((category) => ({
   value: category,
