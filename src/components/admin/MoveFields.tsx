@@ -79,6 +79,22 @@ export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => {
         )}
       </SimpleGrid>
 
+      {isChild && (
+        <SimpleGrid cols={{ base: 1, sm: 2 }}>
+          <IntegerNumberInput
+            key={`${move.id}-guardInterruptFrames`}
+            label="ガード割り込み"
+            description="1つ前の段との隙間フレーム。0 は連続ガード"
+            placeholder={PLACEHOLDER_NOT_MEASURED}
+            min={0}
+            value={move.guardInterruptFrames}
+            onChange={(value) =>
+              onChange(setOptionalMoveField(move, "guardInterruptFrames", value))
+            }
+          />
+        </SimpleGrid>
+      )}
+
       <SimpleGrid cols={{ base: 1, sm: 2 }}>
         <Select
           label="属性"

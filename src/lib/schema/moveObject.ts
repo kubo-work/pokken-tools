@@ -40,6 +40,7 @@ export const moveObjectSchema = z.object({
   variant: variantSchema.optional(),
   parentMoveId: z.string().min(1).optional(),
   chargeLevel: z.number().int().positive().optional(),
+  guardInterruptFrames: z.number().int().nonnegative().optional(),
   resonance: moveOverrideSchema.optional(),
   justInput: justInputOverrideSchema.optional(),
   resonanceOnly: z.boolean().optional(),
