@@ -1,16 +1,11 @@
 import { Textarea, TextInput } from "@mantine/core";
-import type { Move } from "@/types/move";
+import type { MoveFieldGroupProps } from "./moveFieldProps";
 import { setMoveField } from "./moveUpdaters";
-
-export interface MoveTextFieldsProps {
-  move: Move;
-  onChange: (move: Move) => void;
-}
 
 const toOptional = (value: string): string | undefined =>
   value === "" ? undefined : value;
 
-export const MoveTextFields = ({ move, onChange }: MoveTextFieldsProps) => (
+export const MoveTextFields = ({ move, onChange }: MoveFieldGroupProps) => (
   <>
     <TextInput
       label="備考"

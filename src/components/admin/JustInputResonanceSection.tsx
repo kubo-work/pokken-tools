@@ -1,16 +1,11 @@
 import { Card, Collapse, Group, Switch, Text } from "@mantine/core";
-import type { Move } from "@/types/move";
+import type { MoveFieldGroupProps } from "./moveFieldProps";
 import { MoveOverrideFields } from "./MoveOverrideFields";
 import {
   setJustInputResonanceHitBreakdown,
   setOptionalJustInputResonanceField,
   toggleJustInputResonance,
 } from "./moveOverrideUpdaters";
-
-export interface JustInputResonanceSectionProps {
-  move: Move;
-  onChange: (move: Move) => void;
-}
 
 /**
  * 「共鳴中はジャスト入力の性能がさらに変わる」差分の編集欄。
@@ -19,7 +14,7 @@ export interface JustInputResonanceSectionProps {
 export const JustInputResonanceSection = ({
   move,
   onChange,
-}: JustInputResonanceSectionProps) => {
+}: MoveFieldGroupProps) => {
   const hasJustInputResonance = move.justInput?.resonance !== undefined;
   return (
     <>

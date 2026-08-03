@@ -1,13 +1,8 @@
 import { SimpleGrid } from "@mantine/core";
-import type { Move } from "@/types/move";
+import type { MoveFieldGroupProps } from "./moveFieldProps";
 import { IntegerNumberInput } from "./IntegerNumberInput";
 import { PLACEHOLDER_NOT_MEASURED } from "./moveFieldsHelpers";
 import { setJustInputAcceptFrames } from "./moveOverrideUpdaters";
-
-export interface JustInputAcceptFramesFieldsProps {
-  move: Move;
-  onChange: (move: Move) => void;
-}
 
 /** 受付フレームの開始・終了。同じ更新規則を両方の入力欄で使うため、境界の種別だけを引数にする。 */
 type AcceptFrameEdge = "start" | "end";
@@ -16,7 +11,7 @@ type AcceptFrameEdge = "start" | "end";
 export const JustInputAcceptFramesFields = ({
   move,
   onChange,
-}: JustInputAcceptFramesFieldsProps) => {
+}: MoveFieldGroupProps) => {
   const acceptFrames = move.justInput?.acceptFrames;
 
   /**

@@ -1,5 +1,5 @@
 import { Card, Collapse, Group, Stack, Switch, Text } from "@mantine/core";
-import type { Move } from "@/types/move";
+import type { MoveFieldGroupProps } from "./moveFieldProps";
 import { MoveOverrideFields } from "./MoveOverrideFields";
 import {
   setOptionalResonanceField,
@@ -8,15 +8,10 @@ import {
 } from "./moveOverrideUpdaters";
 import { setMoveField } from "./moveUpdaters";
 
-export interface MoveResonancePanelProps {
-  move: Move;
-  onChange: (move: Move) => void;
-}
-
 export const MoveResonancePanel = ({
   move,
   onChange,
-}: MoveResonancePanelProps) => {
+}: MoveFieldGroupProps) => {
   const hasResonance = move.resonance !== undefined;
   return (
     <Card withBorder bg="var(--surface-2)" padding="sm">
