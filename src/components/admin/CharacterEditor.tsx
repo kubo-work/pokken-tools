@@ -15,7 +15,8 @@ import {
 } from "@mantine/core";
 import type { Character } from "@/types/character";
 import { ACCENT_BORDER } from "@/lib/admin/surfaceTokens";
-import { PHASES, PHASE_META } from "@/lib/meta";
+import { PHASES } from "@/lib/moves/moveEnums";
+import { PHASE_META } from "@/lib/moves/moveLabels";
 import { PhaseMoveEditor, type PhaseMoveActions } from "./PhaseMoveEditor";
 import { useCharacterEditor } from "@/hooks/admin/useCharacterEditor";
 

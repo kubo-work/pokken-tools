@@ -7,7 +7,7 @@ import {
   setJustInputHitBreakdown,
   setOptionalJustInputField,
   toggleJustInput,
-} from "./moveOverrideUpdaters";
+} from "@/lib/moves/moveOverrideUpdaters";
 
 /**
  * ジャスト入力による性能差の編集欄。共鳴とは独立した軸のため、共鳴の ON/OFF に関わらず

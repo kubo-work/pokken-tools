@@ -5,8 +5,8 @@ import {
   setOptionalResonanceField,
   setResonanceHitBreakdown,
   toggleResonance,
-} from "./moveOverrideUpdaters";
-import { setMoveField } from "./moveUpdaters";
+} from "@/lib/moves/moveOverrideUpdaters";
+import { setMoveField } from "@/lib/moves/moveUpdaters";
 
 export const MoveResonancePanel = ({
   move,

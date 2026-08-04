@@ -1,5 +1,5 @@
 import { Select, SimpleGrid } from "@mantine/core";
-import { AIR_GROUND_JUDGMENTS } from "@/lib/meta";
+import { AIR_GROUND_JUDGMENTS } from "@/lib/moves/moveEnums";
 import { asOptionalEnumValue } from "@/lib/optionGuards";
 import { MoveAttackFields } from "./MoveAttackFields";
 import { MoveCategoryFields } from "./MoveCategoryFields";
@@ -7,7 +7,7 @@ import { MoveIdentityFields } from "./MoveIdentityFields";
 import { MoveSpecialAttributeFields } from "./MoveSpecialAttributeFields";
 import type { MoveFieldGroupProps } from "./moveFieldProps";
 import { AIR_GROUND_OPTIONS } from "./moveFieldsHelpers";
-import { setOptionalMoveField } from "./moveUpdaters";
+import { setOptionalMoveField } from "@/lib/moves/moveUpdaters";
 
 export interface MoveFieldsProps extends MoveFieldGroupProps {
   isChild: boolean;

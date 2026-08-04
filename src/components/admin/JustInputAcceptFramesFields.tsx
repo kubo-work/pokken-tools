@@ -2,7 +2,7 @@ import { SimpleGrid } from "@mantine/core";
 import type { MoveFieldGroupProps } from "./moveFieldProps";
 import { IntegerNumberInput } from "./IntegerNumberInput";
 import { PLACEHOLDER_NOT_MEASURED } from "./moveFieldsHelpers";
-import { setJustInputAcceptFrames } from "./moveOverrideUpdaters";
+import { setJustInputAcceptFrames } from "@/lib/moves/moveOverrideUpdaters";
 
 /** 受付フレームの開始・終了。同じ更新規則を両方の入力欄で使うため、境界の種別だけを引数にする。 */
 type AcceptFrameEdge = "start" | "end";

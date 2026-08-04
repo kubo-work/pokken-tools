@@ -1,10 +1,11 @@
 import { Checkbox, Group, SimpleGrid } from "@mantine/core";
-import { MOVE_SPECIAL_ATTRIBUTES, SPECIAL_ATTRIBUTE_META } from "@/lib/meta";
+import { MOVE_SPECIAL_ATTRIBUTES } from "@/lib/moves/moveEnums";
+import { SPECIAL_ATTRIBUTE_META } from "@/lib/moves/moveLabels";
 import { pickEnumValues } from "@/lib/optionGuards";
 import { IntegerNumberInput } from "./IntegerNumberInput";
 import type { MoveFieldGroupProps } from "./moveFieldProps";
 import { PLACEHOLDER_NOT_MEASURED } from "./moveFieldsHelpers";
-import { setMoveSpecialAttributes, setOptionalMoveField } from "./moveUpdaters";
+import { setMoveSpecialAttributes, setOptionalMoveField } from "@/lib/moves/moveUpdaters";
 
 /**
  * 特殊属性（貫通・アーマー・弾消し）と、それに連動する弾消し開始フレームの入力欄。

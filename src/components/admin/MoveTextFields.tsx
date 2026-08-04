@@ -1,6 +1,6 @@
 import { Textarea, TextInput } from "@mantine/core";
 import type { MoveFieldGroupProps } from "./moveFieldProps";
-import { setMoveField } from "./moveUpdaters";
+import { setMoveField } from "@/lib/moves/moveUpdaters";
 
 const toOptional = (value: string): string | undefined =>
   value === "" ? undefined : value;

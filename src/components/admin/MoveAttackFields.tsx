@@ -1,11 +1,12 @@
 import { Select, SimpleGrid } from "@mantine/core";
-import { GUARD_LEVELS, strengthRangeForAttackType } from "@/lib/meta";
+import { GUARD_LEVELS } from "@/lib/moves/moveEnums";
+import { strengthRangeForAttackType } from "@/lib/moves/moveRules";
 import { asNullableEnumValue } from "@/lib/optionGuards";
 import { IntegerNumberInput } from "./IntegerNumberInput";
 import type { MoveFieldGroupProps } from "./moveFieldProps";
 import { GUARD_LEVEL_OPTIONS, isGrabMove } from "./moveFieldsHelpers";
 import { ResonanceFlinchField } from "./ResonanceFlinchField";
-import { setMoveField, setOptionalMoveField } from "./moveUpdaters";
+import { setMoveField, setOptionalMoveField } from "@/lib/moves/moveUpdaters";
 
 /**
  * 攻撃属性を持つ技だけが持つ項目（強度・判定・共鳴怯ませ強度）の入力欄。

@@ -1,11 +1,13 @@
 import type { z } from "zod";
 import {
-  ATTACK_TYPE_META,
   HIT_BREAKDOWN_DAMAGE_KEYS,
   type HitBreakdownDamageKey,
-  STRENGTH_RANGE_BY_ATTACK_TYPE,
+} from "@/lib/moves/moveEnums";
+import { ATTACK_TYPE_META } from "@/lib/moves/moveLabels";
+import {
   hitBreakdownDefines,
-} from "@/lib/meta";
+  STRENGTH_RANGE_BY_ATTACK_TYPE,
+} from "@/lib/moves/moveRules";
 import { type MoveState, moveOverrideLayers } from "@/lib/moves/resolveMove";
 import type { HitBreakdownEntry } from "@/types/move";
 import type { MoveInput } from "./moveObject";

@@ -2,12 +2,14 @@ import { NumberInput, Select, SimpleGrid } from "@mantine/core";
 import { asNullableEnumValue } from "@/lib/optionGuards";
 import type { MoveFieldGroupProps } from "./moveFieldProps";
 import {
-  DEFAULT_SWITCH_ACTIVE_FRAME,
   RESONANCE_FLINCH_MODES,
   RESONANCE_FLINCH_OPTIONS,
-  type ResonanceFlinchMode,
 } from "./moveFieldsHelpers";
-import { setMoveResonanceFlinchMode } from "./moveUpdaters";
+import {
+  DEFAULT_SWITCH_ACTIVE_FRAME,
+  setMoveResonanceFlinchMode,
+  type ResonanceFlinchMode,
+} from "@/lib/moves/moveUpdaters";
 
 /**
  * 共鳴怯ませ強度の入力欄。共鳴中の相手を怯ませられるか（弱／強）を選び、

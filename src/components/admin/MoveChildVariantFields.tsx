@@ -2,7 +2,7 @@ import { SimpleGrid } from "@mantine/core";
 import { IntegerNumberInput } from "./IntegerNumberInput";
 import type { MoveFieldGroupProps } from "./moveFieldProps";
 import { PLACEHOLDER_NOT_MEASURED } from "./moveFieldsHelpers";
-import { setMoveField, setOptionalMoveField } from "./moveUpdaters";
+import { setMoveField, setOptionalMoveField } from "@/lib/moves/moveUpdaters";
 
 /**
  * ため・派生（子技）のときだけ意味を持つ項目の入力欄。

@@ -1,5 +1,5 @@
 import { Button, Card, Group, Select, SimpleGrid, Stack, Switch, Text } from "@mantine/core";
-import { AIR_GROUND_JUDGMENTS, GUARD_LEVELS } from "@/lib/meta";
+import { AIR_GROUND_JUDGMENTS, GUARD_LEVELS } from "@/lib/moves/moveEnums";
 import { asOptionalEnumValue } from "@/lib/optionGuards";
 import type { HitBreakdownEntry } from "@/types/move";
 import { IntegerNumberInput } from "./IntegerNumberInput";
@@ -10,7 +10,7 @@ import {
   removeHitBreakdownEntry,
   setHitBreakdownEntryField,
   toggleHitBreakdown,
-} from "./moveUpdaters";
+} from "@/lib/moves/moveHitBreakdownUpdaters";
 
 export interface HitBreakdownFieldsProps {
   /** グループ入力欄の key に使う接頭辞。技単位/共鳴差分で別の値を渡し、衝突を防ぐ。 */

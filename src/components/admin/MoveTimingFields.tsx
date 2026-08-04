@@ -1,6 +1,6 @@
 import { SimpleGrid } from "@mantine/core";
 import type { MoveFieldGroupProps } from "./moveFieldProps";
-import { setMoveField, setOptionalMoveField } from "./moveUpdaters";
+import { setMoveField, setOptionalMoveField } from "@/lib/moves/moveUpdaters";
 import { FrameAdvantageField } from "./FrameAdvantageField";
 import { IntegerNumberInput } from "./IntegerNumberInput";
 

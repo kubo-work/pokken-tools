@@ -5,7 +5,7 @@ import type {
   Move,
   MoveOverride,
 } from "@/types/move";
-import { setHitBreakdownWith } from "./moveUpdaters";
+import { setHitBreakdownWith } from "./moveHitBreakdownUpdaters";
 
 /**
  * 条件付き差分（共鳴・ジャスト入力・共鳴中のジャスト入力）を編集する純粋関数群。

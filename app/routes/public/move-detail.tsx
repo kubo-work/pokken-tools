@@ -13,8 +13,8 @@ import {
   JUST_INPUT_LABEL,
   PHASE_META,
   RESONANCE_ONLY_LABEL,
-  maxChargeLevel,
-} from "@/lib/meta";
+} from "@/lib/moves/moveLabels";
+import { maxChargeLevel } from "@/lib/moves/moveRules";
 import {
   justInputColumnKey,
   resolveJustInputMove,

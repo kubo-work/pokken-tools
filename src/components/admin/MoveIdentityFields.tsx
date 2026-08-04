@@ -1,6 +1,6 @@
 import { SimpleGrid, TextInput } from "@mantine/core";
 import type { MoveFieldGroupProps } from "./moveFieldProps";
-import { setMoveField } from "./moveUpdaters";
+import { setMoveField } from "@/lib/moves/moveUpdaters";
 
 export interface MoveIdentityFieldsProps extends MoveFieldGroupProps {
   isChild: boolean;

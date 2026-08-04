@@ -1,5 +1,5 @@
 import { SimpleGrid } from "@mantine/core";
-import { hitBreakdownDefines } from "@/lib/meta";
+import { hitBreakdownDefines } from "@/lib/moves/moveRules";
 import type { MoveFieldGroupProps } from "./moveFieldProps";
 import { DamageValueField } from "./DamageValueField";
 import { IntegerNumberInput } from "./IntegerNumberInput";
@@ -7,14 +7,12 @@ import {
   PLACEHOLDER_NOT_MEASURED,
   PLACEHOLDER_SET_BY_HIT_BREAKDOWN,
 } from "./moveFieldsHelpers";
-import {
-  setOptionalMoveField,
-  type MoveDamageValueFieldKey,
-} from "./moveUpdaters";
+import type { HitBreakdownDamageKey } from "@/lib/moves/moveEnums";
+import { setOptionalMoveField } from "@/lib/moves/moveUpdaters";
 
 /** ダメージ系（DamageValue 型）フィールドの一覧。共鳴差分パネルでも同じ並びで使う。 */
 export const DAMAGE_VALUE_FIELDS: {
-  key: MoveDamageValueFieldKey;
+  key: HitBreakdownDamageKey;
   label: string;
 }[] = [
   { key: "baseDamage", label: "基礎ダメージ" },

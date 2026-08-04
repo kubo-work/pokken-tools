@@ -1,4 +1,4 @@
-import { CATEGORY_META } from "@/lib/meta";
+import { CATEGORY_META } from "@/lib/moves/moveLabels";
 import type { MoveCategory } from "@/types/move";
 
 export const CategoryBadge = ({
