@@ -140,7 +140,8 @@ const JUST_INPUT_RESONANCE_STATE: MoveState = {
  *
  * 本体は通常時のジャスト入力を解決した値、resonance フィールドには「ジャスト入力版が
  * 共鳴でどう変わるか」を詰め替える。こうすることで、既存の共鳴「→」表示ロジック
- * （moveDetailRows 等）をそのまま使い回しつつ、表示値と resolveMove の計算結果が一致する。
+ * （components/moveDetail 配下の行定義など）をそのまま使い回しつつ、表示値と
+ * resolveMove の計算結果が一致する。
  */
 export const resolveJustInputMove = (move: Move): Move | undefined => {
   if (move.justInput === undefined) {
