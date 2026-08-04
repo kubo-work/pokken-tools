@@ -19,13 +19,13 @@ import {
   justInputColumnKey,
   resolveJustInputMove,
 } from "@/lib/moves/resolveMove";
+import { buildAttributeRows } from "@/components/moveDetail/attributeRows";
 import {
   DAMAGE_ROWS,
-  FRAME_ROWS,
-  buildAttributeRows,
   hasBreakdownDamage,
-  variantColumnLabel,
-} from "@/components/moveDetailRows";
+} from "@/components/moveDetail/damageRows";
+import { FRAME_ROWS } from "@/components/moveDetail/frameRows";
+import { variantColumnLabel } from "@/components/moveDetail/variantColumn";
 
 /**
  * params から技を解決し、見つからなければ 404。親＋ため/派生をまとめた group を返す。
