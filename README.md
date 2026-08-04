@@ -34,7 +34,7 @@ pokken/
 ├── scripts/                       # seed スクリプト群 / favicon 生成
 ├── public/                        # 静的アセット（favicon）
 ├── tests/                         # テストは実装から分離し src・app の階層をミラーする
-│   ├── lib/ components/           # src/ 配下の対応するモジュールのテスト
+│   ├── lib/                       # src/lib 配下の対応するモジュールのテスト
 │   ├── routes/api/                # API resource route の action テスト
 │   └── helpers/                   # テスト共通ヘルパー（認証モック等）
 ├── workers/
@@ -55,20 +55,61 @@ pokken/
     │   ├── context.ts             # middleware → loader へユーザーを渡す RouterContext
     │   └── authConstants.ts       # エラーコード / Cookie 名 / セッション有効期限
     ├── components/                # 公開ページ用コンポーネント
-    │   └── admin/                 # 管理画面用 (Mantine)
+    │   ├── admin/                 # 管理画面用 (Mantine)
+    │   └── moveDetail/            # 技詳細ページの行定義（責務ごとに分割）
+    ├── hooks/                     # 画面状態を束ねる React フック
+    │   ├── admin/                 # キャラ編集の state / 保存 / 入出力
+    │   └── punish/                # 確定反撃検索の入力状態
     ├── lib/
-    │   ├── frame/calcPunish.ts    # 確定反撃ロジック
+    │   ├── moves/                 # 技ドメイン（下記「レイヤと依存の向き」を参照）
+    │   ├── frame/                 # 確定反撃・硬直差の計算
+    │   ├── schema/                # Zod バリデーション
     │   ├── kv/                    # KV アクセス
     │   ├── d1/                    # D1 アクセス
+    │   ├── admin/                 # 管理画面共通の API クライアント / エンドポイント / 表示トークン
     │   ├── cloudflare.ts          # getEnv()（AsyncLocalStorage 経由で env 取得）
     │   ├── characters/registry.ts # 23キャラ固定レジストリ
-    │   ├── meta.ts                # 表示用メタ
-    │   ├── schema.ts              # Zod バリデーション
     │   ├── parseJsonBody.ts       # API resource route 共通の JSON 検証
     │   └── characterTiles.ts      # キャラタイル集計（公開/管理トップ共通）
     ├── styles/                    # グローバル CSS（トークン→ベース→機能別で分割）
     └── types/                     # 型定義
 ```
+
+### レイヤと依存の向き
+
+import は必ず **外側 → 内側** の一方向。内側（技のドメイン）が外側（React / Mantine /
+Cloudflare / 画面）を import してはならない。Next.js から React Router へ移行できたのも、
+硬直差やヒット内訳の計算がフレームワークを知らなかったため。
+
+```
+app/routes/ ─→ src/components/ ─→ src/hooks/ ─→ src/lib/moves/ ─→ src/types/
+                                   src/lib/kv/, src/lib/d1/ ─┘
+```
+
+`src/lib/moves/` の内部も同じ規則で分かれる。**ファイルは変更理由の単位**で切っており、
+1 つの変更で複数ファイルを開くことになったら切り方が間違っているというのが判断基準。
+
+| モジュール | 持つもの | 変更理由 |
+|---|---|---|
+| `moveEnums.ts` | 値の集合（`GUARD_LEVELS` 等） | ゲームに項目が増えたとき |
+| `moveRules.ts` | 値に対する判断（強度範囲・ため段階・ヒット内訳の合計） | ゲーム仕様が変わったとき |
+| `moveLabels.ts` | 表示文言（`*_META`, `NO_VALUE_LABEL` 等） | 文言を変えたいとき |
+| `moveFormat.ts` | 値 1 つの整形（`formatDamageValue` 等） | 見せ方を変えたいとき |
+| `moveCategoricalDisplay.ts` | 判定・空地の表示（内訳と技単位の代表値の解決を伴う） | 内訳の見せ方を変えたいとき |
+| `moveUpdaters.ts` | 技本体のフィールド更新（不変条件の維持） | 技の持ちうる形が変わったとき |
+| `moveOverrideUpdaters.ts` | 条件付き差分（共鳴・ジャスト入力）の更新 | 差分の種類が増えたとき |
+| `moveHitBreakdownUpdaters.ts` | ヒット内訳の配列操作 | 内訳の構造が変わったとき |
+
+依存は `moveCategoricalDisplay / moveFormat → moveLabels / moveRules → moveEnums`、
+`moveOverrideUpdaters → moveHitBreakdownUpdaters → moveUpdaters`。いずれも一方向。
+
+`lib` と `components` のどちらに置くかは、「React を import しているか」ではなく
+「**画面が無くてもその概念は成立するか**」で判断する。
+
+- `setMoveSpecialAttributes`（弾消しを外したら開始フレームも消す）はゲーム仕様なので `lib`
+- `PLACEHOLDER_NOT_MEASURED`（"未計測"）は管理画面の入力欄固有なので `components`
+- `NO_VALUE_LABEL`（"-"）は公開ページと整形関数の両方が使う表示規約なので `lib`。
+  `lib` は `components` を import できないため、共有する定数はこちらに置くしかない
 
 ## 初回セットアップ
 
