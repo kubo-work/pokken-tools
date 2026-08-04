@@ -6,9 +6,6 @@ import { FrameNumber } from "@/components/FrameNumber";
  * 特定の表だけで使うものはここではなく、その行定義ファイル側に置く。
  */
 
-/** 値が未計測、またはその技には存在しないことを表すセルの表示。 */
-export const NOT_MEASURED_TEXT = "-";
-
 /** 共鳴中の上書き値を amber の「→値」でセル内に併記する。 */
 const ResonanceArrow = ({ children }: { children: ReactNode }) => (
   <span className="move-detail__override"> →{children}</span>

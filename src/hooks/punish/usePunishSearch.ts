@@ -6,7 +6,8 @@ import type {
   PunishException,
   ResonanceState,
 } from "@/types/move";
-import { MOVE_VARIANT_META, PHASES, PHASE_META } from "@/lib/meta";
+import { PHASES } from "@/lib/moves/moveEnums";
+import { MOVE_VARIANT_META, PHASE_META } from "@/lib/moves/moveLabels";
 import { formatMoveCommand } from "@/lib/moves/command";
 import { isChildMove } from "@/lib/moves/grouping";
 import { resolveMove } from "@/lib/moves/resolveMove";

@@ -4,7 +4,7 @@ import { FrameNumber } from "@/components/FrameNumber";
 import { CategoryBadge } from "@/components/badges";
 import { usePunishSearch } from "@/hooks/punish/usePunishSearch";
 import { formatPunishWindow } from "@/lib/frame/frameAdvantage";
-import { moveGuardLevelShortLabel } from "@/lib/meta";
+import { moveGuardLevelShortLabel } from "@/lib/moves/moveCategoricalDisplay";
 
 /** 範囲登録された硬直差の不利側でのみ確定する反撃に付ける注記。 */
 const SPACING_DEPENDENT_NOTE = "当て方・距離次第で確定しない場合あり";

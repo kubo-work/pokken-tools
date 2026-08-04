@@ -1,4 +1,5 @@
-import { MOVE_VARIANT_META, childVariantLabel } from "@/lib/meta";
+import { childVariantLabel } from "@/lib/moves/moveFormat";
+import { MOVE_VARIANT_META } from "@/lib/moves/moveLabels";
 import type { Move } from "@/types/move";
 
 /**

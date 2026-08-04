@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode, Ref } from "react";
 import { Badge, Button, Card, Group, Stack, Text } from "@mantine/core";
-import { MOVE_VARIANT_META } from "@/lib/meta";
+import { MOVE_VARIANT_META } from "@/lib/moves/moveLabels";
 import type { Move } from "@/types/move";
 import { HitBreakdownFields } from "./HitBreakdownFields";
 import { MoveChildVariantFields } from "./MoveChildVariantFields";
@@ -10,7 +10,7 @@ import { MoveJustInputPanel } from "./MoveJustInputPanel";
 import { MoveResonancePanel } from "./MoveResonancePanel";
 import { MoveTextFields } from "./MoveTextFields";
 import { MoveTimingFields } from "./MoveTimingFields";
-import { setMoveHitBreakdown } from "./moveUpdaters";
+import { setMoveHitBreakdown } from "@/lib/moves/moveHitBreakdownUpdaters";
 
 export interface MoveEditorProps {
   move: Move;

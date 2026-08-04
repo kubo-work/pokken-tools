@@ -5,7 +5,7 @@ import type {
   GuardFrameAdvantage,
   HitFrameAdvantage,
 } from "@/types/move";
-import { HIT_FRAME_ADVANTAGE_DOWN_LABEL } from "@/lib/meta";
+import { HIT_FRAME_ADVANTAGE_DOWN_LABEL } from "@/lib/moves/moveLabels";
 import { asOptionalEnumValue } from "@/lib/optionGuards";
 import { IntegerNumberInput, type IntegerNumberInputProps } from "./IntegerNumberInput";
 import { PLACEHOLDER_NOT_MEASURED } from "./moveFieldsHelpers";

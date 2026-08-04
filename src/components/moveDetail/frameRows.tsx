@@ -1,12 +1,9 @@
 import { FrameAdvantageText } from "@/components/FrameAdvantageText";
 import { FrameNumber } from "@/components/FrameNumber";
 import type { ComparisonRow } from "@/components/MoveComparisonTable";
-import { formatJustInputAcceptFrames } from "@/lib/meta";
-import {
-  NOT_MEASURED_TEXT,
-  ResonanceFrameOverride,
-  ResonanceOverride,
-} from "./rowHelpers";
+import { formatJustInputAcceptFrames } from "@/lib/moves/moveFormat";
+import { NO_VALUE_LABEL } from "@/lib/moves/moveLabels";
+import { ResonanceFrameOverride, ResonanceOverride } from "./rowHelpers";
 
 /**
  * 技詳細ページ「フレームデータ」表の行定義。
@@ -30,7 +27,7 @@ const buildCancelFrameAdvantageRow = (
   renderCell: (move) => (
     <>
       {move[key] === undefined ? (
-        NOT_MEASURED_TEXT
+        NO_VALUE_LABEL
       ) : (
         <FrameNumber value={move[key]} />
       )}
@@ -68,7 +65,7 @@ export const FRAME_ROWS: ComparisonRow[] = [
     renderCell: (move) => (
       <>
         {move.hitFrameAdvantage === undefined ? (
-          NOT_MEASURED_TEXT
+          NO_VALUE_LABEL
         ) : (
           <FrameAdvantageText value={move.hitFrameAdvantage} />
         )}
@@ -83,7 +80,7 @@ export const FRAME_ROWS: ComparisonRow[] = [
   {
     header: "ガード割り込み",
     // 1つ前の段との隙間なので親技（連携の起点）は値を持たず、常に "-" になる。
-    renderCell: (move) => move.guardInterruptFrames ?? NOT_MEASURED_TEXT,
+    renderCell: (move) => move.guardInterruptFrames ?? NO_VALUE_LABEL,
   },
   {
     header: "ジャスト受付",
@@ -92,6 +89,6 @@ export const FRAME_ROWS: ComparisonRow[] = [
     renderCell: (move, column) =>
       (column.isJustInput === true
         ? formatJustInputAcceptFrames(move.justInput?.acceptFrames)
-        : undefined) ?? NOT_MEASURED_TEXT,
+        : undefined) ?? NO_VALUE_LABEL,
   },
 ];

@@ -1,5 +1,9 @@
 import { NumberInput, Select, SimpleGrid } from "@mantine/core";
-import { GUARD_LEVELS, hitBreakdownDefines, strengthRangeForAttackType } from "@/lib/meta";
+import { GUARD_LEVELS } from "@/lib/moves/moveEnums";
+import {
+  hitBreakdownDefines,
+  strengthRangeForAttackType,
+} from "@/lib/moves/moveRules";
 import { asOptionalEnumValue } from "@/lib/optionGuards";
 import type { HitBreakdownEntry, Move, MoveOverride } from "@/types/move";
 import {

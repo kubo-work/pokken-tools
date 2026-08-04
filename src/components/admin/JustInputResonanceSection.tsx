@@ -5,7 +5,7 @@ import {
   setJustInputResonanceHitBreakdown,
   setOptionalJustInputResonanceField,
   toggleJustInputResonance,
-} from "./moveOverrideUpdaters";
+} from "@/lib/moves/moveOverrideUpdaters";
 
 /**
  * 「共鳴中はジャスト入力の性能がさらに変わる」差分の編集欄。

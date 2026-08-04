@@ -1,4 +1,4 @@
-import { STRENGTH_RANGE_BY_ATTACK_TYPE } from "@/lib/meta";
+import { STRENGTH_RANGE_BY_ATTACK_TYPE } from "@/lib/moves/moveRules";
 import type { Move, MoveVariant, Phase } from "@/types/move";
 
 /** ID 生成のサフィックス長（16進文字列）。 */

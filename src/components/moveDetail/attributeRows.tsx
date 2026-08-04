@@ -1,17 +1,22 @@
 import type { ComparisonRow } from "@/components/MoveComparisonTable";
 import {
-  ATTACK_TYPE_META,
-  GUARD_LEVEL_META,
   hitBreakdownCategoricalLines,
-  hitBreakdownDefines,
   moveAirGroundJudgmentLines,
   moveGuardLevelLines,
+} from "@/lib/moves/moveCategoricalDisplay";
+import {
   resonanceFlinchLabel,
   specialAttributeLabel,
-} from "@/lib/meta";
+} from "@/lib/moves/moveFormat";
+import {
+  ATTACK_TYPE_META,
+  GUARD_LEVEL_META,
+  NO_VALUE_LABEL,
+} from "@/lib/moves/moveLabels";
+import { hitBreakdownDefines } from "@/lib/moves/moveRules";
 import { formatMoveCommand } from "@/lib/moves/command";
 import type { Move } from "@/types/move";
-import { NOT_MEASURED_TEXT, ResonanceOverride } from "./rowHelpers";
+import { ResonanceOverride } from "./rowHelpers";
 
 /**
  * 技詳細ページ「判定・属性」表の行定義。
@@ -27,7 +32,7 @@ const INLINE_LIST_SEPARATOR = " / ";
  */
 const CategoricalLines = ({ lines }: { lines: string[] }) => {
   if (lines.length === 0) {
-    return <>{NOT_MEASURED_TEXT}</>;
+    return <>{NO_VALUE_LABEL}</>;
   }
   if (lines.length === 1) {
     return <>{lines[0]}</>;
@@ -43,12 +48,12 @@ const CategoricalLines = ({ lines }: { lines: string[] }) => {
 
 const attackTypeLabel = (move: Move): string =>
   move.attackType === undefined
-    ? NOT_MEASURED_TEXT
+    ? NO_VALUE_LABEL
     : ATTACK_TYPE_META[move.attackType].label;
 
 const specialAttributesLabel = (move: Move): string =>
   move.specialAttributes === undefined || move.specialAttributes.length === 0
-    ? NOT_MEASURED_TEXT
+    ? NO_VALUE_LABEL
     : move.specialAttributes
         .map((attribute) => specialAttributeLabel(attribute, move))
         .join(INLINE_LIST_SEPARATOR);
@@ -122,7 +127,7 @@ export const buildAttributeRows = (parentMove: Move): ComparisonRow[] => [
     header: "強度",
     renderCell: (move) => (
       <>
-        {move.strength ?? NOT_MEASURED_TEXT}
+        {move.strength ?? NO_VALUE_LABEL}
         <ResonanceOverride value={move.resonance?.strength} />
       </>
     ),

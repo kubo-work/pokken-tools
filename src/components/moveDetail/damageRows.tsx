@@ -2,12 +2,15 @@ import type { ComparisonRow } from "@/components/MoveComparisonTable";
 import {
   HIT_BREAKDOWN_DAMAGE_KEYS,
   type HitBreakdownDamageKey,
+} from "@/lib/moves/moveEnums";
+import {
   formatDamageValue,
   formatHitBreakdownDamage,
-  hitBreakdownDefines,
-} from "@/lib/meta";
+} from "@/lib/moves/moveFormat";
+import { NO_VALUE_LABEL } from "@/lib/moves/moveLabels";
+import { hitBreakdownDefines } from "@/lib/moves/moveRules";
 import type { Move } from "@/types/move";
-import { NOT_MEASURED_TEXT, ResonanceOverride } from "./rowHelpers";
+import { ResonanceOverride } from "./rowHelpers";
 
 /**
  * 技詳細ページ「ダメージ」表の行定義。
@@ -83,7 +86,7 @@ export const DAMAGE_ROWS: ComparisonRow[] = [
     header: "PCH値",
     renderCell: (move) => (
       <>
-        {move.phaseChangePoints ?? NOT_MEASURED_TEXT}
+        {move.phaseChangePoints ?? NO_VALUE_LABEL}
         <ResonanceOverride value={move.resonance?.phaseChangePoints} />
       </>
     ),

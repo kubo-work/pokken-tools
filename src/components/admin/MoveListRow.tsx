@@ -2,7 +2,7 @@ import { Badge, Group, Stack, Text, UnstyledButton } from "@mantine/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { ACCENT_BORDER, SURFACE } from "@/lib/admin/surfaceTokens";
-import { CATEGORY_META } from "@/lib/meta";
+import { CATEGORY_META } from "@/lib/moves/moveLabels";
 import type { MoveGroup } from "@/lib/moves/grouping";
 import { MoveDragHandle } from "./MoveDragHandle";
 

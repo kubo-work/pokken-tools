@@ -6,18 +6,22 @@ import { FrameAdvantageText } from "@/components/FrameAdvantageText";
 import { FrameNumber } from "@/components/FrameNumber";
 import { StrengthHelpPopover } from "@/components/StrengthHelpPopover";
 import {
-  ATTACK_TYPE_META,
-  JUST_INPUT_LABEL,
-  POKEMON_MOVE_CANCEL_LABEL,
-  RESONANCE_ONLY_LABEL,
-  childVariantLabel,
-  formatDamageValue,
-  hitBreakdownDefines,
-  maxChargeLevel,
   moveAirGroundJudgmentLabel,
   moveGuardLevelShortLabel,
+} from "@/lib/moves/moveCategoricalDisplay";
+import { childVariantLabel, formatDamageValue } from "@/lib/moves/moveFormat";
+import {
+  ATTACK_TYPE_META,
+  JUST_INPUT_LABEL,
+  NO_VALUE_LABEL,
+  POKEMON_MOVE_CANCEL_LABEL,
+  RESONANCE_ONLY_LABEL,
+} from "@/lib/moves/moveLabels";
+import {
+  hitBreakdownDefines,
+  maxChargeLevel,
   totalHitBreakdownDamage,
-} from "@/lib/meta";
+} from "@/lib/moves/moveRules";
 import { formatMoveCommand } from "@/lib/moves/command";
 import {
   type MoveGroup,
@@ -140,7 +144,7 @@ const MoveNameCell = ({
 /** 強度・発生・硬直差・基礎ダメージの数値セル群。技名まわりと違い状態に依存しない。 */
 const MoveFrameCells = ({ move }: { move: Move }) => (
   <>
-    <td className="num">{move.strength ?? "-"}</td>
+    <td className="num">{move.strength ?? NO_VALUE_LABEL}</td>
     <td className="num">{move.startup}</td>
     <td className="num">
       <FrameAdvantageText value={move.guardFrameAdvantage} />
@@ -150,7 +154,7 @@ const MoveFrameCells = ({ move }: { move: Move }) => (
     </td>
     <td className="num moves-table__secondary">
       {move.hitFrameAdvantage === undefined ? (
-        "-"
+        NO_VALUE_LABEL
       ) : (
         <FrameAdvantageText value={move.hitFrameAdvantage} />
       )}
@@ -193,7 +197,7 @@ const MoveRow = ({
       <td>{command}</td>
       <td className="moves-table__secondary">
         {move.attackType === undefined
-          ? "-"
+          ? NO_VALUE_LABEL
           : ATTACK_TYPE_META[move.attackType].label}
       </td>
       <MoveFrameCells move={move} />

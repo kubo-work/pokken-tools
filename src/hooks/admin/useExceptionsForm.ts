@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { PHASES, PHASE_META } from "@/lib/meta";
+import { PHASES } from "@/lib/moves/moveEnums";
+import { PHASE_META } from "@/lib/moves/moveLabels";
 import type { Character } from "@/types/character";
 import type { PunishException } from "@/types/move";
 import type { Feedback } from "@/lib/feedback";

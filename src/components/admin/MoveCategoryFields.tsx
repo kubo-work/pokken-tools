@@ -1,5 +1,5 @@
 import { Select, SimpleGrid } from "@mantine/core";
-import { MOVE_ATTACK_TYPES, MOVE_CATEGORIES } from "@/lib/meta";
+import { MOVE_ATTACK_TYPES, MOVE_CATEGORIES } from "@/lib/moves/moveEnums";
 import { asOptionalEnumValue } from "@/lib/optionGuards";
 import type { MoveFieldGroupProps } from "./moveFieldProps";
 import {
@@ -7,7 +7,7 @@ import {
   CATEGORY_OPTIONS,
   isGrabMove,
 } from "./moveFieldsHelpers";
-import { setMoveAttackType, setMoveCategory } from "./moveUpdaters";
+import { setMoveAttackType, setMoveCategory } from "@/lib/moves/moveUpdaters";
 
 /**
  * 属性（攻撃／ブロック／つかみ）と攻撃属性（打撃／弾）の入力欄。
