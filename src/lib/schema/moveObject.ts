@@ -28,6 +28,7 @@ export const moveObjectSchema = z.object({
   attackType: attackTypeSchema.optional(),
   guardLevel: guardLevelSchema.nullable(),
   startup: z.number(),
+  activeUntilFrame: z.number().int().positive().optional(),
   guardFrameAdvantage: guardFrameAdvantageSchema,
   guardFrameAdvantageOnPokemonMoveCancel: z.number().optional(),
   hitFrameAdvantage: hitFrameAdvantageSchema.optional(),
