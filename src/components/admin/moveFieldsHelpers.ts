@@ -64,6 +64,7 @@ export const RESONANCE_FLINCH_MODES: ResonanceFlinchMode[] =
 /** MoveOverride が持つ数値フィールド。共鳴・ジャスト入力など全ての条件付き差分で共通。 */
 export type MoveOverrideNumberField =
   | "startup"
+  | "activeUntilFrame"
   | "guardFrameAdvantage"
   | "guardFrameAdvantageOnPokemonMoveCancel"
   | "hitFrameAdvantage"
@@ -73,8 +74,14 @@ export const MOVE_OVERRIDE_NUMBER_FIELDS: {
   key: MoveOverrideNumberField;
   label: string;
   negative: boolean;
+  /**
+   * 入力欄の下限。スキーマ側の制約と一致させること（例: 攻撃持続は positive なので 1）。
+   * 下限を持たない項目（負の値を取る硬直差など）は省略する。
+   */
+  min?: number;
 }[] = [
-  { key: "startup", label: "発生", negative: false },
+  { key: "startup", label: "発生", negative: false, min: 0 },
+  { key: "activeUntilFrame", label: "攻撃持続", negative: false, min: 1 },
   { key: "guardFrameAdvantage", label: "ガード硬直差", negative: true },
   {
     key: "guardFrameAdvantageOnPokemonMoveCancel",

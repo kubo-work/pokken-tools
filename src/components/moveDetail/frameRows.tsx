@@ -1,7 +1,10 @@
 import { FrameAdvantageText } from "@/components/FrameAdvantageText";
 import { FrameNumber } from "@/components/FrameNumber";
 import type { ComparisonRow } from "@/components/MoveComparisonTable";
-import { formatJustInputAcceptFrames } from "@/lib/moves/moveFormat";
+import {
+  formatActiveUntilFrame,
+  formatJustInputAcceptFrames,
+} from "@/lib/moves/moveFormat";
 import { NO_VALUE_LABEL } from "@/lib/moves/moveLabels";
 import { ResonanceFrameOverride, ResonanceOverride } from "./rowHelpers";
 
@@ -44,6 +47,17 @@ export const FRAME_ROWS: ComparisonRow[] = [
       <>
         {move.startup}
         <ResonanceOverride value={move.resonance?.startup} />
+      </>
+    ),
+  },
+  {
+    header: "攻撃持続",
+    renderCell: (move) => (
+      <>
+        {formatActiveUntilFrame(move.activeUntilFrame) ?? NO_VALUE_LABEL}
+        <ResonanceOverride
+          value={formatActiveUntilFrame(move.resonance?.activeUntilFrame)}
+        />
       </>
     ),
   },

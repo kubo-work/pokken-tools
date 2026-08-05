@@ -61,12 +61,12 @@ const OverrideFrameFields = ({
   const strengthRange = strengthRangeForAttackType(move.attackType);
   return (
     <>
-      {MOVE_OVERRIDE_NUMBER_FIELDS.map(({ key, label, negative }) => (
+      {MOVE_OVERRIDE_NUMBER_FIELDS.map(({ key, label, negative, min }) => (
         <IntegerNumberInput
           key={`${idPrefix}-${key}`}
           label={label}
           allowNegative={negative}
-          min={negative ? undefined : 0}
+          min={min}
           value={value?.[key]}
           onChange={(nextValue) => onFieldChange(key, nextValue)}
         />

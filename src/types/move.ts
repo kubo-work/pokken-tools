@@ -75,6 +75,7 @@ export type MoveVariant = "normal" | "charge" | "derivative";
  */
 export interface MoveOverride {
   startup?: number;
+  activeUntilFrame?: number;
   guardFrameAdvantage?: number;
   guardFrameAdvantageOnPokemonMoveCancel?: number;
   hitFrameAdvantage?: number;
@@ -118,6 +119,12 @@ export interface Move {
   attackType?: MoveAttackType;
   guardLevel: GuardLevel | null;
   startup: number;
+  /**
+   * 攻撃持続の終端フレーム。動作開始を1F目とした絶対フレームで、この技が攻撃判定を
+   * 持つ最後のフレームを表す（例: サーナイトの2Yなら27で「攻撃持続〜27F」）。
+   * 発生 (startup) 以上の値でなければならない。未計測なら省略。
+   */
+  activeUntilFrame?: number;
   /**
    * ガード硬直差。攻撃側視点の有利/不利フレームで、負の値ほど攻撃側が不利。
    * wiki の「ガード硬直差」をそのまま符号付きで入力する。当て方や距離で変わる技は範囲で登録する。

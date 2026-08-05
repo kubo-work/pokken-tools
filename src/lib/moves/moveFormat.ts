@@ -83,6 +83,11 @@ export const formatJustInputAcceptFrames = (
 ): string | undefined =>
   value === undefined ? undefined : `${value.start}〜${value.end}F`;
 
+/** 攻撃持続の表示テキスト（例: 「〜27F」）。未計測なら undefined。 */
+export const formatActiveUntilFrame = (
+  value: number | undefined,
+): string | undefined => (value === undefined ? undefined : `〜${value}F`);
+
 /**
  * 共鳴怯ませ強度の表示ラベルを返す。
  * - 未設定（つかみ等）→ NO_VALUE_LABEL

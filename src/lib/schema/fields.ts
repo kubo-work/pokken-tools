@@ -77,6 +77,7 @@ export const hitBreakdownSchema = z
 /** 共鳴・ジャスト入力に共通する、条件付きの性能上書き。 */
 export const moveOverrideSchema = z.object({
   startup: z.number().optional(),
+  activeUntilFrame: z.number().int().positive().optional(),
   guardFrameAdvantage: z.number().optional(),
   guardFrameAdvantageOnPokemonMoveCancel: z.number().optional(),
   hitFrameAdvantage: z.number().optional(),

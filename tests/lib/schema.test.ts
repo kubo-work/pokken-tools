@@ -293,6 +293,59 @@ describe("moveSchema: ため・派生の親子関係", () => {
   });
 });
 
+describe("moveSchema: 攻撃持続", () => {
+  test("発生以降のフレームなら通る", () => {
+    expectValid({ ...baseMove, activeUntilFrame: 27 });
+  });
+
+  test("発生と同じフレームなら通る", () => {
+    expectValid({ ...baseMove, activeUntilFrame: baseMove.startup });
+  });
+
+  test("発生より前のフレームは拒否される", () => {
+    expectInvalid({ ...baseMove, activeUntilFrame: baseMove.startup - 1 });
+  });
+
+  test("共鳴で発生・攻撃持続がそろって変わる技は、共鳴側の値同士で検証される", () => {
+    expectValid({
+      ...baseMove,
+      resonance: { startup: 8, activeUntilFrame: 8 },
+    });
+    expectInvalid({
+      ...baseMove,
+      resonance: { startup: 12, activeUntilFrame: 10 },
+    });
+  });
+
+  test("共鳴で発生だけ遅くなる技は拒否され、どの層の発生と比較したかがメッセージに出る", () => {
+    const result = moveSchema.safeParse({
+      ...baseMove,
+      activeUntilFrame: baseMove.startup,
+      resonance: { startup: baseMove.startup + 1 },
+    });
+    expect(result.success).toBe(false);
+    // 報告先は技単位の攻撃持続だが、比較相手は共鳴時の発生。層のラベルが無いと
+    // 入力欄に見えている発生とメッセージの発生が食い違って見える。
+    const messages = result.success
+      ? []
+      : result.error.issues.map((issue) => issue.message);
+    expect(messages.some((message) => message.includes("共鳴時の発生"))).toBe(
+      true,
+    );
+  });
+
+  test("ジャスト入力時の攻撃持続はジャスト入力時の発生以降で検証される", () => {
+    expectValid({
+      ...baseMove,
+      justInput: { startup: 6, activeUntilFrame: 6 },
+    });
+    expectInvalid({
+      ...baseMove,
+      justInput: { startup: 6, activeUntilFrame: 5 },
+    });
+  });
+});
+
 describe("moveSchema: ジャスト入力", () => {
   test("ため・派生技にもジャスト入力差分を設定できる", () => {
     expectValid({
