@@ -34,11 +34,12 @@ hooks:
       from: .claude
       to: .claude
 
-    # Cloudflare のローカルシークレット。main に実体がある場合のみ有効化する
-    # （現状は .dev.vars.example のみ。.dev.vars を作ったらコメント解除）
-    # - type: copy
-    #   from: .dev.vars
-    #   to: .dev.vars
+    # Cloudflare のローカルシークレット（AUTH_SECRET と Google OAuth のクライアント情報）。
+    # これが無い worktree では認証時に client_id が空のまま Google へ送られ invalid_client で
+    # 失敗する。.dev.vars は .gitignore 対象なのでコピー先の worktree でも追跡されない。
+    - type: copy
+      from: .dev.vars
+      to: .dev.vars
 
     # --- 依存インストール（node_modules は gitignore 済み） ---
     - type: command

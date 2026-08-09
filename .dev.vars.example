@@ -1,5 +1,8 @@
 # wrangler dev / react-router dev で読み込まれるローカル用シークレット。
 # このファイルを `.dev.vars` にコピーして値を埋める。`.dev.vars` は .gitignore 対象。
+#
+# `.dev.vars` は worktree ごとのルートに必要。`wtp add` で作る worktree には
+# `.wtp.yml` の post_create フックがメイン worktree からコピーする。
 
 # `openssl rand -base64 32` などで生成。セッション Cookie の署名に使う。
 AUTH_SECRET=
