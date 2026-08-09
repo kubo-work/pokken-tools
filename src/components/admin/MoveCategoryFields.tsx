@@ -6,6 +6,7 @@ import {
   ATTACK_TYPE_OPTIONS,
   CATEGORY_OPTIONS,
   isGrabMove,
+  PLACEHOLDER_NO_VALUE,
 } from "./moveFieldsHelpers";
 import { setMoveAttackType, setMoveCategory } from "@/lib/moves/moveUpdaters";
 
@@ -26,7 +27,7 @@ export const MoveCategoryFields = ({
     <SimpleGrid cols={{ base: 1, sm: 2 }}>
       <Select
         label="属性"
-        placeholder="なし"
+        placeholder={PLACEHOLDER_NO_VALUE}
         clearable
         data={CATEGORY_OPTIONS}
         value={move.category ?? null}

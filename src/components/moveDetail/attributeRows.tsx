@@ -1,16 +1,16 @@
 import type { ComparisonRow } from "@/components/MoveComparisonTable";
+import type { HitBreakdownCategoricalKey } from "@/lib/moves/moveEnums";
 import {
   hitBreakdownCategoricalLines,
   moveAirGroundJudgmentLines,
   moveGuardLevelLines,
+  moveResonanceFlinchLines,
 } from "@/lib/moves/moveCategoricalDisplay";
-import {
-  resonanceFlinchLabel,
-  specialAttributeLabel,
-} from "@/lib/moves/moveFormat";
+import { specialAttributeLabel } from "@/lib/moves/moveFormat";
 import {
   ATTACK_TYPE_META,
   GUARD_LEVEL_META,
+  MOVE_FIELD_LABELS,
   NO_VALUE_LABEL,
 } from "@/lib/moves/moveLabels";
 import { hitBreakdownDefines } from "@/lib/moves/moveRules";
@@ -61,12 +61,12 @@ const specialAttributesLabel = (move: Move): string =>
 /**
  * 共鳴のヒット内訳が判定系フィールドを定義していれば、「→」の後にインラインで併記するため
  * 行に分けず INLINE_LIST_SEPARATOR で連結して返す。定義していなければ undefined。
- * 技単位の代表値へのフォールバックは呼び出し側が個別に行う（guardLevel は
- * ResonanceOverride が単一値も持つが、airGroundJudgment は持たないため）。
+ * 技単位の代表値へのフォールバックは呼び出し側が個別に行う（guardLevel だけは
+ * MoveOverride が単一値も持ち、airGroundJudgment と resonanceFlinch は持たないため）。
  */
 const resonanceHitBreakdownCategoricalText = (
   move: Move,
-  key: "guardLevel" | "airGroundJudgment",
+  key: HitBreakdownCategoricalKey,
 ): string | undefined => {
   const resonanceHitBreakdown = move.resonance?.hitBreakdown;
   return resonanceHitBreakdown !== undefined &&
@@ -90,6 +90,13 @@ const resonanceGuardLevelText = (move: Move): string | undefined =>
  */
 const resonanceAirGroundJudgmentText = (move: Move): string | undefined =>
   resonanceHitBreakdownCategoricalText(move, "airGroundJudgment");
+
+/**
+ * 共鳴の共鳴怯ませの表示テキスト。共鳴怯ませは単一値では上書きできない（MoveOverride が
+ * 持たない）ため、空・地判定と同じくヒット内訳で定義されている場合のみ表示する。
+ */
+const resonanceFlinchOverrideText = (move: Move): string | undefined =>
+  resonanceHitBreakdownCategoricalText(move, "resonanceFlinch");
 
 /**
  * 判定・属性表の行。ため/派生のコマンドは親コマンドを基準に組み立てるが、その親コマンドは
@@ -141,9 +148,15 @@ export const ATTRIBUTE_ROWS: ComparisonRow[] = [
     ),
   },
   {
-    header: "共鳴怯ませ",
+    header: MOVE_FIELD_LABELS.resonanceFlinch,
+    // 共鳴怯ませはフェイズで変わらない（FieldPhaseOverride に無い）。判定と同じ扱い。
     phaseDependentKeys: [],
-    renderCell: (move) => resonanceFlinchLabel(move.resonanceFlinch),
+    renderCell: (move) => (
+      <>
+        <CategoricalLines lines={moveResonanceFlinchLines(move)} />
+        <ResonanceOverride value={resonanceFlinchOverrideText(move)} />
+      </>
+    ),
   },
   {
     header: "特殊",

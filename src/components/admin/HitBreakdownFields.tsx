@@ -1,16 +1,35 @@
 import { Button, Card, Group, Select, SimpleGrid, Stack, Switch, Text } from "@mantine/core";
-import { AIR_GROUND_JUDGMENTS, GUARD_LEVELS } from "@/lib/moves/moveEnums";
+import {
+  AIR_GROUND_JUDGMENTS,
+  GUARD_LEVELS,
+  HIT_BREAKDOWN_NUMERIC_KEYS,
+  RESONANCE_FLINCH_LEVELS,
+} from "@/lib/moves/moveEnums";
+import { MOVE_FIELD_LABELS } from "@/lib/moves/moveLabels";
 import { asOptionalEnumValue } from "@/lib/optionGuards";
 import type { HitBreakdownEntry } from "@/types/move";
 import { IntegerNumberInput } from "./IntegerNumberInput";
-import { DAMAGE_VALUE_FIELDS } from "./MoveDamageFields";
-import { AIR_GROUND_OPTIONS, GUARD_LEVEL_OPTIONS } from "./moveFieldsHelpers";
+import {
+  AIR_GROUND_OPTIONS,
+  GUARD_LEVEL_OPTIONS,
+  PLACEHOLDER_NO_VALUE,
+  RESONANCE_FLINCH_LEVEL_OPTIONS,
+} from "./moveFieldsHelpers";
 import {
   addHitBreakdownEntry,
   removeHitBreakdownEntry,
   setHitBreakdownEntryField,
   toggleHitBreakdown,
 } from "@/lib/moves/moveHitBreakdownUpdaters";
+
+/**
+ * グループごとに入力する数値項目。技単位の入力欄（MoveDamageFields）と同じラベルを使う。
+ * 内訳では PCH値もダメージ系と同じ「1ヒットあたりの整数」なので同じ入力欄で扱える。
+ */
+const HIT_BREAKDOWN_NUMERIC_FIELDS = HIT_BREAKDOWN_NUMERIC_KEYS.map((key) => ({
+  key,
+  label: MOVE_FIELD_LABELS[key],
+}));
 
 export interface HitBreakdownFieldsProps {
   /** グループ入力欄の key に使う接頭辞。技単位/共鳴差分で別の値を渡し、衝突を防ぐ。 */
@@ -92,11 +111,11 @@ export const HitBreakdownFields = ({
                       )
                     }
                   />
-                  {DAMAGE_VALUE_FIELDS.map(({ key, label }) => (
+                  {HIT_BREAKDOWN_NUMERIC_FIELDS.map(({ key, label }) => (
                     <IntegerNumberInput
                       key={key}
                       label={label}
-                      placeholder="なし"
+                      placeholder={PLACEHOLDER_NO_VALUE}
                       min={0}
                       value={entry[key]}
                       onChange={(value) =>
@@ -108,7 +127,7 @@ export const HitBreakdownFields = ({
                   ))}
                   <Select
                     label="判定"
-                    placeholder="なし"
+                    placeholder={PLACEHOLDER_NO_VALUE}
                     clearable
                     data={GUARD_LEVEL_OPTIONS}
                     value={entry.guardLevel ?? null}
@@ -125,7 +144,7 @@ export const HitBreakdownFields = ({
                   />
                   <Select
                     label="空・地判定"
-                    placeholder="なし"
+                    placeholder={PLACEHOLDER_NO_VALUE}
                     clearable
                     data={AIR_GROUND_OPTIONS}
                     value={entry.airGroundJudgment ?? null}
@@ -136,6 +155,23 @@ export const HitBreakdownFields = ({
                           index,
                           "airGroundJudgment",
                           asOptionalEnumValue(value, AIR_GROUND_JUDGMENTS),
+                        ),
+                      )
+                    }
+                  />
+                  <Select
+                    label={MOVE_FIELD_LABELS.resonanceFlinch}
+                    placeholder={PLACEHOLDER_NO_VALUE}
+                    clearable
+                    data={RESONANCE_FLINCH_LEVEL_OPTIONS}
+                    value={entry.resonanceFlinch ?? null}
+                    onChange={(value) =>
+                      onChange(
+                        setHitBreakdownEntryField(
+                          entries,
+                          index,
+                          "resonanceFlinch",
+                          asOptionalEnumValue(value, RESONANCE_FLINCH_LEVELS),
                         ),
                       )
                     }

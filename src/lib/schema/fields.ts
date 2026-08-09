@@ -17,8 +17,9 @@ export const guardLevelSchema = z.enum([
 export const categorySchema = z.enum(["attack", "block", "grab"]);
 export const attackTypeSchema = z.enum(["strike", "projectile"]);
 export const strengthSchema = z.number().int().positive();
+export const resonanceFlinchLevelSchema = z.enum(["weak", "strong"]);
 export const resonanceFlinchSchema = z.union([
-  z.enum(["weak", "strong"]),
+  resonanceFlinchLevelSchema,
   z.object({ switchActiveFrame: z.number().int().positive() }),
 ]);
 export const specialAttributeSchema = z.enum([
@@ -58,16 +59,18 @@ const hitBreakdownEntrySchema = z
     baseDamage: z.number().int().nonnegative().optional(),
     chipDamage: z.number().int().nonnegative().optional(),
     guardCrushValue: z.number().int().nonnegative().optional(),
+    phaseChangePoints: z.number().int().nonnegative().optional(),
     guardLevel: guardLevelSchema.optional(),
     airGroundJudgment: airGroundJudgmentSchema.optional(),
+    resonanceFlinch: resonanceFlinchLevelSchema.optional(),
   })
+  // 項目を列挙して判定すると、項目が増えたときに追記漏れでその項目だけのグループが
+  // 弾かれてしまうため、hitCount 以外に値があるかを走査する形で判定する。
   .refine(
     (entry) =>
-      entry.baseDamage !== undefined ||
-      entry.chipDamage !== undefined ||
-      entry.guardCrushValue !== undefined ||
-      entry.guardLevel !== undefined ||
-      entry.airGroundJudgment !== undefined,
+      Object.entries(entry).some(
+        ([key, value]) => key !== "hitCount" && value !== undefined,
+      ),
     { message: "ヒット数以外に最低1項目は設定してください" },
   );
 export const hitBreakdownSchema = z

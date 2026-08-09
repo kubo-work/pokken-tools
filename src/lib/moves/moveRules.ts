@@ -7,6 +7,7 @@ import type {
 import type {
   HitBreakdownCategoricalKey,
   HitBreakdownDamageKey,
+  HitBreakdownNumericKey,
 } from "./moveEnums";
 
 /**
@@ -53,7 +54,7 @@ export const maxChargeLevel = (childMoves: Move[]): number =>
 /** ヒット内訳のいずれかのグループでフィールドが設定されているか。 */
 export const hitBreakdownDefines = (
   entries: HitBreakdownEntry[] | undefined,
-  key: HitBreakdownDamageKey | HitBreakdownCategoricalKey,
+  key: HitBreakdownNumericKey | HitBreakdownCategoricalKey,
 ): boolean => entries?.some((entry) => entry[key] !== undefined) ?? false;
 
 /**

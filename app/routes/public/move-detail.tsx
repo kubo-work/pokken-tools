@@ -15,7 +15,7 @@ import { maxChargeLevel } from "@/lib/moves/moveRules";
 import { ATTRIBUTE_ROWS } from "@/components/moveDetail/attributeRows";
 import {
   DAMAGE_ROWS,
-  hasBreakdownDamage,
+  hasBreakdownValueInDamageSection,
 } from "@/components/moveDetail/damageRows";
 import { FRAME_ROWS } from "@/components/moveDetail/frameRows";
 import { buildVariantColumns } from "@/components/moveDetail/variantColumn";
@@ -99,7 +99,7 @@ export default function MoveDetailPage({ loaderData }: Route.ComponentProps) {
       move.chipDamage !== undefined ||
       move.guardCrushValue !== undefined ||
       move.phaseChangePoints !== undefined ||
-      hasBreakdownDamage(move),
+      hasBreakdownValueInDamageSection(move),
   );
 
   return (

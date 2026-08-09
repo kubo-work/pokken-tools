@@ -1,15 +1,17 @@
 import type { HitBreakdownEntry, Move } from "@/types/move";
 import type { HitBreakdownCategoricalKey } from "./moveEnums";
+import { resonanceFlinchLabel } from "./moveFormat";
 import {
   AIR_GROUND_JUDGMENT_META,
   GUARD_LEVEL_LABEL_KEY_BY_STYLE,
   GUARD_LEVEL_META,
+  RESONANCE_FLINCH_META,
   type LabelStyle,
 } from "./moveLabels";
 import { hitBreakdownDefines } from "./moveRules";
 
 /**
- * 判定系フィールド（判定・空地）の表示。値を文字列にするだけの moveFormat と違い、
+ * 判定系フィールド（判定・空地・共鳴怯ませ）の表示。値を文字列にするだけの moveFormat と違い、
  * 「ヒット内訳が対象フィールドを定義していれば内訳ごと、無ければ技単位の代表値」という
  * 解決を伴う。判定と空地は必須／任意の違いがあるが、この解決の形は共通なので
  * CategoricalFieldResolver で差分だけを差し替える。
@@ -32,24 +34,39 @@ const hitRangeLabel = (start: number, hitCount: number): string => {
   return start === end ? `${start}ヒット目` : `${start}〜${end}ヒット目`;
 };
 
+/**
+ * ヒット内訳1グループ分の判定系フィールドを表示ラベルにする関数。未設定なら undefined を返す。
+ * 分岐で書くと判定系フィールドが増えたときに黙って undefined を返す枝ができるため、
+ * キーを網羅する Record として持ち、追加漏れをコンパイルエラーにする。
+ */
+const CATEGORICAL_ENTRY_LABELERS: Record<
+  HitBreakdownCategoricalKey,
+  (entry: HitBreakdownEntry, labelStyle: LabelStyle) => string | undefined
+> = {
+  guardLevel: (entry, labelStyle) =>
+    entry.guardLevel === undefined
+      ? undefined
+      : GUARD_LEVEL_META[entry.guardLevel][
+          GUARD_LEVEL_LABEL_KEY_BY_STYLE[labelStyle]
+        ],
+  // 空・地は元々 label が短いため labelStyle に関わらず同じ表記を使う。
+  airGroundJudgment: (entry) =>
+    entry.airGroundJudgment === undefined
+      ? undefined
+      : AIR_GROUND_JUDGMENT_META[entry.airGroundJudgment].label,
+  // 共鳴怯ませも「弱」「強」の 1 文字表記のため labelStyle で変えない。
+  resonanceFlinch: (entry) =>
+    entry.resonanceFlinch === undefined
+      ? undefined
+      : RESONANCE_FLINCH_META[entry.resonanceFlinch].label,
+};
+
 /** ヒット内訳1グループ分の判定系フィールドの表示ラベル。未設定なら undefined。 */
 const hitBreakdownCategoricalEntryLabel = (
   entry: HitBreakdownEntry,
   key: HitBreakdownCategoricalKey,
   labelStyle: LabelStyle,
-): string | undefined => {
-  if (key === "guardLevel") {
-    return entry.guardLevel === undefined
-      ? undefined
-      : GUARD_LEVEL_META[entry.guardLevel][
-          GUARD_LEVEL_LABEL_KEY_BY_STYLE[labelStyle]
-        ];
-  }
-  // 空・地は元々 label が短いため labelStyle に関わらず同じ表記を使う。
-  return entry.airGroundJudgment === undefined
-    ? undefined
-    : AIR_GROUND_JUDGMENT_META[entry.airGroundJudgment].label;
-};
+): string | undefined => CATEGORICAL_ENTRY_LABELERS[key](entry, labelStyle);
 
 /**
  * ヒット内訳の判定系フィールドを「1ヒット目: 上段」「2〜4ヒット目: 空」の行の配列にする。
@@ -118,6 +135,18 @@ const AIR_GROUND_JUDGMENT_RESOLVER: CategoricalFieldResolver = {
 };
 
 /**
+ * 技単位の共鳴怯ませは「弱→強（持続N〜）」の切替形式も取りうるため、内訳グループの
+ * ラベル（弱／強のみ）と違い resonanceFlinchLabel を通す。未設定の技は値なし。
+ */
+const RESONANCE_FLINCH_RESOLVER: CategoricalFieldResolver = {
+  hitBreakdownKey: "resonanceFlinch",
+  representativeLabel: (move) =>
+    move.resonanceFlinch === undefined
+      ? undefined
+      : resonanceFlinchLabel(move.resonanceFlinch),
+};
+
+/**
  * 表示を内訳から引くべきか。内訳があっても対象フィールドを定義していなければ
  * 技単位の代表値にフォールバックする。詳細ページ向け・一覧向けの双方が同じ条件で分岐する。
  */
@@ -179,3 +208,7 @@ export const moveAirGroundJudgmentLines = (move: Move): string[] =>
 /** 「空・地」の一覧向け表示。 */
 export const moveAirGroundJudgmentLabel = (move: Move): string | undefined =>
   categoricalSummaryFor(move, AIR_GROUND_JUDGMENT_RESOLVER);
+
+/** 「共鳴怯ませ」の詳細ページ向け表示行。技単位の値も未設定なら空配列。 */
+export const moveResonanceFlinchLines = (move: Move): string[] =>
+  categoricalLinesFor(move, RESONANCE_FLINCH_RESOLVER);

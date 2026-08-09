@@ -3,6 +3,7 @@ import {
   hitBreakdownCategoricalLines,
   moveAirGroundJudgmentLabel,
   moveGuardLevelShortLabel,
+  moveResonanceFlinchLines,
 } from "@/lib/moves/moveCategoricalDisplay";
 import type { HitBreakdownEntry, Move } from "@/types/move";
 import {
@@ -94,5 +95,37 @@ describe("moveAirGroundJudgmentLabel（一覧向け）", () => {
 
   test("どちらも無ければ undefined", () => {
     expect(moveAirGroundJudgmentLabel(buildMove({}))).toBeUndefined();
+  });
+});
+
+describe("moveResonanceFlinchLines（詳細ページ向け）", () => {
+  test("内訳が共鳴怯ませを定義していればヒット範囲ごとの行になる", () => {
+    const move = buildMove({
+      hitBreakdown: [
+        { hitCount: 1, resonanceFlinch: "weak" },
+        { hitCount: 3, resonanceFlinch: "strong" },
+      ],
+    });
+    expect(moveResonanceFlinchLines(move)).toEqual([
+      "1ヒット目: 弱",
+      "2〜4ヒット目: 強",
+    ]);
+  });
+
+  test("内訳が共鳴怯ませを定義していなければ技単位の代表値", () => {
+    const move = buildMove({
+      resonanceFlinch: "strong",
+      hitBreakdown: meditationBreakdown,
+    });
+    expect(moveResonanceFlinchLines(move)).toEqual(["強"]);
+  });
+
+  test("技単位が切替形式なら持続フレーム付きの表記になる", () => {
+    const move = buildMove({ resonanceFlinch: { switchActiveFrame: 5 } });
+    expect(moveResonanceFlinchLines(move)).toEqual(["弱→強（持続5〜）"]);
+  });
+
+  test("内訳も技単位も無ければ空配列", () => {
+    expect(moveResonanceFlinchLines(buildMove({}))).toEqual([]);
   });
 });

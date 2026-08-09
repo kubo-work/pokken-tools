@@ -46,9 +46,9 @@ export type DamageValue = number | { perHit: number; hitCount: number };
  * ヒットごとに性能が変わる技の、同じ性能が連続するヒットのまとまり（グループ）。
  * 値はすべて「グループ内の1ヒットあたり」の値（例: 45×3 なら baseDamage: 45, hitCount: 3）。
  * 未設定のフィールドは「その打点では値なし（-表示）」であり、技単位の値の継承ではない。
- * ダメージ系3項目（baseDamage/chipDamage/guardCrushValue）はいずれかのグループで定義したら、
- * 技単位・共鳴単位の同名フィールド（単一値）は設定禁止（二重入力防止、schema で検証）。
- * guardLevel/airGroundJudgment は技単位の値との共存を許可し、技単位の値は代表値
+ * 数値4項目（baseDamage/chipDamage/guardCrushValue/phaseChangePoints）はいずれかのグループで
+ * 定義したら、技単位・共鳴単位の同名フィールド（単一値）は設定禁止（二重入力防止、schema で検証）。
+ * guardLevel/airGroundJudgment/resonanceFlinch は技単位の値との共存を許可し、技単位の値は代表値
  * （通常は1ヒット目）として扱う。
  */
 export interface HitBreakdownEntry {
@@ -57,8 +57,14 @@ export interface HitBreakdownEntry {
   baseDamage?: number;
   chipDamage?: number;
   guardCrushValue?: number;
+  phaseChangePoints?: number;
   guardLevel?: GuardLevel;
   airGroundJudgment?: AirGroundJudgment;
+  /**
+   * 共鳴怯ませ強度。グループ内は性能が一定なので、技単位の { switchActiveFrame }（持続の途中で
+   * 弱→強に変わる技）のような切替形式は持たず、弱／強のいずれかだけを取る。
+   */
+  resonanceFlinch?: ResonanceFlinchLevel;
 }
 /**
  * 硬直差の範囲。当て方や距離で硬直差が変わる技に使う。

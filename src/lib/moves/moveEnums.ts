@@ -48,8 +48,8 @@ export const DEFAULT_USAGE_PHASE: UsagePhase = "duel";
 
 /**
  * ヒット内訳のダメージ系フィールド。値は「グループ内の1ヒットあたり」。
- * 相互排他バリデーション（lib/schema）や更新処理（lib/moves/moveUpdaters）でも同じキー集合を
- * 参照するため、配列そのものをここで一元管理し、型もそこから導出する。
+ * 技単位では DamageValue（多段表記を取りうる）である点が PCH値 と異なるため、
+ * 数値項目全体（HIT_BREAKDOWN_NUMERIC_KEYS）とは別に、この3項目だけの集合も持つ。
  */
 export const HIT_BREAKDOWN_DAMAGE_KEYS = [
   "baseDamage",
@@ -58,5 +58,23 @@ export const HIT_BREAKDOWN_DAMAGE_KEYS = [
 ] as const;
 export type HitBreakdownDamageKey = (typeof HIT_BREAKDOWN_DAMAGE_KEYS)[number];
 
-/** ヒット内訳系の判定系フィールド。 */
-export type HitBreakdownCategoricalKey = "guardLevel" | "airGroundJudgment";
+/**
+ * ヒット内訳の数値フィールド。値は「グループ内の1ヒットあたり」。
+ * 内訳と技単位の単一値を併用できない（どちらが実効値か決まらない）のはこの4項目で、
+ * 相互排他バリデーション（lib/schema）や更新処理（lib/moves/moveHitBreakdownUpdaters）が
+ * 同じキー集合を参照するため、配列そのものをここで一元管理し、型もそこから導出する。
+ */
+export const HIT_BREAKDOWN_NUMERIC_KEYS = [
+  ...HIT_BREAKDOWN_DAMAGE_KEYS,
+  "phaseChangePoints",
+] as const;
+export type HitBreakdownNumericKey = (typeof HIT_BREAKDOWN_NUMERIC_KEYS)[number];
+
+/**
+ * ヒット内訳系の判定系フィールド。数値項目と違い技単位の値との共存を許可し、
+ * 技単位の値は代表値（通常は1ヒット目）として扱う。
+ */
+export type HitBreakdownCategoricalKey =
+  | "guardLevel"
+  | "airGroundJudgment"
+  | "resonanceFlinch";

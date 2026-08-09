@@ -1,7 +1,9 @@
 import { NumberInput, Select, SimpleGrid } from "@mantine/core";
+import { MOVE_FIELD_LABELS } from "@/lib/moves/moveLabels";
 import { asNullableEnumValue } from "@/lib/optionGuards";
 import type { MoveFieldGroupProps } from "./moveFieldProps";
 import {
+  PLACEHOLDER_NO_VALUE,
   RESONANCE_FLINCH_MODES,
   RESONANCE_FLINCH_OPTIONS,
 } from "./moveFieldsHelpers";
@@ -35,9 +37,9 @@ export const ResonanceFlinchField = ({
   return (
     <SimpleGrid cols={{ base: 1, sm: 2 }}>
       <Select
-        label="共鳴怯ませ"
+        label={MOVE_FIELD_LABELS.resonanceFlinch}
         description="共鳴中の相手を怯ませられるか"
-        placeholder="なし"
+        placeholder={PLACEHOLDER_NO_VALUE}
         clearable
         data={RESONANCE_FLINCH_OPTIONS}
         value={mode}

@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import { USAGE_PHASES, type HitBreakdownDamageKey } from "@/lib/moves/moveEnums";
+import { USAGE_PHASES, type HitBreakdownNumericKey } from "@/lib/moves/moveEnums";
 import { type MoveState, moveOverrideLayers } from "@/lib/moves/resolveMove";
 import type { HitBreakdownEntry } from "@/types/move";
 import type { MoveInput } from "./moveObject";
@@ -19,7 +19,7 @@ export interface ValidationLayer {
     hitBreakdown?: HitBreakdownEntry[];
     startup?: number;
     activeUntilFrame?: number;
-  } & { [Key in HitBreakdownDamageKey]?: unknown };
+  } & { [Key in HitBreakdownNumericKey]?: unknown };
 }
 
 /**

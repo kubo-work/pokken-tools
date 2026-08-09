@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import { HIT_BREAKDOWN_DAMAGE_KEYS } from "@/lib/moves/moveEnums";
+import { HIT_BREAKDOWN_NUMERIC_KEYS } from "@/lib/moves/moveEnums";
 import { hitBreakdownDefines } from "@/lib/moves/moveRules";
 import {
   createPathIssueReporter,
@@ -12,7 +12,7 @@ import type { MoveInput } from "./moveObject";
 /** ヒットごとの内訳と、技単位・条件付き差分の単一値との整合性検証。 */
 
 /**
- * ヒット内訳とダメージ系の単一値は併用できない（どちらが実効値か決まらないため）。
+ * ヒット内訳と数値項目の単一値は併用できない（どちらが実効値か決まらないため）。
  *
  * 所有者ごとの組み合わせを列挙すると条件軸が増えるたびに漏れるので、resolveMove と同じ
  * 適用順で4状態それぞれの実効値を求め、「その状態で内訳と単一値が同居していないか」だけを見る。
@@ -32,7 +32,7 @@ export const validateHitBreakdownExclusions = (
     if (breakdownLayer === undefined) {
       continue;
     }
-    for (const key of HIT_BREAKDOWN_DAMAGE_KEYS) {
+    for (const key of HIT_BREAKDOWN_NUMERIC_KEYS) {
       if (!hitBreakdownDefines(breakdownLayer.values.hitBreakdown, key)) {
         continue;
       }
