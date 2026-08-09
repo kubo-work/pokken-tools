@@ -4,7 +4,11 @@ import { strengthRangeForAttackType } from "@/lib/moves/moveRules";
 import { asNullableEnumValue } from "@/lib/optionGuards";
 import { IntegerNumberInput } from "./IntegerNumberInput";
 import type { MoveFieldGroupProps } from "./moveFieldProps";
-import { GUARD_LEVEL_OPTIONS, isGrabMove } from "./moveFieldsHelpers";
+import {
+  GUARD_LEVEL_OPTIONS,
+  isGrabMove,
+  PLACEHOLDER_NO_VALUE,
+} from "./moveFieldsHelpers";
 import { ResonanceFlinchField } from "./ResonanceFlinchField";
 import { setMoveField, setOptionalMoveField } from "@/lib/moves/moveUpdaters";
 
@@ -40,7 +44,7 @@ export const MoveAttackFields = ({ move, onChange }: MoveFieldGroupProps) => {
         />
         <Select
           label="判定"
-          placeholder="なし"
+          placeholder={PLACEHOLDER_NO_VALUE}
           clearable
           data={GUARD_LEVEL_OPTIONS}
           value={move.guardLevel}

@@ -83,6 +83,32 @@ describe("moveSchema: hitBreakdown の構造検証", () => {
       ],
     });
   });
+
+  test("phaseChangePoints / resonanceFlinch を含むグループも通る", () => {
+    expectValid({
+      ...baseMove,
+      hitBreakdown: [
+        { hitCount: 1, phaseChangePoints: 30, resonanceFlinch: "weak" },
+        { hitCount: 3, phaseChangePoints: 10, resonanceFlinch: "strong" },
+      ],
+    });
+  });
+
+  test("phaseChangePoints だけのグループも通る（ヒット数以外に1項目あるため）", () => {
+    expectValid({
+      ...baseMove,
+      hitBreakdown: [{ hitCount: 2, phaseChangePoints: 20 }],
+    });
+  });
+
+  test("resonanceFlinch に切替形式は設定できない（グループ内は一定のため）", () => {
+    // 型では弾けるが KV から読む JSON は型を通らないため、schema で拒否できることを確認する。
+    const invalidMove: unknown = {
+      ...baseMove,
+      hitBreakdown: [{ hitCount: 1, resonanceFlinch: { switchActiveFrame: 5 } }],
+    };
+    expect(moveSchema.safeParse(invalidMove).success).toBe(false);
+  });
 });
 
 describe("moveSchema: ダメージ系の相互排他", () => {
@@ -121,6 +147,28 @@ describe("moveSchema: ダメージ系の相互排他", () => {
     });
   });
 
+  test("hitBreakdown が phaseChangePoints を定義していると技単位の phaseChangePoints は併用できない", () => {
+    expectInvalid({
+      ...baseMove,
+      phaseChangePoints: 40,
+      hitBreakdown: [
+        { hitCount: 1, phaseChangePoints: 30 },
+        { hitCount: 3, phaseChangePoints: 10 },
+      ],
+    });
+  });
+
+  test("hitBreakdown が phaseChangePoints を定義していると共鳴の単一値 phaseChangePoints は併用できない", () => {
+    expectInvalid({
+      ...baseMove,
+      hitBreakdown: [
+        { hitCount: 1, phaseChangePoints: 30 },
+        { hitCount: 3, phaseChangePoints: 10 },
+      ],
+      resonance: { phaseChangePoints: 50 },
+    });
+  });
+
   test("hitBreakdown が chipDamage を定義していなければ技単位の chipDamage と併用できる", () => {
     expectValid({
       ...baseMove,
@@ -145,6 +193,22 @@ describe("moveSchema: 攻撃属性を持たない技の制約", () => {
       guardFrameAdvantage: -3,
       hitBreakdown: [
         { hitCount: 1, baseDamage: 30, guardLevel: "mid" },
+        { hitCount: 1, baseDamage: 20 },
+      ],
+    });
+  });
+
+  test("攻撃属性を持たない技の hitBreakdown に共鳴怯ませは設定できない", () => {
+    expectInvalid({
+      id: "test_grab",
+      name: "テストつかみ",
+      command: "6Y",
+      category: "grab",
+      guardLevel: null,
+      startup: 15,
+      guardFrameAdvantage: -3,
+      hitBreakdown: [
+        { hitCount: 1, baseDamage: 30, resonanceFlinch: "strong" },
         { hitCount: 1, baseDamage: 20 },
       ],
     });

@@ -4,8 +4,10 @@ import {
   addHitBreakdownEntry,
   removeHitBreakdownEntry,
   setHitBreakdownEntryField,
+  setMoveHitBreakdown,
   toggleHitBreakdown,
 } from "@/lib/moves/moveHitBreakdownUpdaters";
+import { makeMove } from "./testFixtures";
 
 describe("toggleHitBreakdown", () => {
   test("ON かつ未設定なら既定の1グループで初期化する", () => {
@@ -57,6 +59,25 @@ describe("addHitBreakdownEntry", () => {
     const next = addHitBreakdownEntry(entries);
     expect(next).toEqual([{ hitCount: 1 }, { hitCount: 3 }, { hitCount: 1 }]);
     expect(entries).toEqual([{ hitCount: 1 }, { hitCount: 3 }]);
+  });
+});
+
+describe("setMoveHitBreakdown", () => {
+  test("内訳が定義した数値項目の単一値は削除される（PCH値も対象）", () => {
+    const move = makeMove({
+      id: "test_move",
+      baseDamage: 100,
+      phaseChangePoints: 40,
+      chipDamage: 5,
+    });
+    const next = setMoveHitBreakdown(move, [
+      { hitCount: 1, baseDamage: 60, phaseChangePoints: 30 },
+      { hitCount: 3, baseDamage: 50, phaseChangePoints: 10 },
+    ]);
+    expect("baseDamage" in next).toBe(false);
+    expect("phaseChangePoints" in next).toBe(false);
+    // 内訳が定義していない項目は単一値のまま残る。
+    expect(next.chipDamage).toBe(5);
   });
 });
 

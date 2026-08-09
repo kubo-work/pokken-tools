@@ -6,7 +6,10 @@ import { MoveCategoryFields } from "./MoveCategoryFields";
 import { MoveIdentityFields } from "./MoveIdentityFields";
 import { MoveSpecialAttributeFields } from "./MoveSpecialAttributeFields";
 import type { MoveFieldGroupProps } from "./moveFieldProps";
-import { AIR_GROUND_OPTIONS } from "./moveFieldsHelpers";
+import {
+  AIR_GROUND_OPTIONS,
+  PLACEHOLDER_NO_VALUE,
+} from "./moveFieldsHelpers";
 import { setOptionalMoveField } from "@/lib/moves/moveUpdaters";
 
 export interface MoveFieldsProps extends MoveFieldGroupProps {
@@ -29,7 +32,7 @@ export const MoveFields = ({ move, isChild, onChange }: MoveFieldsProps) => (
       <Select
         label="空・地判定"
         description="上中下段とは別軸の判定。任意"
-        placeholder="なし"
+        placeholder={PLACEHOLDER_NO_VALUE}
         clearable
         data={AIR_GROUND_OPTIONS}
         value={move.airGroundJudgment ?? null}

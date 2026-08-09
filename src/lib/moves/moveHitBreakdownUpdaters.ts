@@ -1,7 +1,7 @@
 import type { HitBreakdownEntry, Move } from "@/types/move";
 import {
-  HIT_BREAKDOWN_DAMAGE_KEYS,
-  type HitBreakdownDamageKey,
+  HIT_BREAKDOWN_NUMERIC_KEYS,
+  type HitBreakdownNumericKey,
 } from "./moveEnums";
 import { hitBreakdownDefines } from "./moveRules";
 import { setOptionalMoveField } from "./moveUpdaters";
@@ -65,15 +65,15 @@ export const removeHitBreakdownEntry = (
 
 /**
  * hitBreakdown といずれかの単一値フィールドが同時設定にならないよう、
- * entries が新たに定義したダメージ系キー（相互排他の対象）を返す。
+ * entries が新たに定義した数値キー（相互排他の対象）を返す。
  */
-const conflictingDamageKeys = (
+const conflictingNumericKeys = (
   entries: HitBreakdownEntry[] | undefined,
-): HitBreakdownDamageKey[] =>
-  HIT_BREAKDOWN_DAMAGE_KEYS.filter((key) => hitBreakdownDefines(entries, key));
+): HitBreakdownNumericKey[] =>
+  HIT_BREAKDOWN_NUMERIC_KEYS.filter((key) => hitBreakdownDefines(entries, key));
 
 /**
- * hitBreakdown を更新しつつ、新たに内訳が定義したダメージ系フィールドの単一値を削除する。
+ * hitBreakdown を更新しつつ、新たに内訳が定義した数値フィールドの単一値を削除する。
  * schema の相互排他ルール（内訳と単一値は併用不可）を UI 側でも満たすための共通処理で、
  * 技単位・各条件付き差分のどこに書くかは setField の差し替えで表す。
  */
@@ -82,12 +82,12 @@ export const setHitBreakdownWith = (
   entries: HitBreakdownEntry[] | undefined,
   setField: (
     move: Move,
-    key: "hitBreakdown" | HitBreakdownDamageKey,
+    key: "hitBreakdown" | HitBreakdownNumericKey,
     value: HitBreakdownEntry[] | undefined,
   ) => Move,
 ): Move => {
   let next = setField(move, "hitBreakdown", entries);
-  for (const key of conflictingDamageKeys(entries)) {
+  for (const key of conflictingNumericKeys(entries)) {
     next = setField(next, key, undefined);
   }
   return next;

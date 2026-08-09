@@ -1,24 +1,30 @@
 import { SimpleGrid } from "@mantine/core";
+import { MOVE_FIELD_LABELS } from "@/lib/moves/moveLabels";
 import { hitBreakdownDefines } from "@/lib/moves/moveRules";
 import type { MoveFieldGroupProps } from "./moveFieldProps";
 import { DamageValueField } from "./DamageValueField";
-import { IntegerNumberInput } from "./IntegerNumberInput";
+import { PhaseChangePointsField } from "./PhaseChangePointsField";
 import {
   PLACEHOLDER_NOT_MEASURED,
   PLACEHOLDER_SET_BY_HIT_BREAKDOWN,
 } from "./moveFieldsHelpers";
-import type { HitBreakdownDamageKey } from "@/lib/moves/moveEnums";
+import {
+  HIT_BREAKDOWN_DAMAGE_KEYS,
+  type HitBreakdownDamageKey,
+} from "@/lib/moves/moveEnums";
 import { setOptionalMoveField } from "@/lib/moves/moveUpdaters";
 
-/** ダメージ系（DamageValue 型）フィールドの一覧。共鳴差分パネルでも同じ並びで使う。 */
+/**
+ * ダメージ系（DamageValue 型）フィールドの一覧。共鳴差分パネルでも同じ並びで使う。
+ * キー集合から導出することで、並びと項目が moveEnums の定義と食い違わないようにする。
+ */
 export const DAMAGE_VALUE_FIELDS: {
   key: HitBreakdownDamageKey;
   label: string;
-}[] = [
-  { key: "baseDamage", label: "基礎ダメージ" },
-  { key: "chipDamage", label: "削りダメージ" },
-  { key: "guardCrushValue", label: "ガード削り値" },
-];
+}[] = HIT_BREAKDOWN_DAMAGE_KEYS.map((key) => ({
+  key,
+  label: MOVE_FIELD_LABELS[key],
+}));
 
 /**
  * ダメージ系（基礎/削り/ガード削り/PCH値）の入力欄。全項目任意で、空欄は未計測扱い。
@@ -46,12 +52,11 @@ export const MoveDamageFields = ({ move, onChange }: MoveFieldGroupProps) => (
         />
       );
     })}
-    <IntegerNumberInput
-      key={`${move.id}-phaseChangePoints`}
-      label="PCH値"
+    <PhaseChangePointsField
+      idPrefix={move.id}
       description="フェイズチェンジポイント"
-      placeholder={PLACEHOLDER_NOT_MEASURED}
-      min={0}
+      unsetPlaceholder={PLACEHOLDER_NOT_MEASURED}
+      hitBreakdown={move.hitBreakdown}
       value={move.phaseChangePoints}
       onChange={(value) =>
         onChange(setOptionalMoveField(move, "phaseChangePoints", value))

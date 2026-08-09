@@ -6,7 +6,7 @@ import type {
   ResonanceFlinch,
   SpecialAttribute,
 } from "@/types/move";
-import type { HitBreakdownDamageKey } from "./moveEnums";
+import type { HitBreakdownNumericKey } from "./moveEnums";
 import {
   CHARGE_MAX_LABEL,
   MOVE_VARIANT_META,
@@ -121,13 +121,13 @@ export const formatDamageValue = (value: DamageValue | undefined): string => {
 };
 
 /**
- * ヒット内訳のダメージ系フィールドを「50+45×3」形式で表示する。
+ * ヒット内訳の数値フィールド（ダメージ系・PCH値）を「50+45×3」形式で表示する。
  * 各グループは formatDamageValue と同じ規約（hitCount>1 なら 値×hitCount）、
  * 未設定グループは NO_VALUE_LABEL。連結は「+」（「/」は択一表記と紛れるため使わない）。
  */
-export const formatHitBreakdownDamage = (
+export const formatHitBreakdownValue = (
   entries: HitBreakdownEntry[],
-  key: HitBreakdownDamageKey,
+  key: HitBreakdownNumericKey,
 ): string =>
   entries
     .map((entry) => {

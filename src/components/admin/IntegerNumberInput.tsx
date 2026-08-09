@@ -6,6 +6,8 @@ export interface IntegerNumberInputProps {
   placeholder?: string;
   /** 必須項目のラベルに * を付ける（表示のみで検証はスキーマ側）。 */
   withAsterisk?: boolean;
+  /** 他の入力欄で設定済みなど、この欄からは入力させたくないとき true。 */
+  disabled?: boolean;
   /** マウント時の初期値。未入力なら undefined。 */
   value: number | undefined;
   /** 負の値を許可するか。ガード/ヒット硬直差は true。 */
@@ -32,6 +34,7 @@ export const IntegerNumberInput = ({
   description,
   placeholder,
   withAsterisk,
+  disabled,
   value,
   allowNegative = false,
   min,
@@ -44,6 +47,7 @@ export const IntegerNumberInput = ({
     description={description}
     placeholder={placeholder}
     withAsterisk={withAsterisk}
+    disabled={disabled}
     allowNegative={allowNegative}
     allowDecimal={false}
     min={min}

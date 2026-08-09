@@ -1,4 +1,5 @@
 import type { z } from "zod";
+import type { HitBreakdownCategoricalKey } from "@/lib/moves/moveEnums";
 import { ATTACK_TYPE_META } from "@/lib/moves/moveLabels";
 import {
   hitBreakdownDefines,
@@ -10,6 +11,18 @@ import type { MoveInput } from "./moveObject";
  * 属性（攻撃／ブロック／つかみ）・攻撃属性と、それに紐づく項目
  * （強度・判定・共鳴怯ませ強度）の整合性検証。
  */
+
+/**
+ * 攻撃属性を持たない技のヒット内訳に設定できない項目。技単位の単一値だけを見ていると
+ * 内訳経由で同じ値を持ててしまうため、内訳側も同じ制約で塞ぐ。
+ */
+const NON_ATTACK_FORBIDDEN_BREAKDOWN_FIELDS: {
+  key: HitBreakdownCategoricalKey;
+  label: string;
+}[] = [
+  { key: "guardLevel", label: "判定" },
+  { key: "resonanceFlinch", label: "共鳴怯ませ強度" },
+];
 
 /** 属性・攻撃属性を持たない技が、持てないはずの項目を持っていないか。 */
 const validateNonAttackFields = (
@@ -30,12 +43,14 @@ const validateNonAttackFields = (
       message: "攻撃属性を持たない技に判定は設定できません",
     });
   }
-  if (hitBreakdownDefines(move.hitBreakdown, "guardLevel")) {
-    ctx.addIssue({
-      code: "custom",
-      path: ["hitBreakdown"],
-      message: "攻撃属性を持たない技のヒット内訳に判定は設定できません",
-    });
+  for (const field of NON_ATTACK_FORBIDDEN_BREAKDOWN_FIELDS) {
+    if (hitBreakdownDefines(move.hitBreakdown, field.key)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["hitBreakdown"],
+        message: `攻撃属性を持たない技のヒット内訳に${field.label}は設定できません`,
+      });
+    }
   }
   if (move.resonanceFlinch !== undefined) {
     ctx.addIssue({

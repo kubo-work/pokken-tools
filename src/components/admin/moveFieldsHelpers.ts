@@ -50,11 +50,25 @@ export const PLACEHOLDER_UNCHANGED = "変化なし";
 /** ヒット内訳側で設定済みのため、この入力欄では設定できないことを示す placeholder。 */
 export const PLACEHOLDER_SET_BY_HIT_BREAKDOWN = "ヒット内訳で設定済み";
 
-export const RESONANCE_FLINCH_OPTIONS: { value: ResonanceFlinchMode; label: string }[] = [
-  ...RESONANCE_FLINCH_LEVELS.map((level) => ({
+/**
+ * その項目に値が無いことを示す placeholder。ヒット内訳のグループのように「未計測」でも
+ * 「変化なし」でもなく、単にその打点では値を持たない欄に使う。
+ */
+export const PLACEHOLDER_NO_VALUE = "なし";
+
+/**
+ * 共鳴怯ませ強度そのもの（弱／強）の選択肢。持続の途中で切り替わる形を取れない
+ * ヒット内訳のグループで使う。技単位の入力欄は下の RESONANCE_FLINCH_OPTIONS を使う。
+ */
+export const RESONANCE_FLINCH_LEVEL_OPTIONS = RESONANCE_FLINCH_LEVELS.map(
+  (level) => ({
     value: level,
     label: RESONANCE_FLINCH_META[level].label,
-  })),
+  }),
+);
+
+export const RESONANCE_FLINCH_OPTIONS: { value: ResonanceFlinchMode; label: string }[] = [
+  ...RESONANCE_FLINCH_LEVEL_OPTIONS,
   { value: "transition", label: "弱→強（切替）" },
 ];
 

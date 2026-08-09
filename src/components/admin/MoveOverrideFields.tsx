@@ -22,6 +22,7 @@ import { DamageValueField } from "./DamageValueField";
 import { HitBreakdownFields } from "./HitBreakdownFields";
 import { IntegerNumberInput } from "./IntegerNumberInput";
 import { DAMAGE_VALUE_FIELDS } from "./MoveDamageFields";
+import { PhaseChangePointsField } from "./PhaseChangePointsField";
 
 /** 上書き差分の入力欄が共通で受け取るもの。上書きの形ごとに Override を差し替える。 */
 interface OverrideFieldsProps<Override extends MoveOverrideBase> {
@@ -133,11 +134,10 @@ const OverrideDamageFields = ({
         />
       );
     })}
-    <IntegerNumberInput
-      key={`${idPrefix}-phaseChangePoints`}
-      label="PCH値"
-      placeholder={PLACEHOLDER_UNCHANGED}
-      min={0}
+    <PhaseChangePointsField
+      idPrefix={idPrefix}
+      unsetPlaceholder={PLACEHOLDER_UNCHANGED}
+      hitBreakdown={value?.hitBreakdown}
       value={value?.phaseChangePoints}
       onChange={(nextValue) => onFieldChange("phaseChangePoints", nextValue)}
     />
