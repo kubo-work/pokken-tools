@@ -6,7 +6,7 @@ import {
   setOptionalJustInputResonanceField,
   toggleJustInputResonance,
 } from "@/lib/moves/moveOverrideUpdaters";
-import { justInputResonanceStateOf } from "@/lib/moves/resolveMove";
+import { justInputResonanceStateOf } from "@/lib/moves/variantMoves";
 import { MOVE_FORM_BASE_PHASE } from "./moveFieldsHelpers";
 
 /**

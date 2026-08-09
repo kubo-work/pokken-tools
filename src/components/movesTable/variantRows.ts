@@ -2,7 +2,7 @@ import {
   buildPhaseVariants,
   type FieldPhaseDiffKeys,
 } from "@/lib/moves/phaseVariants";
-import { moveColumnKey } from "@/lib/moves/resolveMove";
+import { moveColumnKey } from "@/lib/moves/variantMoves";
 import type { Move, UsagePhase } from "@/types/move";
 
 /** 一覧に並べる 1 行分の指定。技本体・ジャスト入力版・FP版を同じ形で扱う。 */

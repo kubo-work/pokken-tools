@@ -1,11 +1,10 @@
 import { describe, expect, test } from "bun:test";
+import { moveStateOf, resolveMove } from "@/lib/moves/resolveMove";
 import {
   moveColumnKey,
-  moveStateOf,
   resolveFieldPhaseMove,
   resolveJustInputMove,
-  resolveMove,
-} from "@/lib/moves/resolveMove";
+} from "@/lib/moves/variantMoves";
 import { makeMove } from "./testFixtures";
 
 describe("resolveMove: フィールドフェイズの上書き", () => {

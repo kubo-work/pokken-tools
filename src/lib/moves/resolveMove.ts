@@ -1,3 +1,9 @@
+import { HIT_BREAKDOWN_NUMERIC_KEYS } from "@/lib/moves/moveEnums";
+import {
+  hitBreakdownDefines,
+  isBaseDamageMultiHit,
+  isHitBreakdownShadowedBy,
+} from "@/lib/moves/moveRules";
 import type {
   FieldPhaseOverride,
   JustInputOverride,
@@ -43,14 +49,11 @@ export interface MoveOverrideLayer {
 }
 
 /** 上書き層を持つ技。Move そのものと、スキーマ検証中の未確定な技の両方を受けられるようにする。 */
-interface OverridableMove {
+export interface OverridableMove {
   resonance?: MoveOverride;
   justInput?: JustInputOverride;
   fieldPhase?: FieldPhaseOverride;
 }
-
-/** 層の同一性判定に使うキー。path が位置を一意に表す。 */
-const layerKeyOf = (layer: MoveOverrideLayer): string => layer.path.join(".");
 
 /**
  * その状態で効く上書き層を、適用順（後ろの層ほど優先）で返す。
@@ -105,148 +108,65 @@ export const moveOverrideLayers = (
 };
 
 /**
+ * 上書き層を 1 つ適用する。
+ *
+ * ヒット内訳（hitBreakdown）と数値項目の単一値は同じ項目を二重に表せるため、単純な代入だと
+ * 「技単位の内訳」と「フィールドフェイズの単一値」のように別々の層へ残り、どちらが実効値か
+ * 決まらない。層には適用順（後ろほど優先）があるので、後から来た側を残して負けた側を落とす。
+ *
+ * - 上書きが内訳を持つ場合: それまでの層の単一値のうち、新しい内訳が定義する項目を落とす。
+ * - 上書きが単一値を持つ場合: それまでの内訳が同じ項目を定義していれば、内訳ごと落とす。
+ *   単一値は1ヒット分の値でヒット構造そのものが変わったことを表す（例: DP は内訳で多段、
+ *   FP は単発）ため、その状態では内訳全体が前提を失う。内訳が定義していない項目だけを
+ *   上書きした場合は衝突しないので内訳は残る。
+ *
+ * 同じ層が内訳と単一値の両方で同じ項目を定義した場合だけは適用順で決められないため、
+ * スキーマ検証（hitBreakdownRefinements）が入力の時点で拒否する。
+ */
+const applyOverrideLayer = (
+  resolved: Move,
+  override: MoveOverrideValues,
+): Move => {
+  const applied: Move = { ...resolved, ...override };
+  if (override.hitBreakdown !== undefined) {
+    for (const key of HIT_BREAKDOWN_NUMERIC_KEYS) {
+      if (hitBreakdownDefines(override.hitBreakdown, key)) {
+        Reflect.deleteProperty(applied, key);
+      }
+    }
+    return applied;
+  }
+  if (isHitBreakdownShadowedBy(override, resolved.hitBreakdown)) {
+    Reflect.deleteProperty(applied, "hitBreakdown");
+  }
+  return applied;
+};
+
+/**
  * 共鳴・ジャスト入力の状態を解決し、その状態での実効値を持つ技を返す。
  * 各上書き層は「その層が定義したフィールドだけ」を差し替える加算的な適用で、
  * これにより「共鳴でダメージが伸びる技が、ジャスト入力でさらに伸びる／共鳴中のジャストだけ
  * 別の値になる」といった、共鳴とジャスト入力の組み合わせ差分を表現できる。
  * 上書きが1つも無ければ元の技をそのまま返す。
+ * ヒット内訳と単一値のように同じ項目を二重に表せる組み合わせだけは、単純な差し替えでは
+ * 決着しないため applyOverrideLayer が適用順で勝敗を決める。
+ *
+ * もう1つの例外は合計ダメージ（totalDamage）で、加算的な適用では「DP は多段ヒットで合計ダメージを持つが
+ * FP は単発」といった技で、単発になった状態にも多段時の合計ダメージが引き継がれてしまう。
+ * 合計ダメージは多段ヒット技のためだけの実測値（totalDamageRefinements 参照）なので、
+ * 解決後の基礎ダメージが多段でない状態では落とす。
  */
-export const resolveMove = (move: Move, state: MoveState): Move =>
-  moveOverrideLayers(move, state).reduce<Move>(
-    (resolved, layer) => ({ ...resolved, ...layer.override }),
+export const resolveMove = (move: Move, state: MoveState): Move => {
+  const resolved = moveOverrideLayers(move, state).reduce<Move>(
+    (accumulated, layer) => applyOverrideLayer(accumulated, layer.override),
     move,
   );
-
-/**
- * 状態 from から状態 to へ移るときに現れる差分を、絶対値の上書きとして返す。変化が無ければ undefined。
- *
- * to の層を適用順に畳み込むが、from の実効値に既に含まれる層はその分を差分から取り除く。
- * これにより「ジャスト入力で既に上書き済みのフィールドは、共鳴でも変化しない」といった
- * 打ち消しが、適用順を直接書かずに導かれる。
- *
- * from と to は同じフェイズであること。フェイズを跨いで呼ぶとフェイズ層が打ち消されず、
- * フェイズ固有の項目（command）が共鳴差分として混ざる。現在の呼び出しはいずれも
- * 共鳴・ジャスト入力の軸だけを動かしており、この前提を満たす。
- */
-const overrideBetweenStates = (
-  move: OverridableMove,
-  from: MoveState,
-  to: MoveState,
-): MoveOverride | undefined => {
-  const appliedInFrom = new Set(
-    moveOverrideLayers(move, from).map((layer) => layerKeyOf(layer)),
-  );
-  let delta: MoveOverride = {};
-  for (const layer of moveOverrideLayers(move, to)) {
-    if (!appliedInFrom.has(layerKeyOf(layer))) {
-      delta = { ...delta, ...layer.override };
-      continue;
-    }
-    const withoutShadowed: MoveOverride = { ...delta };
-    for (const key of Object.keys(layer.override)) {
-      Reflect.deleteProperty(withoutShadowed, key);
-    }
-    delta = withoutShadowed;
+  if (
+    resolved.totalDamage === undefined ||
+    isBaseDamageMultiHit(resolved.baseDamage, resolved.hitBreakdown)
+  ) {
+    return resolved;
   }
-  return Object.keys(delta).length === 0 ? undefined : delta;
-};
-
-/**
- * 1 つの技から派生する表示上の列（フェイズ差・ジャスト入力）の識別。
- * 技本体そのものの列は phase="duel" / justInput=false で表す。
- */
-export interface MoveColumnVariant {
-  phase: UsagePhase;
-  justInput: boolean;
-}
-
-/**
- * 変種列を互いに区別するための表示用キー。
- * 技一覧の行キー・リンク先アンカーと、詳細ページの列キー・アンカー id が同じ文字列になるよう、
- * 生成をここに集約する（ズレるとアンカーリンクが着地しなくなる）。
- * フェイズ差もジャスト入力も無い列は技 ID そのものを返し、既存のアンカーと互換を保つ。
- */
-export const moveColumnKey = (
-  moveId: string,
-  { phase, justInput }: MoveColumnVariant,
-): string => {
-  const phaseKey = phase === "field" ? `${moveId}-field` : moveId;
-  return justInput ? `${phaseKey}-just` : phaseKey;
-};
-
-/**
- * ジャスト入力 ON・通常時の MoveState。moveStateOf（ジャスト入力を常に OFF にする）と対になり、
- * ジャスト入力側の状態の組み立てをこの 1 箇所に閉じ込める（管理画面の差分パネルも参照する）。
- */
-export const justInputNormalStateOf = (phase: UsagePhase): MoveState => ({
-  resonance: "normal",
-  justInput: true,
-  phase,
-});
-/** ジャスト入力 ON・共鳴中の MoveState。 */
-export const justInputResonanceStateOf = (phase: UsagePhase): MoveState => ({
-  resonance: "resonance",
-  justInput: true,
-  phase,
-});
-
-/**
- * ジャスト入力版の技を、一覧・詳細ページで別行／別列として表示するために作る。
- * move.justInput が無ければ undefined（ジャスト入力による差分がない技）。
- * phase は表示中の文脈（DP 表示中の行なら "duel"、FP 表示中の行なら "field"）を渡す。
- * フィールドフェイズの上書き（fieldPhase）はジャスト入力より弱い層のため、phase="field"
- * を渡すとジャスト入力版にもフィールドフェイズの上書きが自動的に反映される。
- *
- * 本体は指定フェイズ・通常時のジャスト入力を解決した値、resonance フィールドには
- * 「ジャスト入力版が共鳴でどう変わるか」を詰め替える。こうすることで、既存の共鳴「→」
- * 表示ロジック（components/moveDetail 配下の行定義など）をそのまま使い回しつつ、表示値と
- * resolveMove の計算結果が一致する。
- */
-export const resolveJustInputMove = (
-  move: Move,
-  phase: UsagePhase,
-): Move | undefined => {
-  if (move.justInput === undefined) {
-    return undefined;
-  }
-  return {
-    ...resolveMove(move, justInputNormalStateOf(phase)),
-    resonance: overrideBetweenStates(
-      move,
-      justInputNormalStateOf(phase),
-      justInputResonanceStateOf(phase),
-    ),
-  };
-};
-
-const FIELD_PHASE_NORMAL_STATE: MoveState = {
-  resonance: "normal",
-  justInput: false,
-  phase: "field",
-};
-const FIELD_PHASE_RESONANCE_STATE: MoveState = {
-  resonance: "resonance",
-  justInput: false,
-  phase: "field",
-};
-
-/**
- * フィールドフェイズ版の技を、共通技の詳細ページで別列として表示するために作る。
- * move.fieldPhase が無ければ undefined（フェイズによる性能差がない技）。
- *
- * resolveJustInputMove と対称の作りで、本体は FP 通常時の解決値、resonance フィールドには
- * 「FP版が共鳴でどう変わるか」を詰め替える。
- */
-export const resolveFieldPhaseMove = (move: Move): Move | undefined => {
-  if (move.fieldPhase === undefined) {
-    return undefined;
-  }
-  return {
-    ...resolveMove(move, FIELD_PHASE_NORMAL_STATE),
-    resonance: overrideBetweenStates(
-      move,
-      FIELD_PHASE_NORMAL_STATE,
-      FIELD_PHASE_RESONANCE_STATE,
-    ),
-  };
+  const { totalDamage, ...withoutTotalDamage } = resolved;
+  return withoutTotalDamage;
 };

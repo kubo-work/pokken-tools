@@ -1,9 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import {
-  moveStateOf,
-  resolveJustInputMove,
-  resolveMove,
-} from "@/lib/moves/resolveMove";
+import { moveStateOf, resolveMove } from "@/lib/moves/resolveMove";
+import { resolveJustInputMove } from "@/lib/moves/variantMoves";
 import type { Move } from "@/types/move";
 import { makeMove } from "./testFixtures";
 
@@ -145,6 +142,109 @@ describe("resolveMove: 共鳴×ジャスト入力の組み合わせ", () => {
       phase: "duel",
     });
     expect(resolved.baseDamage).toBe(30);
+  });
+});
+
+describe("resolveMove: ヒット内訳と単一値の優先順位", () => {
+  const breakdownMove = makeMove({
+    id: "move",
+    hitBreakdown: [
+      { hitCount: 1, baseDamage: 50 },
+      { hitCount: 3, baseDamage: 45 },
+    ],
+    totalDamage: 160,
+    fieldPhase: { baseDamage: 45 },
+  });
+
+  test("後の層が内訳と同じ項目を単一値で定義したら、その状態では内訳を使わない", () => {
+    const resolved = resolveMove(breakdownMove, moveStateOf("normal", "field"));
+    expect(resolved.hitBreakdown).toBeUndefined();
+    expect(resolved.baseDamage).toBe(45);
+    // 単発になったので、多段ヒット技のための合計ダメージも残さない。
+    expect(resolved.totalDamage).toBeUndefined();
+  });
+
+  test("上書きの無い状態では内訳がそのまま実効値", () => {
+    const resolved = resolveMove(breakdownMove, moveStateOf("normal", "duel"));
+    expect(resolved.hitBreakdown).toHaveLength(2);
+    expect(resolved.baseDamage).toBeUndefined();
+    expect(resolved.totalDamage).toBe(160);
+  });
+
+  test("後の層が内訳を定義したら、前の層の単一値のうち内訳が定義する項目は落ちる", () => {
+    const move = makeMove({
+      id: "move",
+      baseDamage: 45,
+      chipDamage: 5,
+      resonance: {
+        hitBreakdown: [
+          { hitCount: 1, baseDamage: 55 },
+          { hitCount: 3, baseDamage: 50 },
+        ],
+      },
+    });
+    const resolved = resolveMove(move, moveStateOf("resonance", "duel"));
+    expect(resolved.baseDamage).toBeUndefined();
+    // 内訳が定義していない項目の単一値は、そのまま実効値として残る。
+    expect(resolved.chipDamage).toBe(5);
+  });
+
+  test("内訳が定義していない項目を単一値で上書きしても、内訳は残る", () => {
+    const move = makeMove({
+      id: "move",
+      hitBreakdown: [
+        { hitCount: 1, baseDamage: 50 },
+        { hitCount: 3, baseDamage: 45 },
+      ],
+      fieldPhase: { chipDamage: 5 },
+    });
+    const resolved = resolveMove(move, moveStateOf("normal", "field"));
+    expect(resolved.hitBreakdown).toHaveLength(2);
+    expect(resolved.chipDamage).toBe(5);
+  });
+});
+
+describe("resolveMove: 合計ダメージの引き継ぎ", () => {
+  test("基礎ダメージが多段のままの状態では合計ダメージを引き継ぐ", () => {
+    const move = makeMove({
+      id: "move",
+      baseDamage: { perHit: 30, hitCount: 3 },
+      totalDamage: 80,
+      fieldPhase: { baseDamage: { perHit: 25, hitCount: 3 } },
+    });
+    expect(resolveMove(move, moveStateOf("normal", "field")).totalDamage).toBe(
+      80,
+    );
+  });
+
+  test("上書きで基礎ダメージが単発になる状態では合計ダメージを引き継がない", () => {
+    const move = makeMove({
+      id: "move",
+      baseDamage: { perHit: 30, hitCount: 3 },
+      totalDamage: 80,
+      fieldPhase: { baseDamage: 45 },
+    });
+    expect(
+      resolveMove(move, moveStateOf("normal", "field")).totalDamage,
+    ).toBeUndefined();
+    expect(resolveMove(move, moveStateOf("normal", "duel")).totalDamage).toBe(
+      80,
+    );
+  });
+
+  test("上書きでヒット内訳が単発になる状態では合計ダメージを引き継がない", () => {
+    const move = makeMove({
+      id: "move",
+      hitBreakdown: [
+        { hitCount: 1, baseDamage: 50 },
+        { hitCount: 2, baseDamage: 30 },
+      ],
+      totalDamage: 100,
+      resonance: { hitBreakdown: [{ hitCount: 1, baseDamage: 60 }] },
+    });
+    expect(
+      resolveMove(move, moveStateOf("resonance", "duel")).totalDamage,
+    ).toBeUndefined();
   });
 });
 

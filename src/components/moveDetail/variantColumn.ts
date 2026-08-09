@@ -1,7 +1,7 @@
 import { childVariantLabel } from "@/lib/moves/moveFormat";
 import { JUST_INPUT_LABEL, MOVE_VARIANT_META, PHASE_META } from "@/lib/moves/moveLabels";
 import { buildPhaseVariants, type PhaseVariant } from "@/lib/moves/phaseVariants";
-import { moveColumnKey } from "@/lib/moves/resolveMove";
+import { moveColumnKey } from "@/lib/moves/variantMoves";
 import type { ComparisonColumn } from "@/components/MoveComparisonTable";
 import type { Move } from "@/types/move";
 

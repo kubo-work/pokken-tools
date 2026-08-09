@@ -2,7 +2,7 @@ import { fieldPhaseDiffKeysOf } from "@/lib/moves/fieldPhaseDisplay";
 import {
   resolveFieldPhaseMove,
   resolveJustInputMove,
-} from "@/lib/moves/resolveMove";
+} from "@/lib/moves/variantMoves";
 import type { FieldPhaseOverride, Move, UsagePhase } from "@/types/move";
 
 /** DP/FP のどのセルを結合できるかの判定材料。フェイズ差の無い技では undefined。 */

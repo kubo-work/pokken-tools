@@ -123,14 +123,38 @@ describe("moveSchema: ダメージ系の相互排他", () => {
     });
   });
 
-  test("hitBreakdown が baseDamage を定義していると共鳴の単一値 baseDamage は併用できない", () => {
-    expectInvalid({
+  test("技単位の内訳と共鳴の単一値は併用できる（後から適用される共鳴が勝つ）", () => {
+    expectValid({
       ...baseMove,
       hitBreakdown: [
         { hitCount: 1, baseDamage: 50 },
         { hitCount: 3, baseDamage: 45 },
       ],
       resonance: { baseDamage: 10 },
+    });
+  });
+
+  test("技単位の内訳とフィールドフェイズの単一値は併用できる（FP では内訳を使わない技）", () => {
+    expectValid({
+      ...baseMove,
+      hitBreakdown: [
+        { hitCount: 1, baseDamage: 50 },
+        { hitCount: 3, baseDamage: 45 },
+      ],
+      fieldPhase: { baseDamage: 45 },
+    });
+  });
+
+  test("技単位の単一値とフィールドフェイズの内訳も併用できる（FP だけ多段になる技）", () => {
+    expectValid({
+      ...baseMove,
+      baseDamage: 45,
+      fieldPhase: {
+        hitBreakdown: [
+          { hitCount: 1, baseDamage: 50 },
+          { hitCount: 3, baseDamage: 45 },
+        ],
+      },
     });
   });
 
@@ -158,8 +182,8 @@ describe("moveSchema: ダメージ系の相互排他", () => {
     });
   });
 
-  test("hitBreakdown が phaseChangePoints を定義していると共鳴の単一値 phaseChangePoints は併用できない", () => {
-    expectInvalid({
+  test("PCH値も同じく、技単位の内訳と共鳴の単一値は併用できる", () => {
+    expectValid({
       ...baseMove,
       hitBreakdown: [
         { hitCount: 1, phaseChangePoints: 30 },
@@ -230,6 +254,24 @@ describe("moveSchema: 合計ダメージ", () => {
       ...baseMove,
       baseDamage: 40,
       fieldPhase: { baseDamage: { perHit: 30, hitCount: 2 }, totalDamage: 55 },
+    });
+  });
+
+  test("技本体が多段なら、フィールドフェイズで単発に変わっても技本体の合計ダメージは設定できる", () => {
+    expectValid({
+      ...baseMove,
+      baseDamage: { perHit: 30, hitCount: 3 },
+      totalDamage: 80,
+      fieldPhase: { baseDamage: 45 },
+    });
+  });
+
+  test("技本体が多段なら、共鳴時に単発に変わっても技本体の合計ダメージは設定できる", () => {
+    expectValid({
+      ...baseMove,
+      baseDamage: { perHit: 30, hitCount: 3 },
+      totalDamage: 80,
+      resonance: { baseDamage: 45 },
     });
   });
 });
@@ -504,8 +546,8 @@ describe("moveSchema: ジャスト入力", () => {
     });
   });
 
-  test("ジャスト入力のヒット内訳で設定済みの項目は共鳴中のジャスト入力の単一値とも併用できない", () => {
-    expectInvalid({
+  test("ジャスト入力の内訳と、共鳴中のジャスト入力の単一値は併用できる（後の層が勝つ）", () => {
+    expectValid({
       ...baseMove,
       justInput: {
         hitBreakdown: [
@@ -532,8 +574,8 @@ describe("moveSchema: ジャスト入力", () => {
     });
   });
 
-  test("技単位の内訳は、共鳴中のジャスト入力の単一値とも併用できない（内訳は上位層から継承される）", () => {
-    expectInvalid({
+  test("技単位の内訳と、共鳴中のジャスト入力の単一値は併用できる（後の層が勝つ）", () => {
+    expectValid({
       ...baseMove,
       hitBreakdown: [
         { hitCount: 1, baseDamage: 50 },
@@ -543,8 +585,8 @@ describe("moveSchema: ジャスト入力", () => {
     });
   });
 
-  test("共鳴の内訳は、ジャスト入力の単一値とも併用できない", () => {
-    expectInvalid({
+  test("共鳴の内訳と、ジャスト入力の単一値も併用できる（ジャスト入力の方が後の層）", () => {
+    expectValid({
       ...baseMove,
       resonance: {
         hitBreakdown: [

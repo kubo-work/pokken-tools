@@ -71,15 +71,22 @@ describe("isBaseDamageMultiHit", () => {
     expect(isBaseDamageMultiHit(undefined, undefined)).toBe(false);
   });
 
-  test("hitBreakdown が baseDamage を定義していれば内訳の総ヒット数で判定する", () => {
+  test("hitBreakdown があれば内訳の総ヒット数で判定する", () => {
     expect(isBaseDamageMultiHit(undefined, meditationBreakdown)).toBe(true);
   });
 
-  test("hitBreakdown が baseDamage を定義していなければ単一値側で判定する", () => {
+  test("内訳が baseDamage を定義していなくても、総ヒット数が2以上なら多段", () => {
+    // 内訳グループは技の連続ヒットを漏れなく分割したものなので、値を定義していない
+    // グループも技のヒットとして数える（スキーマ側の合計ダメージ判定と同じ数え方）。
+    const entries: HitBreakdownEntry[] = [{ hitCount: 3, guardLevel: "high" }];
+    expect(isBaseDamageMultiHit(40, entries)).toBe(true);
+  });
+
+  test("内訳の総ヒット数が1なら、単一値が多段表記でも単発扱い", () => {
     const entries: HitBreakdownEntry[] = [{ hitCount: 1, guardLevel: "high" }];
     expect(isBaseDamageMultiHit(40, entries)).toBe(false);
-    expect(
-      isBaseDamageMultiHit({ perHit: 40, hitCount: 2 }, entries),
-    ).toBe(true);
+    expect(isBaseDamageMultiHit({ perHit: 40, hitCount: 2 }, entries)).toBe(
+      false,
+    );
   });
 });

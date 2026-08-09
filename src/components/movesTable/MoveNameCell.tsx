@@ -9,7 +9,7 @@ import {
 import {
   type MoveColumnVariant,
   moveColumnKey,
-} from "@/lib/moves/resolveMove";
+} from "@/lib/moves/variantMoves";
 import { UI_COLORS, UI_SIZES } from "@/lib/uiTokens";
 import { InlineTag } from "./InlineTag";
 
