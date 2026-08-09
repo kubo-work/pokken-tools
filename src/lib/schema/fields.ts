@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MULTI_HIT_MIN_COUNT } from "@/lib/moves/moveRules";
 
 /**
  * Move を構成する個々のフィールドのスキーマ。
@@ -49,9 +50,21 @@ export const damageValueSchema = z.union([
   z.number().int().nonnegative(),
   z.object({
     perHit: z.number().int().positive(),
-    hitCount: z.number().int().min(2, "多段表記のヒット数は2以上です"),
+    hitCount: z
+      .number()
+      .int()
+      .min(
+        MULTI_HIT_MIN_COUNT,
+        `多段表記のヒット数は${MULTI_HIT_MIN_COUNT}以上です`,
+      ),
   }),
 ]);
+
+/**
+ * 合計ダメージ。実測値なので 0 は取らない（当たれば必ずダメージが入る）。
+ * 技単位・各上書き層で同じ制約のため 1 つに集約する。
+ */
+export const totalDamageSchema = z.number().int().positive();
 
 const hitBreakdownEntrySchema = z
   .object({
@@ -87,6 +100,7 @@ const moveOverrideBaseSchema = z.object({
   hitFrameAdvantageOnPokemonMoveCancel: z.number().optional(),
   strength: strengthSchema.optional(),
   baseDamage: damageValueSchema.optional(),
+  totalDamage: totalDamageSchema.optional(),
   chipDamage: damageValueSchema.optional(),
   guardCrushValue: damageValueSchema.optional(),
   phaseChangePoints: z.number().int().nonnegative().optional(),

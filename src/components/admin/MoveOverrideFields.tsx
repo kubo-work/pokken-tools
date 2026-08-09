@@ -2,9 +2,11 @@ import { NumberInput, Select, SimpleGrid, TextInput } from "@mantine/core";
 import { GUARD_LEVELS } from "@/lib/moves/moveEnums";
 import {
   hitBreakdownDefines,
+  isBaseDamageMultiHit,
   strengthRangeForAttackType,
 } from "@/lib/moves/moveRules";
 import { asOptionalEnumValue } from "@/lib/optionGuards";
+import { resolveMove, type MoveState } from "@/lib/moves/resolveMove";
 import type {
   FieldPhaseOverride,
   HitBreakdownEntry,
@@ -23,11 +25,18 @@ import { HitBreakdownFields } from "./HitBreakdownFields";
 import { IntegerNumberInput } from "./IntegerNumberInput";
 import { DAMAGE_VALUE_FIELDS } from "./MoveDamageFields";
 import { PhaseChangePointsField } from "./PhaseChangePointsField";
+import { TotalDamageField } from "./TotalDamageField";
 
 /** 上書き差分の入力欄が共通で受け取るもの。上書きの形ごとに Override を差し替える。 */
 interface OverrideFieldsProps<Override extends MoveOverrideBase> {
   /** 差分の元になる技本体。強度の入力可能範囲（攻撃属性依存）の判定に使う。 */
   move: Move;
+  /**
+   * この差分パネルが表す条件（共鳴／ジャスト入力／共鳴中のジャスト入力／FP）。
+   * 合計ダメージ欄の表示条件（その条件下で基礎ダメージが実効的に多段ヒットか）の判定に、
+   * resolveMove でこの技を解決するために使う。
+   */
+  state: MoveState;
   /** 入力欄の key に使う接頭辞。共鳴/ジャスト入力/共鳴中のジャスト/FP で衝突しない値を渡す。 */
   idPrefix: string;
   value: Override | undefined;
@@ -110,43 +119,59 @@ const OverrideFrameFields = ({
 
 /** ダメージ系と PCH 値。ヒット内訳で設定済みの項目は入力を無効化する（併用不可のため）。 */
 const OverrideDamageFields = ({
+  move,
+  state,
   idPrefix,
   value,
   onFieldChange,
-}: OverrideFieldGroupProps) => (
-  <>
-    {DAMAGE_VALUE_FIELDS.map(({ key, label }) => {
-      const disabledByBreakdown = hitBreakdownDefines(value?.hitBreakdown, key);
-      return (
-        <DamageValueField
-          // disabled 切替時に DamageValueField 内部の非制御 draft state を
-          // 破棄するため、key に disabledByBreakdown を含めて強制的に再マウントする。
-          key={`${idPrefix}-${key}-${disabledByBreakdown}`}
-          label={label}
-          placeholder={
-            disabledByBreakdown
-              ? PLACEHOLDER_SET_BY_HIT_BREAKDOWN
-              : PLACEHOLDER_UNCHANGED
-          }
-          disabled={disabledByBreakdown}
-          value={value?.[key]}
-          onChange={(nextValue) => onFieldChange(key, nextValue)}
-        />
-      );
-    })}
-    <PhaseChangePointsField
-      idPrefix={idPrefix}
-      unsetPlaceholder={PLACEHOLDER_UNCHANGED}
-      hitBreakdown={value?.hitBreakdown}
-      value={value?.phaseChangePoints}
-      onChange={(nextValue) => onFieldChange("phaseChangePoints", nextValue)}
-    />
-  </>
-);
+}: OverrideFieldGroupProps & { move: Move; state: MoveState }) => {
+  // この条件下で実効的に基礎ダメージが多段ヒットかどうかは、resonance/justInput/fieldPhase
+  // のどの層が実際に baseDamage/hitBreakdown を定義しているかに依るため、この差分自体が
+  // 再定義していなくても（技本体や他の層から継承していても）resolveMove で正しく解決する。
+  const resolved = resolveMove(move, state);
+  return (
+    <>
+      {DAMAGE_VALUE_FIELDS.map(({ key, label }) => {
+        const disabledByBreakdown = hitBreakdownDefines(value?.hitBreakdown, key);
+        return (
+          <DamageValueField
+            // disabled 切替時に DamageValueField 内部の非制御 draft state を
+            // 破棄するため、key に disabledByBreakdown を含めて強制的に再マウントする。
+            key={`${idPrefix}-${key}-${disabledByBreakdown}`}
+            label={label}
+            placeholder={
+              disabledByBreakdown
+                ? PLACEHOLDER_SET_BY_HIT_BREAKDOWN
+                : PLACEHOLDER_UNCHANGED
+            }
+            disabled={disabledByBreakdown}
+            value={value?.[key]}
+            onChange={(nextValue) => onFieldChange(key, nextValue)}
+          />
+        );
+      })}
+      <PhaseChangePointsField
+        idPrefix={idPrefix}
+        unsetPlaceholder={PLACEHOLDER_UNCHANGED}
+        hitBreakdown={value?.hitBreakdown}
+        value={value?.phaseChangePoints}
+        onChange={(nextValue) => onFieldChange("phaseChangePoints", nextValue)}
+      />
+      <TotalDamageField
+        idPrefix={idPrefix}
+        show={isBaseDamageMultiHit(resolved.baseDamage, resolved.hitBreakdown)}
+        placeholder={PLACEHOLDER_UNCHANGED}
+        value={value?.totalDamage}
+        onChange={(nextValue) => onFieldChange("totalDamage", nextValue)}
+      />
+    </>
+  );
+};
 
 /** 共鳴・ジャスト入力の差分の入力欄。共通項目に加え、これらの条件で変わりうる判定を持つ。 */
 export const MoveOverrideFields = ({
   move,
+  state,
   idPrefix,
   value,
   onFieldChange,
@@ -171,6 +196,8 @@ export const MoveOverrideFields = ({
         }
       />
       <OverrideDamageFields
+        move={move}
+        state={state}
         idPrefix={idPrefix}
         value={value}
         onFieldChange={onFieldChange}
@@ -192,6 +219,7 @@ export const MoveOverrideFields = ({
  */
 export const MoveFieldPhaseOverrideFields = ({
   move,
+  state,
   idPrefix,
   value,
   onFieldChange,
@@ -219,6 +247,8 @@ export const MoveFieldPhaseOverrideFields = ({
         onFieldChange={onFieldChange}
       />
       <OverrideDamageFields
+        move={move}
+        state={state}
         idPrefix={idPrefix}
         value={value}
         onFieldChange={onFieldChange}

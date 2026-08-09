@@ -181,6 +181,59 @@ describe("moveSchema: ダメージ系の相互排他", () => {
   });
 });
 
+describe("moveSchema: 合計ダメージ", () => {
+  test("基礎ダメージが単一値（1ヒット）の技には設定できない", () => {
+    expectInvalid({ ...baseMove, baseDamage: 40, totalDamage: 40 });
+  });
+
+  test("基礎ダメージ未設定の技には設定できない", () => {
+    expectInvalid({ ...baseMove, totalDamage: 40 });
+  });
+
+  test("基礎ダメージが多段表記（perHit×hitCount）の技には設定できる", () => {
+    expectValid({
+      ...baseMove,
+      baseDamage: { perHit: 40, hitCount: 2 },
+      totalDamage: 72,
+    });
+  });
+
+  test("ヒット内訳で基礎ダメージが多段の技には設定できる", () => {
+    expectValid({
+      ...baseMove,
+      hitBreakdown: [
+        { hitCount: 1, baseDamage: 50 },
+        { hitCount: 3, baseDamage: 45 },
+      ],
+      totalDamage: 165,
+    });
+  });
+
+  test("技本体は単発でも、共鳴時に基礎ダメージが多段になるなら共鳴側の合計ダメージは設定できる", () => {
+    expectValid({
+      ...baseMove,
+      baseDamage: 40,
+      resonance: { baseDamage: { perHit: 50, hitCount: 2 }, totalDamage: 95 },
+    });
+  });
+
+  test("技本体は多段でも、共鳴時に基礎ダメージが単発に変わるなら共鳴側の合計ダメージは設定できない", () => {
+    expectInvalid({
+      ...baseMove,
+      baseDamage: { perHit: 40, hitCount: 2 },
+      resonance: { baseDamage: 50, totalDamage: 50 },
+    });
+  });
+
+  test("フィールドフェイズ側が多段の技にはフィールドフェイズ側の合計ダメージを設定できる", () => {
+    expectValid({
+      ...baseMove,
+      baseDamage: 40,
+      fieldPhase: { baseDamage: { perHit: 30, hitCount: 2 }, totalDamage: 55 },
+    });
+  });
+});
+
 describe("moveSchema: 攻撃属性を持たない技の制約", () => {
   test("攻撃属性を持たない技の hitBreakdown に guardLevel は設定できない", () => {
     expectInvalid({

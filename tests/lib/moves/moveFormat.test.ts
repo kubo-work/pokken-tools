@@ -1,5 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { formatHitBreakdownValue } from "@/lib/moves/moveFormat";
+import {
+  formatHitBreakdownValue,
+  formatTotalDamage,
+  formatTotalDamageNote,
+} from "@/lib/moves/moveFormat";
 import type { HitBreakdownEntry } from "@/types/move";
 import { gardevoirBreakdown, meditationBreakdown } from "./testFixtures";
 
@@ -32,5 +36,25 @@ describe("formatHitBreakdownValue", () => {
     expect(formatHitBreakdownValue(entries, "phaseChangePoints")).toBe(
       "30+10×3",
     );
+  });
+});
+
+describe("formatTotalDamage", () => {
+  test("値があれば数値をそのまま返す", () => {
+    expect(formatTotalDamage(72)).toBe("72");
+  });
+
+  test("未計測は NO_VALUE_LABEL", () => {
+    expect(formatTotalDamage(undefined)).toBe("-");
+  });
+});
+
+describe("formatTotalDamageNote", () => {
+  test("値があれば「（計72）」形式で併記する", () => {
+    expect(formatTotalDamageNote(72)).toBe("（計72）");
+  });
+
+  test("未入力なら空文字（セルに何も併記しない）", () => {
+    expect(formatTotalDamageNote(undefined)).toBe("");
   });
 });

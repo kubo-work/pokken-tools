@@ -174,12 +174,17 @@ export const moveColumnKey = (
   return justInput ? `${phaseKey}-just` : phaseKey;
 };
 
-const justInputNormalStateOf = (phase: UsagePhase): MoveState => ({
+/**
+ * ジャスト入力 ON・通常時の MoveState。moveStateOf（ジャスト入力を常に OFF にする）と対になり、
+ * ジャスト入力側の状態の組み立てをこの 1 箇所に閉じ込める（管理画面の差分パネルも参照する）。
+ */
+export const justInputNormalStateOf = (phase: UsagePhase): MoveState => ({
   resonance: "normal",
   justInput: true,
   phase,
 });
-const justInputResonanceStateOf = (phase: UsagePhase): MoveState => ({
+/** ジャスト入力 ON・共鳴中の MoveState。 */
+export const justInputResonanceStateOf = (phase: UsagePhase): MoveState => ({
   resonance: "resonance",
   justInput: true,
   phase,

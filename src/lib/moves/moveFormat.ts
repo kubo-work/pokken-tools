@@ -13,6 +13,7 @@ import {
   NO_VALUE_LABEL,
   RESONANCE_FLINCH_META,
   SPECIAL_ATTRIBUTE_META,
+  TOTAL_DAMAGE_INLINE_LABEL,
 } from "./moveLabels";
 
 /**
@@ -119,6 +120,20 @@ export const formatDamageValue = (value: DamageValue | undefined): string => {
   }
   return `${value.perHit}×${value.hitCount}`;
 };
+
+/**
+ * 合計ダメージの表示テキスト。多段表記を取らない単一の実測値なので、
+ * DamageValue 用の formatDamageValue とは分けて数値だけを扱う。未計測は NO_VALUE_LABEL。
+ */
+export const formatTotalDamage = (value: number | undefined): string =>
+  value === undefined ? NO_VALUE_LABEL : `${value}`;
+
+/**
+ * 技一覧の基礎ダメージセルに併記する合計ダメージ（例:「（計72）」）。
+ * 未入力なら空文字を返し、セルには基礎ダメージだけが出る。
+ */
+export const formatTotalDamageNote = (value: number | undefined): string =>
+  value === undefined ? "" : `（${TOTAL_DAMAGE_INLINE_LABEL}${value}）`;
 
 /**
  * ヒット内訳の数値フィールド（ダメージ系・PCH値）を「50+45×3」形式で表示する。
