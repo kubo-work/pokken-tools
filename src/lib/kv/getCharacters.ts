@@ -3,6 +3,33 @@ import { getEnv } from "@/lib/cloudflare";
 import { CHARACTER_REGISTRY, getRegistryEntry } from "@/lib/characters/registry";
 import { KV_KEYS } from "./keys";
 
+interface CharacterLike {
+  id: string;
+  name: string;
+  fieldMoves: Character["fieldMoves"];
+  duelMoves: Character["duelMoves"];
+  commonMoves?: Character["commonMoves"];
+}
+
+/**
+ * commonMoves 導入前に保存された KV レコードを補完する。
+ * KV マイグレーションで一括変換する代わりに読み出し側で吸収する方針のため、
+ * 移行完了後に削除できる一時的なシムではなく恒久的な正規化として維持する
+ * （ローカル KV・バックアップからの復元など、古い形のレコードは今後も入り得る）。
+ */
+const withCommonMoves = (stored: CharacterLike): Character => ({
+  ...stored,
+  commonMoves: stored.commonMoves ?? [],
+});
+
+const createFallbackCharacter = (id: string, name: string): Character => ({
+  id,
+  name,
+  fieldMoves: [],
+  duelMoves: [],
+  commonMoves: [],
+});
+
 /**
  * 単一キャラを取得。
  * KV に未投入でも registry に存在するキャラなら空配列の Character を返し、
@@ -15,16 +42,14 @@ export async function getCharacter(id: string): Promise<Character | undefined> {
     return undefined;
   }
   const env = await getEnv();
-  const stored = await env.FRAME_DATA_KV.get<Character>(KV_KEYS.character(id), "json");
+  const stored = await env.FRAME_DATA_KV.get<CharacterLike>(
+    KV_KEYS.character(id),
+    "json",
+  );
   if (stored !== null) {
-    return stored;
+    return withCommonMoves(stored);
   }
-  return {
-    id: entry.id,
-    name: entry.name,
-    fieldMoves: [],
-    duelMoves: [],
-  };
+  return createFallbackCharacter(entry.id, entry.name);
 }
 
 /**
@@ -35,20 +60,14 @@ export async function getAllCharacters(): Promise<Character[]> {
   const env = await getEnv();
   const results = await Promise.all(
     CHARACTER_REGISTRY.map(async (entry) => {
-      const character = await env.FRAME_DATA_KV.get<Character>(
+      const character = await env.FRAME_DATA_KV.get<CharacterLike>(
         KV_KEYS.character(entry.id),
         "json",
       );
       if (character !== null) {
-        return character;
+        return withCommonMoves(character);
       }
-      const fallback: Character = {
-        id: entry.id,
-        name: entry.name,
-        fieldMoves: [],
-        duelMoves: [],
-      };
-      return fallback;
+      return createFallbackCharacter(entry.id, entry.name);
     }),
   );
   return results;

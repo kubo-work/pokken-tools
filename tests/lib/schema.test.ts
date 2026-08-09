@@ -479,6 +479,7 @@ const baseCharacter: Character = {
   name: "テストキャラ",
   duelMoves: [baseMove],
   fieldMoves: [],
+  commonMoves: [],
 };
 
 const expectCharacterValid = (character: Character) => {
@@ -492,6 +493,20 @@ const expectCharacterInvalid = (character: Character) => {
 describe("characterSchema", () => {
   test("最小構成のキャラは通る", () => {
     expectCharacterValid(baseCharacter);
+  });
+
+  test("commonMoves 未指定でも受理され、空配列で補完される", () => {
+    const result = characterSchema.safeParse({
+      id: "test_character",
+      name: "テストキャラ",
+      duelMoves: [baseMove],
+      fieldMoves: [],
+    });
+    expect(result.success).toBe(true);
+    if (!result.success) {
+      return;
+    }
+    expect(result.data.commonMoves).toEqual([]);
   });
 
   test("ID は英小文字・数字・_ のみ", () => {
@@ -530,6 +545,38 @@ describe("characterSchema", () => {
       duelMoves: [
         { ...baseMove, id: "child", variant: "derivative", parentMoveId: baseMove.id },
       ],
+    });
+  });
+
+  test("共通フェーズでも親技は同フェーズ内に必要", () => {
+    expectCharacterInvalid({
+      ...baseCharacter,
+      commonMoves: [
+        { ...baseMove, id: "common_child", variant: "derivative", parentMoveId: "missing" },
+      ],
+    });
+  });
+
+  test("fieldPhase は共通技になら設定できる", () => {
+    expectCharacterValid({
+      ...baseCharacter,
+      duelMoves: [],
+      commonMoves: [{ ...baseMove, fieldPhase: { startup: 8 } }],
+    });
+  });
+
+  test("fieldPhase はデュエル技には設定できない", () => {
+    expectCharacterInvalid({
+      ...baseCharacter,
+      duelMoves: [{ ...baseMove, fieldPhase: { startup: 8 } }],
+    });
+  });
+
+  test("fieldPhase はフィールド技には設定できない", () => {
+    expectCharacterInvalid({
+      ...baseCharacter,
+      duelMoves: [],
+      fieldMoves: [{ ...baseMove, fieldPhase: { startup: 8 } }],
     });
   });
 });

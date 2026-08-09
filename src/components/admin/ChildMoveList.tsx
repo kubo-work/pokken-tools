@@ -3,11 +3,12 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import type { Move } from "@/types/move";
+import type { Move, Phase } from "@/types/move";
 import { SortableMoveEditor } from "./SortableMoveEditor";
 
 export interface ChildMoveListProps {
   childMoves: Move[];
+  phase: Phase;
   onChildChange: (childId: string, move: Move) => void;
   onChildRemove: (childId: string) => void;
   onAddCharge: () => void;
@@ -16,6 +17,7 @@ export interface ChildMoveListProps {
 
 export const ChildMoveList = ({
   childMoves,
+  phase,
   onChildChange,
   onChildRemove,
   onAddCharge,
@@ -51,6 +53,7 @@ export const ChildMoveList = ({
                 key={child.id}
                 move={child}
                 index={childIndex}
+                phase={phase}
                 onChange={(updated) => onChildChange(child.id, updated)}
                 onRemove={() => onChildRemove(child.id)}
               />

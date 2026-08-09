@@ -1,10 +1,11 @@
 import type { CSSProperties, ReactNode, Ref } from "react";
 import { Badge, Button, Card, Group, Stack, Text } from "@mantine/core";
 import { MOVE_VARIANT_META } from "@/lib/moves/moveLabels";
-import type { Move } from "@/types/move";
+import type { Move, Phase } from "@/types/move";
 import { HitBreakdownFields } from "./HitBreakdownFields";
 import { MoveChildVariantFields } from "./MoveChildVariantFields";
 import { MoveDamageFields } from "./MoveDamageFields";
+import { MoveFieldPhasePanel } from "./MoveFieldPhasePanel";
 import { MoveFields } from "./MoveFields";
 import { MoveJustInputPanel } from "./MoveJustInputPanel";
 import { MoveResonancePanel } from "./MoveResonancePanel";
@@ -16,6 +17,8 @@ export interface MoveEditorProps {
   move: Move;
   index: number;
   isChild: boolean;
+  /** 技が登録されているフェイズ。共通技のときだけ MoveFieldPhasePanel を表示する。 */
+  phase: Phase;
   onChange: (move: Move) => void;
   onRemove: () => void;
   /** ドラッグ用ハンドル。並び替え対象のときだけ渡す（詳細表示の親には渡さない）。 */
@@ -40,6 +43,7 @@ export const MoveEditor = ({
   move,
   index,
   isChild,
+  phase,
   onChange,
   onRemove,
   dragHandle,
@@ -92,6 +96,9 @@ export const MoveEditor = ({
         <MoveTextFields move={move} onChange={onChange} />
         <MoveResonancePanel move={move} onChange={onChange} />
         <MoveJustInputPanel move={move} onChange={onChange} />
+        {phase === "common" && (
+          <MoveFieldPhasePanel move={move} onChange={onChange} />
+        )}
 
         {children}
       </Stack>

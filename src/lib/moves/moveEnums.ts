@@ -6,6 +6,7 @@ import type {
   Phase,
   ResonanceFlinchLevel,
   SpecialAttribute,
+  UsagePhase,
 } from "@/types/move";
 
 /**
@@ -33,7 +34,17 @@ export const GUARD_LEVELS: GuardLevel[] = [
   "mid_low",
   "low",
 ];
-export const PHASES: Phase[] = ["duel", "field"];
+export const PHASES: Phase[] = ["duel", "field", "common"];
+/** 技の使用時フェイズ（登録先を表す PHASES から "common" を除いたもの）。 */
+export const USAGE_PHASES: UsagePhase[] = PHASES.filter(
+  (phase): phase is UsagePhase => phase !== "common",
+);
+/**
+ * 共通技の使用フェイズが未選択のときの既定値。管理画面の PHASES 表示順と揃え DP を既定にする。
+ * usePunishSearch の初期状態と PunishSearch の select フォールバックの両方で使い、
+ * デフォルト値が2箇所に分散しないようにする。
+ */
+export const DEFAULT_USAGE_PHASE: UsagePhase = "duel";
 
 /**
  * ヒット内訳のダメージ系フィールド。値は「グループ内の1ヒットあたり」。

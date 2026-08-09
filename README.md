@@ -235,7 +235,7 @@ bun run deploy
 
 ## データモデル
 
-- 技は **FP**（フィールド）/ **DP**（デュエル）で完全分離（`fieldMoves` / `duelMoves`）
+- 技は **FP**（フィールド）/ **DP**（デュエル）/ **共通** の3区分（`fieldMoves` / `duelMoves` / `commonMoves`）
 - 共鳴状態は別技ではなく `resonance` 差分で表現。共鳴専用技は `resonanceOnly: true`
 - 確定反撃の例外（ノックバック・先端当て）は登録ペアのみ。`action` 既定は `"exclude"`
 

@@ -35,6 +35,7 @@ const validCharacter = {
   name: "ピカチュウ",
   fieldMoves: [],
   duelMoves: [validMove],
+  commonMoves: [],
 };
 
 describe("PUT /api/admin/characters/:id", () => {

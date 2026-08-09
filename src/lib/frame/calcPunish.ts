@@ -3,6 +3,7 @@ import type {
   Move,
   PunishException,
   ResonanceState,
+  UsagePhase,
 } from "@/types/move";
 import { moveStateOf, resolveMove } from "@/lib/moves/resolveMove";
 import {
@@ -46,6 +47,12 @@ export interface SearchPunishParams {
   defenderMoves: Move[];
   defenderState: ResonanceState;
   exceptions: PunishException[];
+  /**
+   * 防御側の技を解決する際のフェイズ。攻撃側の技が確定しているフェイズ
+   * （FP/DP登録技ならそのフェイズ、共通技なら呼び出し側が選ばせたフェイズ）を渡す。
+   * 防御側の共通技の fieldPhase 上書きは、このフェイズによってのみ効くかどうかが決まる。
+   */
+  phase: UsagePhase;
 }
 
 /**
@@ -125,7 +132,8 @@ const forcedPunishResultOf = (
  *   - "hit":     フレーム上不可でも強制的に表示（forcedPunishResultOf 参照）。
  */
 export const searchPunishes = (params: SearchPunishParams): PunishResult[] => {
-  const { attackerMove, defenderMoves, defenderState, exceptions } = params;
+  const { attackerMove, defenderMoves, defenderState, exceptions, phase } =
+    params;
   const availableFrames = availableFramesOf(attackerMove.guardFrameAdvantage);
 
   const results: PunishResult[] = [];
@@ -137,7 +145,7 @@ export const searchPunishes = (params: SearchPunishParams): PunishResult[] => {
       continue;
     }
     // 反撃側はジャスト入力を考慮しない。攻撃側の技がジャスト入力だったかだけを問う。
-    const defenderMove = resolveMove(candidate, moveStateOf(defenderState));
+    const defenderMove = resolveMove(candidate, moveStateOf(defenderState, phase));
     const exception = exceptions.find(
       (entry) =>
         entry.attackerMoveId === attackerMove.id &&

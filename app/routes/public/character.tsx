@@ -60,6 +60,15 @@ export default function CharacterPage({ loaderData }: Route.ComponentProps) {
         </div>
         <MovesTable moves={character.fieldMoves} characterId={id} />
       </section>
+
+      <section className="moves-section">
+        <div className="moves-section__head">
+          <h2 className="moves-section__title">
+            共通 ({character.commonMoves.length}技)
+          </h2>
+        </div>
+        <MovesTable moves={character.commonMoves} characterId={id} />
+      </section>
     </>
   );
 }

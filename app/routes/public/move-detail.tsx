@@ -4,28 +4,21 @@ import { getCharacter } from "@/lib/kv/getCharacters";
 import { isKnownCharacterId } from "@/lib/characters/registry";
 import { findMoveInCharacter } from "@/lib/moves/findMove";
 import { groupMovesByParent } from "@/lib/moves/grouping";
+import { getMovesByPhase } from "@/lib/moves/phaseMoves";
 import { CategoryBadge } from "@/components/badges";
 import {
   MoveComparisonTable,
   type ComparisonColumn,
 } from "@/components/MoveComparisonTable";
-import {
-  JUST_INPUT_LABEL,
-  PHASE_META,
-  RESONANCE_ONLY_LABEL,
-} from "@/lib/moves/moveLabels";
+import { PHASE_META, RESONANCE_ONLY_LABEL } from "@/lib/moves/moveLabels";
 import { maxChargeLevel } from "@/lib/moves/moveRules";
-import {
-  justInputColumnKey,
-  resolveJustInputMove,
-} from "@/lib/moves/resolveMove";
-import { buildAttributeRows } from "@/components/moveDetail/attributeRows";
+import { ATTRIBUTE_ROWS } from "@/components/moveDetail/attributeRows";
 import {
   DAMAGE_ROWS,
   hasBreakdownDamage,
 } from "@/components/moveDetail/damageRows";
 import { FRAME_ROWS } from "@/components/moveDetail/frameRows";
-import { variantColumnLabel } from "@/components/moveDetail/variantColumn";
+import { buildVariantColumns } from "@/components/moveDetail/variantColumn";
 
 /**
  * params から技を解決し、見つからなければ 404。親＋ため/派生をまとめた group を返す。
@@ -45,8 +38,7 @@ export async function loader({ params }: Route.LoaderArgs) {
     throw new Response("Not Found", { status: 404 });
   }
   const targetParentId = found.parent?.id ?? found.move.id;
-  const phaseMoves =
-    found.phase === "duel" ? character.duelMoves : character.fieldMoves;
+  const phaseMoves = getMovesByPhase(character, found.phase);
   const group = groupMovesByParent(phaseMoves).find(
     (candidate) => candidate.parent.id === targetParentId,
   );
@@ -96,23 +88,7 @@ export default function MoveDetailPage({ loaderData }: Route.ComponentProps) {
   const parentMove = group.parent;
   const chargeMaxLevel = maxChargeLevel(group.children);
   const columns: ComparisonColumn[] = [parentMove, ...group.children].flatMap(
-    (move) => {
-      const label = variantColumnLabel(move, parentMove, chargeMaxLevel);
-      const baseColumn: ComparisonColumn = { key: move.id, move, label };
-      const justInputMove = resolveJustInputMove(move);
-      if (justInputMove === undefined) {
-        return [baseColumn];
-      }
-      return [
-        baseColumn,
-        {
-          key: justInputColumnKey(move.id),
-          move: justInputMove,
-          label: `${label}${JUST_INPUT_LABEL.full}`,
-          isJustInput: true,
-        },
-      ];
-    },
+    (move) => buildVariantColumns(move, parentMove, chargeMaxLevel),
   );
   const hasAnyText = columns.some(
     ({ move }) => move.note !== undefined || move.description !== undefined,
@@ -173,7 +149,7 @@ export default function MoveDetailPage({ loaderData }: Route.ComponentProps) {
           <h2 className="move-detail__section-title">判定・属性</h2>
           <MoveComparisonTable
             columns={columns}
-            rows={buildAttributeRows(parentMove)}
+            rows={ATTRIBUTE_ROWS}
             align="text"
           />
         </section>

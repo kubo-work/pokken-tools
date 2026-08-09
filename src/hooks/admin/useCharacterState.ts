@@ -2,24 +2,13 @@ import { useState } from "react";
 import type { Character } from "@/types/character";
 import type { Move, MoveVariant, Phase } from "@/types/move";
 import { createMove } from "@/lib/factory";
+import { getMovesByPhase, withMovesByPhase } from "@/lib/moves/phaseMoves";
 import {
   flattenGroups,
   groupMovesByParent,
   reorderChildrenInGroup,
   reorderParentGroups,
 } from "@/lib/moves/grouping";
-
-const getPhaseMoves = (character: Character, phase: Phase): Move[] =>
-  phase === "field" ? character.fieldMoves : character.duelMoves;
-
-const withPhaseMoves = (
-  character: Character,
-  phase: Phase,
-  moves: Move[],
-): Character =>
-  phase === "field"
-    ? { ...character, fieldMoves: moves }
-    : { ...character, duelMoves: moves };
 
 const replaceAt = (moves: Move[], index: number, move: Move): Move[] =>
   moves.map((entry, position) => (position === index ? move : entry));
@@ -98,10 +87,10 @@ export const useCharacterState = (
 
   const updateMove = (phase: Phase, index: number, move: Move): void => {
     setCharacter((current) =>
-      withPhaseMoves(
+      withMovesByPhase(
         current,
         phase,
-        replaceAt(getPhaseMoves(current, phase), index, move),
+        replaceAt(getMovesByPhase(current, phase), index, move),
       ),
     );
   };
@@ -110,8 +99,8 @@ export const useCharacterState = (
     // id は character.id 由来（変更不可）なので closure 経由で生成して差し支えない
     const created = createMove(character.id, phase);
     setCharacter((current) =>
-      withPhaseMoves(current, phase, [
-        ...getPhaseMoves(current, phase),
+      withMovesByPhase(current, phase, [
+        ...getMovesByPhase(current, phase),
         created,
       ]),
     );
@@ -124,7 +113,7 @@ export const useCharacterState = (
     variant: Exclude<MoveVariant, "normal">,
   ): void => {
     setCharacter((current) => {
-      const moves = getPhaseMoves(current, phase);
+      const moves = getMovesByPhase(current, phase);
       const groups = groupMovesByParent(moves);
       const target = groups.find((group) => group.parent.id === parentMoveId);
       if (target === undefined) {
@@ -132,16 +121,16 @@ export const useCharacterState = (
       }
       const child = createMove(current.id, phase, { variant, parentMoveId });
       target.children = [...target.children, child];
-      return withPhaseMoves(current, phase, flattenGroups(groups));
+      return withMovesByPhase(current, phase, flattenGroups(groups));
     });
   };
 
   const removeParentGroup = (phase: Phase, parentMoveId: string): void => {
     setCharacter((current) =>
-      withPhaseMoves(
+      withMovesByPhase(
         current,
         phase,
-        removeGroupByParentId(getPhaseMoves(current, phase), parentMoveId),
+        removeGroupByParentId(getMovesByPhase(current, phase), parentMoveId),
       ),
     );
   };
@@ -152,11 +141,11 @@ export const useCharacterState = (
     childMoveId: string,
   ): void => {
     setCharacter((current) =>
-      withPhaseMoves(
+      withMovesByPhase(
         current,
         phase,
         removeChildById(
-          getPhaseMoves(current, phase),
+          getMovesByPhase(current, phase),
           parentMoveId,
           childMoveId,
         ),
@@ -170,11 +159,11 @@ export const useCharacterState = (
     toGroupIndex: number,
   ): void => {
     setCharacter((current) =>
-      withPhaseMoves(
+      withMovesByPhase(
         current,
         phase,
         reorderParentGroups(
-          getPhaseMoves(current, phase),
+          getMovesByPhase(current, phase),
           fromGroupIndex,
           toGroupIndex,
         ),
@@ -189,11 +178,11 @@ export const useCharacterState = (
     toIndex: number,
   ): void => {
     setCharacter((current) =>
-      withPhaseMoves(
+      withMovesByPhase(
         current,
         phase,
         reorderChildrenInGroup(
-          getPhaseMoves(current, phase),
+          getMovesByPhase(current, phase),
           parentMoveId,
           fromIndex,
           toIndex,
@@ -213,6 +202,6 @@ export const useCharacterState = (
     removeChildMove,
     reorderParents,
     reorderChildren,
-    getPhaseMoves: (phase) => getPhaseMoves(character, phase),
+    getPhaseMoves: (phase) => getMovesByPhase(character, phase),
   };
 };

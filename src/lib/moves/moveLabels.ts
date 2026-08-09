@@ -80,6 +80,7 @@ export const GUARD_LEVEL_META: Record<
 export const PHASE_META: Record<Phase, { label: string; shortLabel: string }> = {
   field: { label: "フィールドフェイズ", shortLabel: "FP" },
   duel: { label: "デュエルフェイズ", shortLabel: "DP" },
+  common: { label: "共通", shortLabel: "共通" },
 };
 
 /**

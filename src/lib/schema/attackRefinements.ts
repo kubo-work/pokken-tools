@@ -79,6 +79,11 @@ const validateStrengthRange = (
       value: move.justInput?.resonance?.strength,
       label: "共鳴中のジャスト入力時の強度",
     },
+    {
+      path: ["fieldPhase", "strength"],
+      value: move.fieldPhase?.strength,
+      label: "フィールドフェイズの強度",
+    },
   ];
   for (const override of overrides) {
     if (

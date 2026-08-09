@@ -1,12 +1,13 @@
 import type { Character } from "@/types/character";
 import { CHARACTER_REGISTRY } from "@/lib/characters/registry";
 
-/** キャラ選択タイル1件分。登録済み技数（FP/DP）を添える。 */
+/** キャラ選択タイル1件分。登録済み技数（FP/DP/共通）を添える。 */
 export interface CharacterTile {
   id: string;
   name: string;
   field: number;
   duel: number;
+  common: number;
 }
 
 /**
@@ -19,11 +20,15 @@ export const buildCharacterTiles = (
   const countsById = new Map(
     characters.map((character) => [
       character.id,
-      { field: character.fieldMoves.length, duel: character.duelMoves.length },
+      {
+        field: character.fieldMoves.length,
+        duel: character.duelMoves.length,
+        common: character.commonMoves.length,
+      },
     ]),
   );
   return CHARACTER_REGISTRY.map((entry) => {
-    const counts = countsById.get(entry.id) ?? { field: 0, duel: 0 };
+    const counts = countsById.get(entry.id) ?? { field: 0, duel: 0, common: 0 };
     return { id: entry.id, name: entry.name, ...counts };
   });
 };
