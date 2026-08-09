@@ -91,7 +91,10 @@ const buildNumericRow = ({
  */
 const TOTAL_DAMAGE_ROW: ComparisonRow = {
   header: MOVE_FIELD_LABELS.totalDamage,
-  phaseDependentKeys: ["totalDamage"],
+  // 基礎ダメージも依存項目に含めるのは、合計ダメージが多段ヒットの状態でしか表示されない
+  // （単発になるフェイズでは resolveMove が落とす）ため。基礎ダメージだけがフェイズで
+  // 変わる技でこれを申告しないと、DP の合計ダメージが FP のセルまで結合されて伸びる。
+  phaseDependentKeys: ["totalDamage", "baseDamage"],
   renderCell: (move) => (
     <>
       {formatTotalDamage(move.totalDamage)}

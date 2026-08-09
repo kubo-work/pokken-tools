@@ -8,7 +8,7 @@ import {
   setOptionalJustInputField,
   toggleJustInput,
 } from "@/lib/moves/moveOverrideUpdaters";
-import { justInputNormalStateOf } from "@/lib/moves/resolveMove";
+import { justInputNormalStateOf } from "@/lib/moves/variantMoves";
 import { MOVE_FORM_BASE_PHASE } from "./moveFieldsHelpers";
 
 /**

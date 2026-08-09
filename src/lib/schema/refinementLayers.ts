@@ -54,6 +54,21 @@ export const validationLayersOf = (
   })),
 ];
 
+/**
+ * その技が持つ全ての層を、重複なく返す。
+ * 「どの状態で効くか」ではなく層そのものの中身を見る検証（同じ条件の中で矛盾していないか）向け。
+ * 層の集合は状態によって変わるため、全状態を走査して報告先パスで重複を除く。
+ */
+export const allValidationLayers = (move: MoveInput): ValidationLayer[] => {
+  const layerByPath = new Map<string, ValidationLayer>();
+  for (const state of VALIDATED_STATES) {
+    for (const layer of validationLayersOf(move, state)) {
+      layerByPath.set(layer.path.join("."), layer);
+    }
+  }
+  return [...layerByPath.values()];
+};
+
 /** その状態で実際に効く（最も後ろの層が定義した）値の出所を返す。無ければ undefined。 */
 export const effectiveLayer = (
   layers: ValidationLayer[],

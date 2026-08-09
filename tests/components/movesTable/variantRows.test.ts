@@ -142,6 +142,39 @@ describe("buildVariantRows: 親のコマンドがフェイズで変わる子技"
   });
 });
 
+describe("buildVariantRows: FP の単一値が技単位のヒット内訳を打ち消す技", () => {
+  // FP で内訳が丸ごと効かなくなる（resolveMove の applyOverrideLayer）ため、
+  // 内訳由来のセルはダメージも PCH 値も DP と値が変わる。
+  const move = makeMove({
+    id: "move",
+    hitBreakdown: [
+      { hitCount: 1, baseDamage: 50, chipDamage: 5 },
+      { hitCount: 3, baseDamage: 45, chipDamage: 3 },
+    ],
+    fieldPhase: { baseDamage: 45 },
+  });
+
+  test("内訳を変更した技と同じく、一切結合しない", () => {
+    const { fieldPhaseDiffKeys } = buildVariantRows(move);
+    expect(fieldPhaseDiffKeys).toContain("hitBreakdown");
+    expect(isPhaseInvariantCell(fieldPhaseDiffKeys!, ["chipDamage"])).toBe(
+      false,
+    );
+  });
+
+  test("内訳が定義していない項目の上書きなら、内訳は効いたままなので結合できる", () => {
+    const { fieldPhaseDiffKeys } = buildVariantRows(
+      makeMove({
+        id: "move",
+        hitBreakdown: [{ hitCount: 2, baseDamage: 45 }],
+        fieldPhase: { startup: 12 },
+      }),
+    );
+    expect(fieldPhaseDiffKeys).toEqual(["startup"]);
+    expect(isPhaseInvariantCell(fieldPhaseDiffKeys!, ["chipDamage"])).toBe(true);
+  });
+});
+
 describe("isPhaseInvariantCell", () => {
   test("変更項目に依存しないセルは結合できる", () => {
     // 攻撃属性・判定など、そもそもフェイズで変わらない項目のセル。

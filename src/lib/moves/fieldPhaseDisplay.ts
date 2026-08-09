@@ -1,3 +1,4 @@
+import { isHitBreakdownShadowedBy } from "@/lib/moves/moveRules";
 import type { FieldPhaseOverride, Move } from "@/types/move";
 
 /**
@@ -12,12 +13,23 @@ import type { FieldPhaseOverride, Move } from "@/types/move";
 const ownDiffKeysOf = (move: Move): (keyof FieldPhaseOverride)[] =>
   Object.keys(move.fieldPhase ?? {}) as (keyof FieldPhaseOverride)[];
 
+/** 既に含まれているキーは重ねず、無ければ足した新しい配列を返す。 */
+const withKey = (
+  keys: (keyof FieldPhaseOverride)[],
+  key: keyof FieldPhaseOverride,
+): (keyof FieldPhaseOverride)[] =>
+  keys.includes(key) ? keys : [...keys, key];
+
 /**
  * その技の表示がフェイズで変わる項目。
  *
  * 自身の fieldPhase に加え、親のコマンドがフェイズで変わる場合は自身の command も含める。
  * ため/派生の表示コマンドは「親コマンド＋追加入力」で組み立てるため、自身の fieldPhase が
  * command を持たなくても表示は変わるため（これを見落とすと、値が違うセルを結合してしまう）。
+ *
+ * 同じ理由で、単一値が技単位の内訳を打ち消す技には hitBreakdown を含める。FP では内訳が
+ * 丸ごと効かなくなり（isHitBreakdownShadowedBy 参照）、内訳由来のセルはダメージも
+ * PCH 値も DP と値が変わるため、内訳そのものを差し替えた技と同じ扱いにする。
  *
  * @param parentFieldPhaseCommand 親技の fieldPhase.command。親技自身や、親のコマンドが
  *   フェイズで変わらない場合は undefined。
@@ -27,10 +39,12 @@ export const fieldPhaseDiffKeysOf = (
   parentFieldPhaseCommand: string | undefined,
 ): (keyof FieldPhaseOverride)[] => {
   const ownKeys = ownDiffKeysOf(move);
-  if (parentFieldPhaseCommand === undefined || ownKeys.includes("command")) {
-    return ownKeys;
-  }
-  return [...ownKeys, "command"];
+  const keys = isHitBreakdownShadowedBy(move.fieldPhase, move.hitBreakdown)
+    ? withKey(ownKeys, "hitBreakdown")
+    : ownKeys;
+  return parentFieldPhaseCommand === undefined
+    ? keys
+    : withKey(keys, "command");
 };
 
 /**

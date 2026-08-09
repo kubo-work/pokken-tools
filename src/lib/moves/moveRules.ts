@@ -5,9 +5,10 @@ import type {
   MoveAttackType,
   StrengthRange,
 } from "@/types/move";
-import type {
-  HitBreakdownCategoricalKey,
-  HitBreakdownNumericKey,
+import {
+  HIT_BREAKDOWN_NUMERIC_KEYS,
+  type HitBreakdownCategoricalKey,
+  type HitBreakdownNumericKey,
 } from "./moveEnums";
 
 /**
@@ -64,6 +65,26 @@ export const hitBreakdownDefines = (
   key: HitBreakdownNumericKey | HitBreakdownCategoricalKey,
 ): boolean => entries?.some((entry) => entry[key] !== undefined) ?? false;
 
+/** 数値項目の単一値を持ちうる上書き層の差分。打ち消し判定に必要な項目だけを見る。 */
+type NumericValueOverride = Partial<Record<HitBreakdownNumericKey, unknown>>;
+
+/**
+ * 上書き層の単一値が、それより前の層のヒット内訳を打ち消すか。
+ *
+ * 内訳と同じ項目を単一値で定義すると、その状態では内訳が丸ごと効かなくなる
+ * （resolveMove の applyOverrideLayer）。落とす側と、落ちることを前提に表示を組み立てる側
+ * （fieldPhaseDisplay の DP/FP セル結合）で判断が食い違うと、消えたはずの内訳の値を
+ * 結合セルに出してしまうため、判定をここに集約する。
+ */
+export const isHitBreakdownShadowedBy = (
+  override: NumericValueOverride | undefined,
+  hitBreakdown: HitBreakdownEntry[] | undefined,
+): boolean =>
+  HIT_BREAKDOWN_NUMERIC_KEYS.some(
+    (key) =>
+      override?.[key] !== undefined && hitBreakdownDefines(hitBreakdown, key),
+  );
+
 /**
  * ヒット内訳グループの総ヒット数（技全体のヒット数）。
  * グループは技の連続ヒットを漏れなく分割したものなので、値を定義していないグループも数える
@@ -84,16 +105,26 @@ export const damageValueHitCount = (value: DamageValue | undefined): number => {
 };
 
 /**
- * 基礎ダメージが多段ヒット（総ヒット数2以上）か。合計ダメージ（totalDamage）入力欄の
- * 表示条件に使う（多段ヒットでない技には schema 側で totalDamage を設定できないため、
- * 管理画面でも入力可能になったときだけ欄を出す）。
+ * 基礎ダメージが表すヒット数。ヒット内訳を持つ技は内訳の総ヒット数、持たない技は
+ * 単一値（perHit×hitCount / 単発）のヒット数。
+ *
+ * 「合計ダメージ（totalDamage）を持てるか」を判断する箇所（スキーマ検証・状態解決・
+ * 管理画面の入力欄表示）が同じ数え方を共有するための 1 箇所。数え方が分かれると、
+ * 入力できるのに保存できない（またはその逆）状態が生まれる。
+ */
+export const baseDamageHitCount = (
+  baseDamage: DamageValue | undefined,
+  hitBreakdown: HitBreakdownEntry[] | undefined,
+): number =>
+  hitBreakdown !== undefined
+    ? hitBreakdownTotalHitCount(hitBreakdown)
+    : damageValueHitCount(baseDamage);
+
+/**
+ * 基礎ダメージが多段ヒット（総ヒット数2以上）か。合計ダメージ（totalDamage）を
+ * 持てる条件そのもので、スキーマ検証・状態解決・管理画面の入力欄表示が共通して使う。
  */
 export const isBaseDamageMultiHit = (
   baseDamage: DamageValue | undefined,
   hitBreakdown: HitBreakdownEntry[] | undefined,
-): boolean => {
-  if (hitBreakdown !== undefined && hitBreakdownDefines(hitBreakdown, "baseDamage")) {
-    return hitBreakdownTotalHitCount(hitBreakdown) >= MULTI_HIT_MIN_COUNT;
-  }
-  return damageValueHitCount(baseDamage) >= MULTI_HIT_MIN_COUNT;
-};
+): boolean => baseDamageHitCount(baseDamage, hitBreakdown) >= MULTI_HIT_MIN_COUNT;
