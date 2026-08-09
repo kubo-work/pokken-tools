@@ -67,10 +67,15 @@ export default defineConfig(({ command }) => {
     resolve: {
       tsconfigPaths: true,
     },
-    // 開発サーバのポート。OAuth のリダイレクト URI（AUTH_URL / Google Console 登録値）が
-    // http://localhost:2015 前提のため、Next 時代の `next dev -p 2015` と同じポートを維持する。
+    // 開発サーバのポート。OAuth のリダイレクト URI はリクエストの origin から組み立てられ、
+    // Google Console には http://localhost:2015/auth/google/callback だけを登録しているため、
+    // Next 時代の `next dev -p 2015` と同じポートを維持する。
+    // strictPort: ポートが埋まっているときの自動退避（2016 へずれる）を禁止する。退避されると
+    // origin が変わって Google 側で redirect_uri_mismatch になり、原因が手元から見えない。
+    // worktree と main で同時に dev を立てた場合はここで起動時に失敗させる。
     server: {
       port: 2015,
+      strictPort: true,
     },
   };
 });
