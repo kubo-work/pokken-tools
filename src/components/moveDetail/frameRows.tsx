@@ -27,6 +27,7 @@ const buildCancelFrameAdvantageRow = (
   key: CancelFrameAdvantageKey,
 ): ComparisonRow => ({
   header,
+  phaseDependentKeys: [key],
   renderCell: (move) => (
     <>
       {move[key] === undefined ? (
@@ -43,6 +44,7 @@ const buildCancelFrameAdvantageRow = (
 export const FRAME_ROWS: ComparisonRow[] = [
   {
     header: "発生",
+    phaseDependentKeys: ["startup"],
     renderCell: (move) => (
       <>
         {move.startup}
@@ -52,6 +54,7 @@ export const FRAME_ROWS: ComparisonRow[] = [
   },
   {
     header: "攻撃持続",
+    phaseDependentKeys: ["activeUntilFrame"],
     renderCell: (move) => (
       <>
         {formatActiveUntilFrame(move.activeUntilFrame) ?? NO_VALUE_LABEL}
@@ -63,6 +66,7 @@ export const FRAME_ROWS: ComparisonRow[] = [
   },
   {
     header: "ガード硬直差",
+    phaseDependentKeys: ["guardFrameAdvantage"],
     renderCell: (move) => (
       <>
         <FrameAdvantageText value={move.guardFrameAdvantage} />
@@ -76,6 +80,7 @@ export const FRAME_ROWS: ComparisonRow[] = [
   ),
   {
     header: "ヒット硬直差",
+    phaseDependentKeys: ["hitFrameAdvantage"],
     renderCell: (move) => (
       <>
         {move.hitFrameAdvantage === undefined ? (
@@ -93,11 +98,15 @@ export const FRAME_ROWS: ComparisonRow[] = [
   ),
   {
     header: "ガード割り込み",
+    // guardInterruptFrames はフェイズ差で変わらない（FieldPhaseOverride に無い）。
+    phaseDependentKeys: [],
     // 1つ前の段との隙間なので親技（連携の起点）は値を持たず、常に "-" になる。
     renderCell: (move) => move.guardInterruptFrames ?? NO_VALUE_LABEL,
   },
   {
     header: "ジャスト受付",
+    // 受付フレームは justInput 側の情報でフェイズ差では変わらない。
+    phaseDependentKeys: [],
     // 受付フレームはジャスト入力列固有の情報。通常列は非ジャスト時の値を並べているため、
     // そこに受付フレームを混ぜると別条件の値が同居して読みにくくなるので出さない。
     renderCell: (move, column) =>

@@ -1,6 +1,12 @@
 export type MoveCategory = "attack" | "block" | "grab";
 export type MoveAttackType = "strike" | "projectile";
-export type Phase = "field" | "duel";
+/** 技の所属フェイズ。common は FP/DP の両フェイズで使える共通技を表す。 */
+export type Phase = "field" | "duel" | "common";
+/**
+ * 技の実効値解決で使う「使用時のフェイズ」。共通技（commonMoves）は FP/DP どちらでも
+ * 使われうるため、登録先を表す Phase（"common" を含む）とは別の概念として持つ。
+ */
+export type UsagePhase = Exclude<Phase, "common">;
 export type ResonanceState = "normal" | "resonance";
 /** 攻撃属性ごとの強度の許容範囲（最小・最大）。 */
 export interface StrengthRange {
@@ -70,10 +76,12 @@ export type HitFrameAdvantage = number | FrameAdvantageRange | "down";
 export type MoveVariant = "normal" | "charge" | "derivative";
 
 /**
- * 条件付き（共鳴・ジャスト入力）の性能上書き値。硬直差は当面単一値のみ対応
- * （範囲・ダウンが必要になったら拡張する）。
+ * 条件（共鳴・ジャスト入力・フェイズ差）によらず共通して変わりうる性能値。
+ * 条件ごとに変わりうる項目は異なるため（例: フェイズでは判定は変わらないがコマンドは変わる）、
+ * 共通部分だけをここに置き、固有項目は各上書き型が足す。
+ * 硬直差は当面単一値のみ対応（範囲・ダウンが必要になったら拡張する）。
  */
-export interface MoveOverride {
+export interface MoveOverrideBase {
   startup?: number;
   activeUntilFrame?: number;
   guardFrameAdvantage?: number;
@@ -81,13 +89,29 @@ export interface MoveOverride {
   hitFrameAdvantage?: number;
   hitFrameAdvantageOnPokemonMoveCancel?: number;
   strength?: number;
-  guardLevel?: GuardLevel;
   baseDamage?: DamageValue;
   chipDamage?: DamageValue;
   guardCrushValue?: DamageValue;
   phaseChangePoints?: number;
   /** その条件下だけヒットごとの性能が変わる技向け。技単位の hitBreakdown と同じ規約。 */
   hitBreakdown?: HitBreakdownEntry[];
+}
+
+/** 条件付き（共鳴・ジャスト入力）の性能上書き値。同じ入力に対する結果だけが変わる。 */
+export interface MoveOverride extends MoveOverrideBase {
+  guardLevel?: GuardLevel;
+}
+
+/**
+ * フィールドフェイズでの上書き値。
+ *
+ * 共鳴・ジャスト入力が「同じ入力で結果が変わる」のに対し、フェイズ差は入力そのものが
+ * 変わりうるため command を持つ（例: DP では 5A、FP では 6A の技）。
+ * 判定 (guardLevel) は FP でも意味を持つが値は変わらないため、意図的に持たせていない。
+ * 攻撃属性・空地判定・特殊属性・共鳴怯ませ強度も同様にフェイズでは変わらない。
+ */
+export interface FieldPhaseOverride extends MoveOverrideBase {
+  command?: string;
 }
 
 /** ジャスト入力の受付フレーム範囲。動作開始を1F目とした経過フレームで、start <= end。 */
@@ -190,6 +214,16 @@ export interface Move {
    * 未設定ならジャスト入力による性能差はない（通常時の値のまま）。
    */
   justInput?: JustInputOverride;
+  /**
+   * フィールドフェイズでの上書き値。共通技（commonMoves）にのみ設定できる
+   * （schema で検証。fieldMoves/duelMoves の技には設定不可）。
+   * この技本体の値はデュエルフェイズでの性能として入力し、フィールドフェイズで
+   * 異なる項目だけをここに入れる。未設定ならフィールドフェイズでも技本体の値のまま。
+   * 共鳴・ジャスト入力とは異なり、適用順で最も弱い層（resolveMove 参照）として扱うため、
+   * 「フィールドフェイズかつ共鳴時だけ別値」を表現したくなったら justInput.resonance と
+   * 同様の入れ子（fieldPhase.resonance）を検討する。現状は未対応。
+   */
+  fieldPhase?: FieldPhaseOverride;
   resonanceOnly?: boolean;
   /** 基礎ダメージ。未計測なら省略（「-」表示）。 */
   baseDamage?: DamageValue;

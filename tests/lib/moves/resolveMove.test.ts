@@ -1,26 +1,21 @@
 import { describe, expect, test } from "bun:test";
-import { moveStateOf, resolveJustInputMove, resolveMove } from "@/lib/moves/resolveMove";
+import {
+  moveStateOf,
+  resolveJustInputMove,
+  resolveMove,
+} from "@/lib/moves/resolveMove";
 import type { Move } from "@/types/move";
-
-/** テスト用の最小の有効な技。上書きしたい項目だけ指定する。 */
-const makeMove = (overrides: Partial<Move> & { id: string }): Move => ({
-  name: overrides.id,
-  command: "Y",
-  guardLevel: null,
-  startup: 10,
-  guardFrameAdvantage: -5,
-  ...overrides,
-});
+import { makeMove } from "./testFixtures";
 
 describe("resolveMove: 共鳴のみ", () => {
   test("通常状態では技をそのまま返す", () => {
     const move = makeMove({ id: "move", resonance: { startup: 5 } });
-    expect(resolveMove(move, moveStateOf("normal"))).toBe(move);
+    expect(resolveMove(move, moveStateOf("normal", "duel"))).toBe(move);
   });
 
   test("共鳴状態でも resonance 差分が無ければそのまま返す", () => {
     const move = makeMove({ id: "move" });
-    expect(resolveMove(move, moveStateOf("resonance"))).toBe(move);
+    expect(resolveMove(move, moveStateOf("resonance", "duel"))).toBe(move);
   });
 
   test("共鳴状態では resonance 差分で上書きし、元の技は変更しない", () => {
@@ -30,7 +25,7 @@ describe("resolveMove: 共鳴のみ", () => {
       guardFrameAdvantage: -6,
       resonance: { startup: 8, guardFrameAdvantage: -2 },
     });
-    const resolved = resolveMove(move, moveStateOf("resonance"));
+    const resolved = resolveMove(move, moveStateOf("resonance", "duel"));
     expect(resolved.startup).toBe(8);
     expect(resolved.guardFrameAdvantage).toBe(-2);
     expect(resolved.name).toBe(move.name);
@@ -42,12 +37,18 @@ describe("resolveMove: 共鳴のみ", () => {
 describe("resolveMove: ジャスト入力のみ", () => {
   test("justInput が無ければジャスト入力を ON にしても変わらない", () => {
     const move = makeMove({ id: "move" });
-    expect(resolveMove(move, { resonance: "normal", justInput: true })).toBe(move);
+    expect(
+      resolveMove(move, { resonance: "normal", justInput: true, phase: "duel" }),
+    ).toBe(move);
   });
 
   test("ジャスト入力 OFF では justInput 差分は適用されない", () => {
     const move = makeMove({ id: "move", startup: 10, justInput: { startup: 6 } });
-    const resolved = resolveMove(move, { resonance: "normal", justInput: false });
+    const resolved = resolveMove(move, {
+      resonance: "normal",
+      justInput: false,
+      phase: "duel",
+    });
     expect(resolved.startup).toBe(10);
   });
 
@@ -58,7 +59,11 @@ describe("resolveMove: ジャスト入力のみ", () => {
       baseDamage: 20,
       justInput: { startup: 6, baseDamage: 30 },
     });
-    const resolved = resolveMove(move, { resonance: "normal", justInput: true });
+    const resolved = resolveMove(move, {
+      resonance: "normal",
+      justInput: true,
+      phase: "duel",
+    });
     expect(resolved.startup).toBe(6);
     expect(resolved.baseDamage).toBe(30);
   });
@@ -72,7 +77,11 @@ describe("resolveMove: 共鳴×ジャスト入力の組み合わせ", () => {
       resonance: { baseDamage: 25 },
       justInput: { baseDamage: 30, resonance: { baseDamage: 35 } },
     });
-    const resolved = resolveMove(move, { resonance: "resonance", justInput: false });
+    const resolved = resolveMove(move, {
+      resonance: "resonance",
+      justInput: false,
+      phase: "duel",
+    });
     expect(resolved.baseDamage).toBe(25);
   });
 
@@ -83,7 +92,11 @@ describe("resolveMove: 共鳴×ジャスト入力の組み合わせ", () => {
       resonance: { baseDamage: 25 },
       justInput: { baseDamage: 30, resonance: { baseDamage: 35 } },
     });
-    const resolved = resolveMove(move, { resonance: "normal", justInput: true });
+    const resolved = resolveMove(move, {
+      resonance: "normal",
+      justInput: true,
+      phase: "duel",
+    });
     expect(resolved.baseDamage).toBe(30);
   });
 
@@ -94,7 +107,11 @@ describe("resolveMove: 共鳴×ジャスト入力の組み合わせ", () => {
       resonance: { baseDamage: 25 },
       justInput: { baseDamage: 30, resonance: { baseDamage: 35 } },
     });
-    const resolved = resolveMove(move, { resonance: "resonance", justInput: true });
+    const resolved = resolveMove(move, {
+      resonance: "resonance",
+      justInput: true,
+      phase: "duel",
+    });
     expect(resolved.baseDamage).toBe(35);
   });
 
@@ -106,7 +123,11 @@ describe("resolveMove: 共鳴×ジャスト入力の組み合わせ", () => {
       // justInput.resonance は baseDamage しか定義していない
       justInput: { startup: 6, baseDamage: 30, resonance: { baseDamage: 35 } },
     });
-    const resolved = resolveMove(move, { resonance: "resonance", justInput: true });
+    const resolved = resolveMove(move, {
+      resonance: "resonance",
+      justInput: true,
+      phase: "duel",
+    });
     expect(resolved.startup).toBe(6);
     expect(resolved.baseDamage).toBe(35);
   });
@@ -118,7 +139,11 @@ describe("resolveMove: 共鳴×ジャスト入力の組み合わせ", () => {
       resonance: { baseDamage: 25 },
       justInput: { baseDamage: 30 },
     });
-    const resolved = resolveMove(move, { resonance: "resonance", justInput: true });
+    const resolved = resolveMove(move, {
+      resonance: "resonance",
+      justInput: true,
+      phase: "duel",
+    });
     expect(resolved.baseDamage).toBe(30);
   });
 });
@@ -126,7 +151,7 @@ describe("resolveMove: 共鳴×ジャスト入力の組み合わせ", () => {
 describe("resolveJustInputMove", () => {
   test("justInput が無ければ undefined", () => {
     const move = makeMove({ id: "move" });
-    expect(resolveJustInputMove(move)).toBeUndefined();
+    expect(resolveJustInputMove(move, "duel")).toBeUndefined();
   });
 
   test("justInput の差分をベース値に適用した Move を返す", () => {
@@ -136,7 +161,7 @@ describe("resolveJustInputMove", () => {
       guardFrameAdvantage: -5,
       justInput: { startup: 6, acceptFrames: { start: 4, end: 6 } },
     });
-    const resolved = resolveJustInputMove(move);
+    const resolved = resolveJustInputMove(move, "duel");
     expect(resolved?.startup).toBe(6);
     expect(resolved?.guardFrameAdvantage).toBe(-5);
     expect(resolved?.id).toBe(move.id);
@@ -148,7 +173,7 @@ describe("resolveJustInputMove", () => {
       resonance: { startup: 8 },
       justInput: { startup: 6, resonance: { startup: 4 } },
     });
-    const resolved = resolveJustInputMove(move);
+    const resolved = resolveJustInputMove(move, "duel");
     expect(resolved?.resonance).toEqual({ startup: 4 });
   });
 
@@ -160,7 +185,7 @@ describe("resolveJustInputMove", () => {
       resonance: { startup: 8 },
       justInput: { baseDamage: 30, resonance: { baseDamage: 35 } },
     });
-    const resolved = resolveJustInputMove(move);
+    const resolved = resolveJustInputMove(move, "duel");
     // 発生はジャスト入力では変わらないので、共鳴の 8 がそのまま効く。
     expect(resolved?.resonance).toEqual({ startup: 8, baseDamage: 35 });
   });
@@ -173,7 +198,7 @@ describe("resolveJustInputMove", () => {
       resonance: { startup: 8 },
       justInput: { startup: 6 },
     });
-    const resolved = resolveJustInputMove(move);
+    const resolved = resolveJustInputMove(move, "duel");
     expect(resolved?.startup).toBe(6);
     expect(resolved?.resonance).toBeUndefined();
   });
@@ -182,11 +207,16 @@ describe("resolveJustInputMove", () => {
 describe("resolveJustInputMove と resolveMove の整合性", () => {
   /** ジャスト列の表示値（base と共鳴上書き）が、計算用の resolveMove と一致することを確かめる。 */
   const expectConsistentWithResolveMove = (move: Move) => {
-    const justColumn = resolveJustInputMove(move);
-    const normalState = resolveMove(move, { resonance: "normal", justInput: true });
+    const justColumn = resolveJustInputMove(move, "duel");
+    const normalState = resolveMove(move, {
+      resonance: "normal",
+      justInput: true,
+      phase: "duel",
+    });
     const resonanceState = resolveMove(move, {
       resonance: "resonance",
       justInput: true,
+      phase: "duel",
     });
     expect(justColumn?.startup).toBe(normalState.startup);
     expect(justColumn?.baseDamage).toBe(normalState.baseDamage);

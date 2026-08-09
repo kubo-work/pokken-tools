@@ -1,10 +1,13 @@
 import type { Character } from "@/types/character";
-import type { PunishException, ResonanceState } from "@/types/move";
+import type { PunishException, ResonanceState, UsagePhase } from "@/types/move";
 import { FrameNumber } from "@/components/FrameNumber";
 import { CategoryBadge } from "@/components/badges";
 import { usePunishSearch } from "@/hooks/punish/usePunishSearch";
 import { formatPunishWindow } from "@/lib/frame/frameAdvantage";
 import { moveGuardLevelShortLabel } from "@/lib/moves/moveCategoricalDisplay";
+import { DEFAULT_USAGE_PHASE, USAGE_PHASES } from "@/lib/moves/moveEnums";
+import { PHASE_META } from "@/lib/moves/moveLabels";
+import { asEnumValue } from "@/lib/optionGuards";
 
 /** 範囲登録された硬直差の不利側でのみ確定する反撃に付ける注記。 */
 const SPACING_DEPENDENT_NOTE = "当て方・距離次第で確定しない場合あり";
@@ -13,6 +16,10 @@ const RESONANCE_OPTIONS: { value: ResonanceState; label: string }[] = [
   { value: "normal", label: "通常" },
   { value: "resonance", label: "共鳴" },
 ];
+
+/** 共通技を選んだときの使用フェイズ選択肢。common 自体は選択肢に含めない。 */
+const USAGE_PHASE_OPTIONS: { value: UsagePhase; label: string }[] =
+  USAGE_PHASES.map((phase) => ({ value: phase, label: PHASE_META[phase].label }));
 
 export interface PunishSearchProps {
   characters: Character[];
@@ -32,6 +39,9 @@ export const PunishSearch = ({
     setAttackerMoveId,
     attackerJustInput,
     setAttackerJustInput,
+    attackerCommonPhase,
+    setAttackerCommonPhase,
+    isAttackerPhaseSelectable,
     defenderCharacterId,
     setDefenderCharacterId,
     defenderState,
@@ -62,6 +72,32 @@ export const PunishSearch = ({
             ))}
           </select>
         </div>
+        {isAttackerPhaseSelectable && (
+          <div className="punish-form__row">
+            <label htmlFor="attackerCommonPhase">
+              共通技の使用フェイズ
+            </label>
+            <select
+              id="attackerCommonPhase"
+              value={attackerCommonPhase}
+              onChange={(event) =>
+                setAttackerCommonPhase(
+                  asEnumValue(
+                    event.target.value,
+                    USAGE_PHASES,
+                    DEFAULT_USAGE_PHASE,
+                  ),
+                )
+              }
+            >
+              {USAGE_PHASE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className="punish-form__row">
           <span>攻撃側の入力</span>
           <label className="punish-form__checkbox" htmlFor="attackerJustInput">
@@ -119,8 +155,9 @@ export const PunishSearch = ({
             {formatPunishWindow(
               attackerContext.resolvedMove.guardFrameAdvantage,
             )}
-            F（攻撃側 {attackerContext.character.name} /{" "}
-            {attackerContext.move.name} がガードされた前提）
+            F（{PHASE_META[attackerContext.usagePhase].label}／攻撃側{" "}
+            {attackerContext.character.name} / {attackerContext.move.name}{" "}
+            がガードされた前提）
           </p>
           {results.length === 0 ? (
             <div className="empty">確定反撃はありません。</div>

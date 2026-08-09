@@ -48,6 +48,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
             <span className="char-tile__meta">
               <span>FP {tile.field}</span>
               <span>DP {tile.duel}</span>
+              <span>共通 {tile.common}</span>
             </span>
           </Link>
         ))}

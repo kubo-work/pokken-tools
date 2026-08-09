@@ -74,8 +74,8 @@ export const hitBreakdownSchema = z
   .array(hitBreakdownEntrySchema)
   .min(1, "ヒットごとの内訳は1グループ以上で入力してください");
 
-/** 共鳴・ジャスト入力に共通する、条件付きの性能上書き。 */
-export const moveOverrideSchema = z.object({
+/** 条件（共鳴・ジャスト入力・フェイズ差）によらず共通して変わりうる性能値。 */
+const moveOverrideBaseSchema = z.object({
   startup: z.number().optional(),
   activeUntilFrame: z.number().int().positive().optional(),
   guardFrameAdvantage: z.number().optional(),
@@ -83,12 +83,24 @@ export const moveOverrideSchema = z.object({
   hitFrameAdvantage: z.number().optional(),
   hitFrameAdvantageOnPokemonMoveCancel: z.number().optional(),
   strength: strengthSchema.optional(),
-  guardLevel: guardLevelSchema.optional(),
   baseDamage: damageValueSchema.optional(),
   chipDamage: damageValueSchema.optional(),
   guardCrushValue: damageValueSchema.optional(),
   phaseChangePoints: z.number().int().nonnegative().optional(),
   hitBreakdown: hitBreakdownSchema.optional(),
+});
+
+/** 共鳴・ジャスト入力に共通する、条件付きの性能上書き。 */
+export const moveOverrideSchema = moveOverrideBaseSchema.extend({
+  guardLevel: guardLevelSchema.optional(),
+});
+
+/**
+ * フィールドフェイズでの上書き。フェイズでは入力そのものが変わる技があるため command を持ち、
+ * 逆にフェイズでは変わらない判定 (guardLevel) は持たない（types/move.ts の FieldPhaseOverride 参照）。
+ */
+export const fieldPhaseOverrideSchema = moveOverrideBaseSchema.extend({
+  command: z.string().optional(),
 });
 
 const acceptFramesSchema = z

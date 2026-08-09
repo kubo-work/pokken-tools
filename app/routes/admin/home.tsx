@@ -23,7 +23,7 @@ export default function AdminHomePage({ loaderData }: Route.ComponentProps) {
             <div>
               <Text fw={700}>{tile.name}</Text>
               <Text size="sm" c="dimmed" ff="monospace">
-                {tile.id} / FP {tile.field} ・ DP {tile.duel}
+                {tile.id} / FP {tile.field} ・ DP {tile.duel} ・ 共通 {tile.common}
               </Text>
             </div>
             <Button

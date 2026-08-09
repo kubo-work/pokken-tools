@@ -105,6 +105,15 @@ export const CharacterEditor = ({ initial }: { initial: Character }) => {
               >
                 {PHASE_META[phase].label}
               </Title>
+              {phase === "common" && (
+                <Text size="sm" c="dimmed">
+                  各技の基本の入力欄は{PHASE_META.duel.label}（
+                  {PHASE_META.duel.shortLabel}）での性能として入力します。
+                  {PHASE_META.field.label}（{PHASE_META.field.shortLabel}
+                  ）で異なる項目だけ、技ごとの「
+                  {PHASE_META.field.label}で性能が変化する」で上書きしてください。
+                </Text>
+              )}
               <PhaseMoveEditor
                 phase={phase}
                 moves={getPhaseMoves(phase)}

@@ -15,12 +15,14 @@ const orphanChild = makeMove({
   parentMoveId: "missing_parent",
 });
 const fieldMove = makeMove({ id: "field_move" });
+const commonMove = makeMove({ id: "common_move" });
 
 const character: Character = {
   id: "test_character",
   name: "テストキャラ",
   duelMoves: [duelParent, duelChild, orphanChild],
   fieldMoves: [fieldMove],
+  commonMoves: [commonMove],
 };
 
 describe("findMoveInCharacter", () => {
@@ -56,6 +58,14 @@ describe("findMoveInCharacter", () => {
     });
   });
 
+  test("共通技は phase=common で返る", () => {
+    expect(findMoveInCharacter(character, "common_move")).toEqual({
+      move: commonMove,
+      parent: undefined,
+      phase: "common",
+    });
+  });
+
   test("同じ id が両フェイズにある場合はデュエルを優先する", () => {
     const duplicated = makeMove({ id: "duplicated" });
     const characterWithDuplicate: Character = {
@@ -63,6 +73,7 @@ describe("findMoveInCharacter", () => {
       name: "テストキャラ",
       duelMoves: [duplicated],
       fieldMoves: [makeMove({ id: "duplicated", name: "field_side" })],
+      commonMoves: [makeMove({ id: "duplicated", name: "common_side" })],
     };
     const found = findMoveInCharacter(characterWithDuplicate, "duplicated");
     expect(found?.phase).toBe("duel");

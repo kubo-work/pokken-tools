@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { PHASES } from "@/lib/moves/moveEnums";
+import { getMovesByPhase } from "@/lib/moves/phaseMoves";
 import { PHASE_META } from "@/lib/moves/moveLabels";
 import type { Character } from "@/types/character";
 import type { PunishException } from "@/types/move";
@@ -17,8 +18,7 @@ const buildMoveOptions = (characters: Character[]): MoveOption[] => {
   const options: MoveOption[] = [];
   for (const character of characters) {
     for (const phase of PHASES) {
-      const moves =
-        phase === "field" ? character.fieldMoves : character.duelMoves;
+      const moves = getMovesByPhase(character, phase);
       for (const move of moves) {
         options.push({
           value: move.id,

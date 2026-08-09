@@ -67,6 +67,7 @@ const buildDamageValueRow = ({
   key,
 }: (typeof DAMAGE_VALUE_ROW_DEFINITIONS)[number]): ComparisonRow => ({
   header,
+  phaseDependentKeys: [key],
   renderCell: (move) => (
     <>
       {/* undefined 判定は resonanceDamageText と同じ理由で hitBreakdownDefines と別に必要。 */}
@@ -84,6 +85,7 @@ export const DAMAGE_ROWS: ComparisonRow[] = [
   ...DAMAGE_VALUE_ROW_DEFINITIONS.map(buildDamageValueRow),
   {
     header: "PCH値",
+    phaseDependentKeys: ["phaseChangePoints"],
     renderCell: (move) => (
       <>
         {move.phaseChangePoints ?? NO_VALUE_LABEL}

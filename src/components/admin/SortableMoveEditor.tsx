@@ -2,13 +2,14 @@ import type { CSSProperties } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { ACCENT_BORDER, SURFACE } from "@/lib/admin/surfaceTokens";
-import type { Move } from "@/types/move";
+import type { Move, Phase } from "@/types/move";
 import { MoveDragHandle } from "./MoveDragHandle";
 import { MoveEditor } from "./MoveEditor";
 
 export interface SortableMoveEditorProps {
   move: Move;
   index: number;
+  phase: Phase;
   onChange: (move: Move) => void;
   onRemove: () => void;
 }
@@ -20,6 +21,7 @@ export interface SortableMoveEditorProps {
 export const SortableMoveEditor = ({
   move,
   index,
+  phase,
   onChange,
   onRemove,
 }: SortableMoveEditorProps) => {
@@ -46,6 +48,7 @@ export const SortableMoveEditor = ({
       move={move}
       index={index}
       isChild
+      phase={phase}
       onChange={onChange}
       onRemove={onRemove}
       dragHandle={

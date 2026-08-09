@@ -18,6 +18,7 @@ export async function loader({ params }: Route.LoaderArgs) {
     name: entry.name,
     fieldMoves: [],
     duelMoves: [],
+    commonMoves: [],
   };
   return { initial };
 }

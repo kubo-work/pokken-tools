@@ -134,5 +134,6 @@
       "note": "共鳴中のみ使用可能なバーストアタック",
       "guardLevel": "mid"
     }
-  ]
+  ],
+  "commonMoves": []
 }

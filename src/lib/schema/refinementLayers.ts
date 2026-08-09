@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import type { HitBreakdownDamageKey } from "@/lib/moves/moveEnums";
+import { USAGE_PHASES, type HitBreakdownDamageKey } from "@/lib/moves/moveEnums";
 import { type MoveState, moveOverrideLayers } from "@/lib/moves/resolveMove";
 import type { HitBreakdownEntry } from "@/types/move";
 import type { MoveInput } from "./moveObject";
@@ -22,13 +22,18 @@ export interface ValidationLayer {
   } & { [Key in HitBreakdownDamageKey]?: unknown };
 }
 
-/** 検証対象の状態。共鳴×ジャスト入力の全4通り。 */
-export const VALIDATED_STATES: MoveState[] = [
-  { resonance: "normal", justInput: false },
-  { resonance: "resonance", justInput: false },
-  { resonance: "normal", justInput: true },
-  { resonance: "resonance", justInput: true },
-];
+/**
+ * 検証対象の状態。フェイズ×共鳴×ジャスト入力の全8通り。
+ * fieldPhase を持たない技（大半）では phase="field" の4状態がフェイズ層を素通りするだけなので、
+ * 実効値の出所（effectiveLayer）は phase="duel" のときと変わらず、指摘の重複は
+ * createPathIssueReporter が吸収する。
+ */
+export const VALIDATED_STATES: MoveState[] = USAGE_PHASES.flatMap((phase) => [
+  { resonance: "normal", justInput: false, phase },
+  { resonance: "resonance", justInput: false, phase },
+  { resonance: "normal", justInput: true, phase },
+  { resonance: "resonance", justInput: true, phase },
+]);
 
 /**
  * その状態で効く層を、技本体を先頭にして適用順に並べる。

@@ -108,6 +108,7 @@ export const PhaseMoveEditor = ({
               move={selectedGroup.parent}
               index={groups.indexOf(selectedGroup)}
               isChild={false}
+              phase={phase}
               rootBg={SURFACE.card}
               onChange={(updated) =>
                 updateMove(
@@ -122,6 +123,7 @@ export const PhaseMoveEditor = ({
             >
               <ChildMoveList
                 childMoves={selectedGroup.children}
+                phase={phase}
                 onChildChange={(childId, updatedChild) => {
                   const childIndex = findMoveIndex(childId);
                   if (childIndex === -1) return;

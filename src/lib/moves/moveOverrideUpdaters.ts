@@ -1,9 +1,11 @@
 import type {
+  FieldPhaseOverride,
   HitBreakdownEntry,
   JustInputAcceptFrames,
   JustInputOverride,
   Move,
   MoveOverride,
+  MoveOverrideBase,
 } from "@/types/move";
 import { setHitBreakdownWith } from "./moveHitBreakdownUpdaters";
 
@@ -16,7 +18,7 @@ import { setHitBreakdownWith } from "./moveHitBreakdownUpdaters";
  * 条件付き差分が Move のどこに入っているかを表す。
  * 差分の位置だけを差し替えれば同じ更新ロジックを使い回せるよう、読み取りと書き戻しの組で表す。
  */
-interface MoveOverrideLocation<Override extends MoveOverride> {
+interface MoveOverrideLocation<Override extends MoveOverrideBase> {
   read: (move: Move) => Override | undefined;
   write: (move: Move, override: Override) => Move;
   /** 差分が未設定のときの土台。全フィールドが任意なので空オブジェクトで足りる。 */
@@ -45,12 +47,18 @@ const JUST_INPUT_RESONANCE_LOCATION: MoveOverrideLocation<MoveOverride> = {
   createEmpty: () => ({}),
 };
 
+const FIELD_PHASE_LOCATION: MoveOverrideLocation<FieldPhaseOverride> = {
+  read: (move) => move.fieldPhase,
+  write: (move, override) => ({ ...move, fieldPhase: override }),
+  createEmpty: () => ({}),
+};
+
 /**
  * 条件付き差分の 1 フィールドを更新する。undefined ならキーごと削除し、
  * JSON 化したときにフィールド自体が残らないようにする（省略＝変化なしの規約）。
  */
 const setOptionalOverrideField = <
-  Override extends MoveOverride,
+  Override extends MoveOverrideBase,
   Key extends keyof Override,
 >(
   move: Move,
@@ -92,6 +100,16 @@ export const setOptionalJustInputResonanceField = <Key extends keyof MoveOverrid
 ): Move =>
   setOptionalOverrideField(move, JUST_INPUT_RESONANCE_LOCATION, key, value);
 
+/**
+ * フィールドフェイズ差分のフィールドを更新する。undefined ならキーごと削除。
+ * 判定 (guardLevel) はフェイズで変わらないため FieldPhaseOverride に無く、ここでも設定できない。
+ */
+export const setOptionalFieldPhaseField = <Key extends keyof FieldPhaseOverride>(
+  move: Move,
+  key: Key,
+  value: FieldPhaseOverride[Key] | undefined,
+): Move => setOptionalOverrideField(move, FIELD_PHASE_LOCATION, key, value);
+
 /** 共鳴差分 ON/OFF を切り替える。OFF にすると resonance を完全に削除。 */
 export const toggleResonance = (move: Move, enabled: boolean): Move => ({
   ...move,
@@ -115,6 +133,12 @@ export const toggleJustInputResonance = (move: Move, enabled: boolean): Move => 
     ...move.justInput,
     resonance: enabled ? (move.justInput?.resonance ?? {}) : undefined,
   },
+});
+
+/** フィールドフェイズ差分 ON/OFF を切り替える。OFF にすると fieldPhase を完全に削除。 */
+export const toggleFieldPhase = (move: Move, enabled: boolean): Move => ({
+  ...move,
+  fieldPhase: enabled ? (move.fieldPhase ?? {}) : undefined,
 });
 
 /** 共鳴差分の hitBreakdown を更新する。 */
@@ -141,3 +165,9 @@ export const setJustInputAcceptFrames = (
   move: Move,
   range: JustInputAcceptFrames | undefined,
 ): Move => setOptionalJustInputField(move, "acceptFrames", range);
+
+/** フィールドフェイズ差分の hitBreakdown を更新する。 */
+export const setFieldPhaseHitBreakdown = (
+  move: Move,
+  entries: HitBreakdownEntry[] | undefined,
+): Move => setHitBreakdownWith(move, entries, setOptionalFieldPhaseField);

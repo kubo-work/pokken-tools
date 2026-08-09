@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { PHASES } from "@/lib/moves/moveEnums";
+import { getMovesByPhase } from "@/lib/moves/phaseMoves";
+import { PHASE_MOVES_KEYS } from "@/types/character";
 import { moveObjectSchema } from "./moveObject";
 import { validateMove } from "./moveRefinements";
 
@@ -11,15 +14,22 @@ export const characterSchema = z
     name: z.string().min(1),
     fieldMoves: z.array(moveSchema),
     duelMoves: z.array(moveSchema),
+    commonMoves: z.array(moveSchema).default([]),
   })
   .superRefine((character, ctx) => {
-    const phases = [
-      { key: "fieldMoves" as const, moves: character.fieldMoves },
-      { key: "duelMoves" as const, moves: character.duelMoves },
-    ];
-    for (const { key, moves } of phases) {
+    for (const phase of PHASES) {
+      const key = PHASE_MOVES_KEYS[phase];
+      const moves = getMovesByPhase(character, phase);
       const idSet = new Set(moves.map((move) => move.id));
       moves.forEach((move, index) => {
+        if (move.fieldPhase !== undefined && phase !== "common") {
+          ctx.addIssue({
+            code: "custom",
+            path: [key, index, "fieldPhase"],
+            message:
+              "fieldPhase（フィールドフェイズでの上書き）は共通技（commonMoves）にのみ設定できます",
+          });
+        }
         if (move.parentMoveId === undefined) {
           return;
         }

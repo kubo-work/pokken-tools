@@ -58,13 +58,6 @@ const specialAttributesLabel = (move: Move): string =>
         .map((attribute) => specialAttributeLabel(attribute, move))
         .join(INLINE_LIST_SEPARATOR);
 
-/** ため/派生のコマンドは親コマンドを基準に組み立てる。親自身は親コマンドなし。 */
-const variantCommand = (move: Move, parentMove: Move): string =>
-  formatMoveCommand(
-    move,
-    move.id === parentMove.id ? undefined : parentMove.command,
-  );
-
 /**
  * 共鳴のヒット内訳が判定系フィールドを定義していれば、「→」の後にインラインで併記するため
  * 行に分けず INLINE_LIST_SEPARATOR で連結して返す。定義していなければ undefined。
@@ -98,14 +91,22 @@ const resonanceGuardLevelText = (move: Move): string | undefined =>
 const resonanceAirGroundJudgmentText = (move: Move): string | undefined =>
   resonanceHitBreakdownCategoricalText(move, "airGroundJudgment");
 
-/** コマンドは親コマンド基準で変わるため parentMove を受けて行を組み立てる。 */
-export const buildAttributeRows = (parentMove: Move): ComparisonRow[] => [
+/**
+ * 判定・属性表の行。ため/派生のコマンドは親コマンドを基準に組み立てるが、その親コマンドは
+ * 列ごと（フェイズごと）に変わりうるため、列が持つ値を使う。
+ */
+export const ATTRIBUTE_ROWS: ComparisonRow[] = [
   {
     header: "コマンド",
-    renderCell: (move) => variantCommand(move, parentMove),
+    // フェイズで入力そのものが変わる技があるため、唯一 FP 差分を持ちうる属性行。
+    phaseDependentKeys: ["command"],
+    renderCell: (move, column) => formatMoveCommand(move, column.parentCommand),
   },
   {
     header: "判定",
+    // guardLevel はフェイズで変わらない（FieldPhaseOverride に無い）。ヒット内訳経由の変化は
+    // 結合判定側がまとめて扱うため、ここでは挙げない。
+    phaseDependentKeys: [],
     renderCell: (move) => (
       <>
         <CategoricalLines lines={moveGuardLevelLines(move)} />
@@ -115,6 +116,8 @@ export const buildAttributeRows = (parentMove: Move): ComparisonRow[] => [
   },
   {
     header: "空・地",
+    // airGroundJudgment はフェイズで変わらない（判定と同じ扱い）。
+    phaseDependentKeys: [],
     renderCell: (move) => (
       <>
         <CategoricalLines lines={moveAirGroundJudgmentLines(move)} />
@@ -122,9 +125,14 @@ export const buildAttributeRows = (parentMove: Move): ComparisonRow[] => [
       </>
     ),
   },
-  { header: "攻撃属性", renderCell: (move) => attackTypeLabel(move) },
+  {
+    header: "攻撃属性",
+    phaseDependentKeys: [],
+    renderCell: (move) => attackTypeLabel(move),
+  },
   {
     header: "強度",
+    phaseDependentKeys: ["strength"],
     renderCell: (move) => (
       <>
         {move.strength ?? NO_VALUE_LABEL}
@@ -134,7 +142,12 @@ export const buildAttributeRows = (parentMove: Move): ComparisonRow[] => [
   },
   {
     header: "共鳴怯ませ",
+    phaseDependentKeys: [],
     renderCell: (move) => resonanceFlinchLabel(move.resonanceFlinch),
   },
-  { header: "特殊", renderCell: (move) => specialAttributesLabel(move) },
+  {
+    header: "特殊",
+    phaseDependentKeys: [],
+    renderCell: (move) => specialAttributesLabel(move),
+  },
 ];

@@ -39,6 +39,7 @@ describe("searchPunishes: 基本判定", () => {
 
   test("余裕フレーム >= 発生の技だけが確定反撃になる（境界の 0 は成立）", () => {
     const results = searchPunishes({
+      phase: "duel",
       attackerMove: attacker,
       defenderMoves: [
         makeMove({ id: "startup_10", startup: 10 }),
@@ -57,6 +58,7 @@ describe("searchPunishes: 基本判定", () => {
 
   test("結果は防御側の有利フレームの降順に並ぶ", () => {
     const results = searchPunishes({
+      phase: "duel",
       attackerMove: attacker,
       defenderMoves: [
         makeMove({ id: "startup_8", startup: 8 }),
@@ -77,6 +79,7 @@ describe("searchPunishes: 基本判定", () => {
   test("攻撃側が有利（正の硬直差）なら何も確定しない", () => {
     const plusOnGuard = makeMove({ id: "plus", guardFrameAdvantage: 2 });
     const results = searchPunishes({
+      phase: "duel",
       attackerMove: plusOnGuard,
       defenderMoves: [makeMove({ id: "fastest", startup: 1 })],
       defenderState: "normal",
@@ -94,6 +97,7 @@ describe("searchPunishes: ガード硬直差が範囲の技", () => {
 
   test("不利側でのみ確定する反撃は spacingDependent が付く", () => {
     const results = searchPunishes({
+      phase: "duel",
       attackerMove: attacker,
       defenderMoves: [makeMove({ id: "startup_6", startup: 6 })],
       defenderState: "normal",
@@ -106,6 +110,7 @@ describe("searchPunishes: ガード硬直差が範囲の技", () => {
 
   test("有利側の当て方でも確定する反撃には spacingDependent が付かない", () => {
     const results = searchPunishes({
+      phase: "duel",
       attackerMove: attacker,
       defenderMoves: [makeMove({ id: "startup_4", startup: 4 })],
       defenderState: "normal",
@@ -118,6 +123,7 @@ describe("searchPunishes: ガード硬直差が範囲の技", () => {
 
   test("最も不利側の当て方でも間に合わない技は含まれない", () => {
     const results = searchPunishes({
+      phase: "duel",
       attackerMove: attacker,
       defenderMoves: [makeMove({ id: "startup_9", startup: 9 })],
       defenderState: "normal",
@@ -132,6 +138,7 @@ describe("searchPunishes: 防御側候補の絞り込み", () => {
 
   test("ため・派生技は反撃候補から除外される", () => {
     const results = searchPunishes({
+      phase: "duel",
       attackerMove: attacker,
       defenderMoves: [
         makeMove({ id: "parent", startup: 8 }),
@@ -156,6 +163,7 @@ describe("searchPunishes: 防御側候補の絞り込み", () => {
 
   test("variant が明示的に normal の技は候補に含まれる", () => {
     const results = searchPunishes({
+      phase: "duel",
       attackerMove: attacker,
       defenderMoves: [makeMove({ id: "normal", startup: 8, variant: "normal" })],
       defenderState: "normal",
@@ -173,6 +181,7 @@ describe("searchPunishes: 共鳴状態", () => {
       makeMove({ id: "resonance_only", startup: 6, resonanceOnly: true }),
     ];
     const normalResults = searchPunishes({
+      phase: "duel",
       attackerMove: attacker,
       defenderMoves,
       defenderState: "normal",
@@ -181,6 +190,7 @@ describe("searchPunishes: 共鳴状態", () => {
     expect(normalResults).toEqual([]);
 
     const resonanceResults = searchPunishes({
+      phase: "duel",
       attackerMove: attacker,
       defenderMoves,
       defenderState: "resonance",
@@ -197,6 +207,7 @@ describe("searchPunishes: 共鳴状態", () => {
       makeMove({ id: "faster_in_resonance", startup: 12, resonance: { startup: 8 } }),
     ];
     const normalResults = searchPunishes({
+      phase: "duel",
       attackerMove: attacker,
       defenderMoves,
       defenderState: "normal",
@@ -205,6 +216,7 @@ describe("searchPunishes: 共鳴状態", () => {
     expect(normalResults).toEqual([]);
 
     const resonanceResults = searchPunishes({
+      phase: "duel",
       attackerMove: attacker,
       defenderMoves,
       defenderState: "resonance",
@@ -217,7 +229,11 @@ describe("searchPunishes: 共鳴状態", () => {
 
 describe("searchPunishes: 攻撃側のジャスト入力", () => {
   // 攻撃側の状態解決は呼び出し側（usePunishSearch）の責務なので、ここには解決済みの技を渡す。
-  const justInputState = { resonance: "normal", justInput: true } as const;
+  const justInputState = {
+    resonance: "normal",
+    justInput: true,
+    phase: "duel",
+  } as const;
 
   test("解決済みのジャスト入力版を渡すと、その硬直差で余裕フレームが決まる", () => {
     // 通常は -10（余裕10）だが、ジャスト入力だと -6（余裕6）に変わる技
@@ -229,6 +245,7 @@ describe("searchPunishes: 攻撃側のジャスト入力", () => {
     const defenderMoves = [makeMove({ id: "startup_8", startup: 8 })];
 
     const normalResults = searchPunishes({
+      phase: "duel",
       attackerMove: attacker,
       defenderMoves,
       defenderState: "normal",
@@ -238,6 +255,7 @@ describe("searchPunishes: 攻撃側のジャスト入力", () => {
     expect(normalResults[0]!.frameAdvantage).toBe(2);
 
     const justInputResults = searchPunishes({
+      phase: "duel",
       attackerMove: resolveMove(attacker, justInputState),
       defenderMoves,
       defenderState: "normal",
@@ -258,6 +276,7 @@ describe("searchPunishes: 攻撃側のジャスト入力", () => {
       action: "exclude",
     };
     const results = searchPunishes({
+      phase: "duel",
       attackerMove: resolveMove(attacker, justInputState),
       defenderMoves: [makeMove({ id: "defender", startup: 4 })],
       defenderState: "normal",
@@ -273,6 +292,7 @@ describe("searchPunishes: 攻撃側のジャスト入力", () => {
       makeMove({ id: "defender", startup: 12, justInput: { startup: 8 } }),
     ];
     const results = searchPunishes({
+      phase: "duel",
       attackerMove: attacker,
       defenderMoves,
       defenderState: "normal",
@@ -290,6 +310,7 @@ describe("searchPunishes: 例外ペア", () => {
       { attackerMoveId: "attacker", defenderMoveId: "excluded", action: "exclude" },
     ];
     const results = searchPunishes({
+      phase: "duel",
       attackerMove: attacker,
       defenderMoves: [
         makeMove({ id: "excluded", startup: 6 }),
@@ -308,6 +329,7 @@ describe("searchPunishes: 例外ペア", () => {
       action: "hit",
     };
     const results = searchPunishes({
+      phase: "duel",
       attackerMove: attacker,
       defenderMoves: [makeMove({ id: "forced", startup: 15 })],
       defenderState: "normal",
@@ -330,6 +352,7 @@ describe("searchPunishes: 例外ペア", () => {
       guardFrameAdvantage: { min: -8, max: -4 },
     });
     const results = searchPunishes({
+      phase: "duel",
       attackerMove: rangeAttacker,
       defenderMoves: [makeMove({ id: "forced", startup: 6 })],
       defenderState: "normal",
@@ -353,6 +376,7 @@ describe("searchPunishes: 例外ペア", () => {
       guardFrameAdvantage: { min: -8, max: -4 },
     });
     const results = searchPunishes({
+      phase: "duel",
       attackerMove: rangeAttacker,
       defenderMoves: [makeMove({ id: "forced", startup: 6 })],
       defenderState: "normal",
@@ -373,6 +397,7 @@ describe("searchPunishes: 例外ペア", () => {
       },
     ];
     const results = searchPunishes({
+      phase: "duel",
       attackerMove: attacker,
       defenderMoves: [makeMove({ id: "defender", startup: 6 })],
       defenderState: "normal",
