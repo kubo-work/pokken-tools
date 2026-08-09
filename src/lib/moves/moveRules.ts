@@ -1,4 +1,5 @@
 import type {
+  DamageValue,
   HitBreakdownEntry,
   Move,
   MoveAttackType,
@@ -6,7 +7,6 @@ import type {
 } from "@/types/move";
 import type {
   HitBreakdownCategoricalKey,
-  HitBreakdownDamageKey,
   HitBreakdownNumericKey,
 } from "./moveEnums";
 
@@ -14,6 +14,13 @@ import type {
  * 技の値そのものに対する判断。表示を一切伴わないゲーム仕様側のルールで、
  * 画面が無くても成立する。ラベルや表示文字列は moveLabels / moveFormat に置く。
  */
+
+/**
+ * 多段ヒットとみなす最小ヒット数。「DamageValue の多段表記 (perHit×hitCount) が要求する
+ * ヒット数」と「合計ダメージ (totalDamage) を設定できる条件」は同じ“多段”の判断なので、
+ * スキーマ・ドメイン判定の双方がこの 1 つを参照する。
+ */
+export const MULTI_HIT_MIN_COUNT = 2;
 
 /**
  * 攻撃属性ごとの強度の入力可能範囲。打撃は 1〜8、弾は 1〜8。
@@ -58,18 +65,35 @@ export const hitBreakdownDefines = (
 ): boolean => entries?.some((entry) => entry[key] !== undefined) ?? false;
 
 /**
- * ヒット内訳のダメージ系フィールドの合計値（一覧テーブル向け）。
- * 各グループは「1ヒットあたりの値 × hitCount」の合計。どのグループにも値が無ければ undefined。
+ * ヒット内訳グループの総ヒット数（技全体のヒット数）。
+ * グループは技の連続ヒットを漏れなく分割したものなので、値を定義していないグループも数える
+ * （合計ダメージが多段ヒット技にのみ設定できるかの判定 (totalDamageRefinements) で使う）。
  */
-export const totalHitBreakdownDamage = (
-  entries: HitBreakdownEntry[],
-  key: HitBreakdownDamageKey,
-): number | undefined => {
-  if (!hitBreakdownDefines(entries, key)) {
-    return undefined;
+export const hitBreakdownTotalHitCount = (entries: HitBreakdownEntry[]): number =>
+  entries.reduce((sum, entry) => sum + entry.hitCount, 0);
+
+/**
+ * ダメージ系の値が表すヒット数。単一値（number）は1、多段表記は hitCount、未設定は0。
+ * hitBreakdownTotalHitCount と同じ用途で、内訳を持たない技のヒット数判定に使う。
+ */
+export const damageValueHitCount = (value: DamageValue | undefined): number => {
+  if (value === undefined) {
+    return 0;
   }
-  return entries.reduce(
-    (sum, entry) => sum + (entry[key] ?? 0) * entry.hitCount,
-    0,
-  );
+  return typeof value === "number" ? 1 : value.hitCount;
+};
+
+/**
+ * 基礎ダメージが多段ヒット（総ヒット数2以上）か。合計ダメージ（totalDamage）入力欄の
+ * 表示条件に使う（多段ヒットでない技には schema 側で totalDamage を設定できないため、
+ * 管理画面でも入力可能になったときだけ欄を出す）。
+ */
+export const isBaseDamageMultiHit = (
+  baseDamage: DamageValue | undefined,
+  hitBreakdown: HitBreakdownEntry[] | undefined,
+): boolean => {
+  if (hitBreakdown !== undefined && hitBreakdownDefines(hitBreakdown, "baseDamage")) {
+    return hitBreakdownTotalHitCount(hitBreakdown) >= MULTI_HIT_MIN_COUNT;
+  }
+  return damageValueHitCount(baseDamage) >= MULTI_HIT_MIN_COUNT;
 };

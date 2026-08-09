@@ -14,6 +14,7 @@ import {
   resonanceFlinchSchema,
   specialAttributeSchema,
   strengthSchema,
+  totalDamageSchema,
   variantSchema,
 } from "./fields";
 
@@ -48,6 +49,7 @@ export const moveObjectSchema = z.object({
   fieldPhase: fieldPhaseOverrideSchema.optional(),
   resonanceOnly: z.boolean().optional(),
   baseDamage: damageValueSchema.optional(),
+  totalDamage: totalDamageSchema.optional(),
   chipDamage: damageValueSchema.optional(),
   guardCrushValue: damageValueSchema.optional(),
   phaseChangePoints: z.number().int().nonnegative().optional(),

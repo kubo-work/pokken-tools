@@ -6,16 +6,18 @@ import {
   moveAirGroundJudgmentLabel,
   moveGuardLevelShortLabel,
 } from "@/lib/moves/moveCategoricalDisplay";
-import { childVariantLabel, formatDamageValue } from "@/lib/moves/moveFormat";
+import {
+  childVariantLabel,
+  formatDamageValue,
+  formatHitBreakdownValue,
+  formatTotalDamageNote,
+} from "@/lib/moves/moveFormat";
 import {
   ATTACK_TYPE_META,
   NO_VALUE_LABEL,
   POKEMON_MOVE_CANCEL_LABEL,
 } from "@/lib/moves/moveLabels";
-import {
-  hitBreakdownDefines,
-  totalHitBreakdownDamage,
-} from "@/lib/moves/moveRules";
+import { hitBreakdownDefines } from "@/lib/moves/moveRules";
 import { formatMoveCommand } from "@/lib/moves/command";
 import { isChildMove } from "@/lib/moves/grouping";
 import { isPhaseInvariantCell } from "@/lib/moves/fieldPhaseDisplay";
@@ -149,13 +151,14 @@ const MoveFrameCells = ({
       <PokemonMoveCancelNote value={move.hitFrameAdvantageOnPokemonMoveCancel} />
     </PhaseCell>
     <PhaseCell
-      merge={mergeFor(["baseDamage"])}
+      merge={mergeFor(["baseDamage", "totalDamage"])}
       className="num moves-table__secondary"
     >
       {move.hitBreakdown !== undefined &&
       hitBreakdownDefines(move.hitBreakdown, "baseDamage")
-        ? totalHitBreakdownDamage(move.hitBreakdown, "baseDamage")
+        ? formatHitBreakdownValue(move.hitBreakdown, "baseDamage")
         : formatDamageValue(move.baseDamage)}
+      {formatTotalDamageNote(move.totalDamage)}
     </PhaseCell>
   </>
 );

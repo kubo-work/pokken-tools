@@ -6,6 +6,8 @@ import {
   setOptionalJustInputResonanceField,
   toggleJustInputResonance,
 } from "@/lib/moves/moveOverrideUpdaters";
+import { justInputResonanceStateOf } from "@/lib/moves/resolveMove";
+import { MOVE_FORM_BASE_PHASE } from "./moveFieldsHelpers";
 
 /**
  * 「共鳴中はジャスト入力の性能がさらに変わる」差分の編集欄。
@@ -35,6 +37,7 @@ export const JustInputResonanceSection = ({
           </Text>
           <MoveOverrideFields
             move={move}
+            state={justInputResonanceStateOf(MOVE_FORM_BASE_PHASE)}
             idPrefix={`${move.id}-justInput-resonance`}
             value={move.justInput?.resonance}
             onFieldChange={(key, value) =>

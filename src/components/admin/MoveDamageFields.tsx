@@ -1,9 +1,10 @@
 import { SimpleGrid } from "@mantine/core";
 import { MOVE_FIELD_LABELS } from "@/lib/moves/moveLabels";
-import { hitBreakdownDefines } from "@/lib/moves/moveRules";
+import { hitBreakdownDefines, isBaseDamageMultiHit } from "@/lib/moves/moveRules";
 import type { MoveFieldGroupProps } from "./moveFieldProps";
 import { DamageValueField } from "./DamageValueField";
 import { PhaseChangePointsField } from "./PhaseChangePointsField";
+import { TotalDamageField } from "./TotalDamageField";
 import {
   PLACEHOLDER_NOT_MEASURED,
   PLACEHOLDER_SET_BY_HIT_BREAKDOWN,
@@ -60,6 +61,15 @@ export const MoveDamageFields = ({ move, onChange }: MoveFieldGroupProps) => (
       value={move.phaseChangePoints}
       onChange={(value) =>
         onChange(setOptionalMoveField(move, "phaseChangePoints", value))
+      }
+    />
+    <TotalDamageField
+      idPrefix={move.id}
+      show={isBaseDamageMultiHit(move.baseDamage, move.hitBreakdown)}
+      placeholder={PLACEHOLDER_NOT_MEASURED}
+      value={move.totalDamage}
+      onChange={(value) =>
+        onChange(setOptionalMoveField(move, "totalDamage", value))
       }
     />
   </SimpleGrid>

@@ -6,6 +6,7 @@ import {
   setOptionalFieldPhaseField,
   toggleFieldPhase,
 } from "@/lib/moves/moveOverrideUpdaters";
+import { moveStateOf } from "@/lib/moves/resolveMove";
 
 /** 共通技（commonMoves）の技フォームにのみ表示する、フィールドフェイズでの性能上書きパネル。 */
 export const MoveFieldPhasePanel = ({
@@ -32,6 +33,7 @@ export const MoveFieldPhasePanel = ({
             </Text>
             <MoveFieldPhaseOverrideFields
               move={move}
+              state={moveStateOf("normal", "field")}
               idPrefix={`${move.id}-fieldPhase`}
               value={move.fieldPhase}
               onFieldChange={(key, value) =>

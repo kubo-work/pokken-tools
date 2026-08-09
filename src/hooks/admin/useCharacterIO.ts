@@ -2,6 +2,7 @@ import type { Dispatch, SetStateAction } from "react";
 import type { Character } from "@/types/character";
 import { characterSchema } from "@/lib/schema";
 import type { Feedback } from "@/lib/feedback";
+import { formatIssues } from "@/lib/admin/formatIssues";
 
 export interface UseCharacterIOResult {
   exportJson: () => void;
@@ -38,9 +39,8 @@ export const useCharacterIO = (
       const parsed = JSON.parse(text) as unknown;
       const result = characterSchema.safeParse(parsed);
       if (!result.success) {
-        const detail = result.error.issues
-          .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
-          .join(" / ");
+        console.error("character JSON validation failed", result.error.issues);
+        const detail = formatIssues(result.error.issues);
         setFeedback({ ok: false, message: `JSONの内容が不正です: ${detail}` });
         return;
       }

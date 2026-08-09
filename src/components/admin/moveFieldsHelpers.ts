@@ -13,7 +13,14 @@ import {
   RESONANCE_FLINCH_META,
 } from "@/lib/moves/moveLabels";
 import type { ResonanceFlinchMode } from "@/lib/moves/moveUpdaters";
-import type { Move } from "@/types/move";
+import type { Move, UsagePhase } from "@/types/move";
+
+/**
+ * 技フォームの基本の入力欄が表すフェイズ。共通技も含め基本欄は DP での性能として入力し、
+ * FP との差だけを fieldPhase パネルで上書きする規約（CharacterEditor の案内文と同じ）。
+ * 各差分パネルが「その条件下の実効値」を resolveMove で解決するときの基準フェイズに使う。
+ */
+export const MOVE_FORM_BASE_PHASE: UsagePhase = "duel";
 
 /**
  * つかみ技かどうか。つかみは攻撃属性・強度・判定を持たないため、
@@ -55,6 +62,15 @@ export const PLACEHOLDER_SET_BY_HIT_BREAKDOWN = "ヒット内訳で設定済み"
  * 「変化なし」でもなく、単にその打点では値を持たない欄に使う。
  */
 export const PLACEHOLDER_NO_VALUE = "なし";
+
+/**
+ * 合計ダメージ欄の説明文。技単位・共鳴/ジャスト入力/FP の各差分パネルで共通して使う
+ * （どの条件の差分かは囲んでいるパネルが示すため、ここでは条件名を名乗らない）。
+ * 欄そのものは基礎ダメージが多段ヒットのときだけ表示される（TotalDamageField 参照）ため、
+ * この説明文が読める時点で入力は可能。
+ */
+export const TOTAL_DAMAGE_DESCRIPTION =
+  "実測の合計（コンボ補正で単純合計と異なる場合に入力）";
 
 /**
  * 共鳴怯ませ強度そのもの（弱／強）の選択肢。持続の途中で切り替わる形を取れない

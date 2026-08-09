@@ -7,6 +7,8 @@ import {
   toggleResonance,
 } from "@/lib/moves/moveOverrideUpdaters";
 import { setMoveField } from "@/lib/moves/moveUpdaters";
+import { moveStateOf } from "@/lib/moves/resolveMove";
+import { MOVE_FORM_BASE_PHASE } from "./moveFieldsHelpers";
 
 export const MoveResonancePanel = ({
   move,
@@ -47,6 +49,7 @@ export const MoveResonancePanel = ({
             </Text>
             <MoveOverrideFields
               move={move}
+              state={moveStateOf("resonance", MOVE_FORM_BASE_PHASE)}
               idPrefix={`${move.id}-resonance`}
               value={move.resonance}
               onFieldChange={(key, value) =>

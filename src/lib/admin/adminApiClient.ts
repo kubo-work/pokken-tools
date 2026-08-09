@@ -1,4 +1,6 @@
+import { z } from "zod";
 import type { Feedback } from "@/lib/feedback";
+import { formatIssues } from "./formatIssues";
 
 /** 失敗時の文言。API ごとに異なるので呼び出し側から渡す。 */
 export interface FailureMessages {
@@ -32,6 +34,56 @@ const buildFailureMessage = (
   detail === "" ? messages.withoutDetail : `${messages.withDetail}: ${detail}`;
 
 /**
+ * parseJsonBody（サーバ側）が返すエラー応答の形。ネットワーク越しの値なので、
+ * 型アサーションではなくスキーマで検証してから使う（想定外の形をそのまま整形して
+ * 実行時エラーになり、原因と無関係な「通信エラー」に化けるのを防ぐ）。
+ * path の要素が string | number だけなのは、JSON では symbol を表現できないため。
+ */
+const apiErrorBodySchema = z.object({
+  error: z.string().optional(),
+  issues: z
+    .array(
+      z.object({
+        path: z.array(z.union([z.string(), z.number()])),
+        message: z.string(),
+      }),
+    )
+    .optional(),
+});
+
+/**
+ * エラー応答本文から、画面に出す失敗理由を1行にして返す。
+ *
+ * サーバのエラー応答は `{ error, issues }` の JSON なので、そのまま画面に出すと
+ * 生の JSON 文字列になって読みにくい。JSON として解釈できたときは詳細一式を
+ * コンソールにだけ出し（原因調査用）、画面には issues を整形した一言
+ * （無ければ error 文字列）だけを返す。
+ * JSON でない応答（プレーンテキストのエラー文言）はそのまま画面の理由として使う。
+ */
+const describeErrorResponse = (text: string): string => {
+  if (text === "") {
+    return "";
+  }
+  let body: unknown;
+  try {
+    body = JSON.parse(text);
+  } catch {
+    return text;
+  }
+  console.error("API error response", body);
+  const parsed = apiErrorBodySchema.safeParse(body);
+  if (!parsed.success) {
+    // 想定外の形。生の中身は上のログに残っているので、画面は詳細なしの文言に落とす。
+    return "";
+  }
+  const { error, issues } = parsed.data;
+  if (issues !== undefined && issues.length > 0) {
+    return formatIssues(issues);
+  }
+  return error ?? "";
+};
+
+/**
  * 管理画面の書き込み API を叩く。
  *
  * 通信例外もサーバエラーも throw せず結果として返すため、呼び出し側の hook は
@@ -54,10 +106,13 @@ export const sendJson = async <Data>(
           }),
     });
     if (!response.ok) {
-      const detail = await response.text().catch(() => "");
+      const text = await response.text().catch(() => "");
       return {
         ok: false,
-        message: buildFailureMessage(options.failureMessages, detail),
+        message: buildFailureMessage(
+          options.failureMessages,
+          describeErrorResponse(text),
+        ),
       };
     }
     const data = (await response.json().catch(() => undefined)) as

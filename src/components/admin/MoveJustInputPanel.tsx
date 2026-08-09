@@ -8,6 +8,8 @@ import {
   setOptionalJustInputField,
   toggleJustInput,
 } from "@/lib/moves/moveOverrideUpdaters";
+import { justInputNormalStateOf } from "@/lib/moves/resolveMove";
+import { MOVE_FORM_BASE_PHASE } from "./moveFieldsHelpers";
 
 /**
  * ジャスト入力による性能差の編集欄。共鳴とは独立した軸のため、共鳴の ON/OFF に関わらず
@@ -35,6 +37,7 @@ export const MoveJustInputPanel = ({ move, onChange }: MoveFieldGroupProps) => {
             <JustInputAcceptFramesFields move={move} onChange={onChange} />
             <MoveOverrideFields
               move={move}
+              state={justInputNormalStateOf(MOVE_FORM_BASE_PHASE)}
               idPrefix={`${move.id}-justInput`}
               value={move.justInput}
               onFieldChange={(key, value) =>

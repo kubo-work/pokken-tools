@@ -96,6 +96,8 @@ export interface MoveOverrideBase {
   hitFrameAdvantageOnPokemonMoveCancel?: number;
   strength?: number;
   baseDamage?: DamageValue;
+  /** Move の totalDamage と同じ規約（実測合計）。詳細は Move.totalDamage 参照。 */
+  totalDamage?: number;
   chipDamage?: DamageValue;
   guardCrushValue?: DamageValue;
   phaseChangePoints?: number;
@@ -233,6 +235,14 @@ export interface Move {
   resonanceOnly?: boolean;
   /** 基礎ダメージ。未計測なら省略（「-」表示）。 */
   baseDamage?: DamageValue;
+  /**
+   * 技を最初から最後まで当てたときに実際に入る基礎ダメージの実測合計。
+   * 多段ヒット技は1ヒット目以降にコンボ補正がかかるため、baseDamage の perHit×hitCount や
+   * hitBreakdown の総和とは一致しない（計算では求められない値のため実測値を手入力する）。
+   * 基礎ダメージが多段ヒット（perHit×hitCount またはヒット内訳）の技にのみ設定できる
+   * （schema で検証。1ヒットの技に設定するとエラーになる）。
+   */
+  totalDamage?: number;
   /** 削りダメージ（ガードした相手に与える HP ダメージ）。未計測なら省略。 */
   chipDamage?: DamageValue;
   /** ガード削り値（相手のガードゲージを削る量）。未計測なら省略。 */

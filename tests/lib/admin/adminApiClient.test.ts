@@ -138,6 +138,56 @@ describe("sendJson", () => {
     });
   });
 
+  test("エラー本文が issues 付き JSON なら、画面には整形した一言だけ出し、生の JSON はコンソールにだけ出す", async () => {
+    const errorLogs = captureConsoleError();
+    const errorBody = {
+      error: "Validation failed",
+      issues: [{ path: ["totalDamage"], message: "多段ヒットの技にのみ設定できます" }],
+    };
+    stubFetch(() => jsonResponse(errorBody, 400));
+    const result = await sendJson(ADMIN_API_ENDPOINTS.exceptions, {
+      method: "PUT",
+      body: {},
+      failureMessages: FAILURE_MESSAGES,
+    });
+    expect(result).toEqual({
+      ok: false,
+      message: "追加に失敗しました: totalDamage: 多段ヒットの技にのみ設定できます",
+    });
+    expect(errorLogs).toHaveLength(1);
+    expect(errorLogs[0]?.[1]).toEqual(errorBody);
+  });
+
+  test("エラー本文が想定外の形の JSON でも throw せず、詳細なしの文言に落とす", async () => {
+    const errorLogs = captureConsoleError();
+    // issues が配列でない壊れた応答。整形しようとして実行時エラーになると、原因と無関係な
+    // 「通信エラー」に化けてしまうため、安全側（詳細なし）に倒れることを保証する。
+    stubFetch(() => jsonResponse({ error: 1, issues: "壊れた形" }, 400));
+    const result = await sendJson(ADMIN_API_ENDPOINTS.exceptions, {
+      method: "PUT",
+      body: {},
+      failureMessages: FAILURE_MESSAGES,
+    });
+    expect(result).toEqual({
+      ok: false,
+      message: FAILURE_MESSAGES.withoutDetail,
+    });
+    expect(errorLogs).toHaveLength(1);
+  });
+
+  test("エラー本文が issues の無い JSON なら error 文字列を画面に出す", async () => {
+    stubFetch(() => jsonResponse({ error: "Unknown character id" }, 404));
+    const result = await sendJson(ADMIN_API_ENDPOINTS.exceptions, {
+      method: "PUT",
+      body: {},
+      failureMessages: FAILURE_MESSAGES,
+    });
+    expect(result).toEqual({
+      ok: false,
+      message: "追加に失敗しました: Unknown character id",
+    });
+  });
+
   test("通信例外を throw せず結果として返し、原因はログに残す", async () => {
     const errorLogs = captureConsoleError();
     stubFetch(() => {

@@ -6,6 +6,7 @@ import {
 import {
   formatDamageValue,
   formatHitBreakdownValue,
+  formatTotalDamage,
 } from "@/lib/moves/moveFormat";
 import { MOVE_FIELD_LABELS } from "@/lib/moves/moveLabels";
 import { hitBreakdownDefines } from "@/lib/moves/moveRules";
@@ -83,6 +84,29 @@ const buildNumericRow = ({
   ),
 });
 
-/** ダメージ系の行。全変種で未入力ならセクションごと表示しない（move-detail.tsx 側 hasAnyDamage 参照）。 */
-export const DAMAGE_ROWS: ComparisonRow[] =
-  HIT_BREAKDOWN_NUMERIC_ROWS.map(buildNumericRow);
+/**
+ * 合計ダメージの行。コンボ補正で perHit×hitCount やヒット内訳の総和と一致しない
+ * 多段ヒット技のための実測値（totalDamage、詳細は types/move.ts 参照）で、
+ * ヒット内訳を持たないため buildNumericRow の生成対象には含めず単独で定義する。
+ */
+const TOTAL_DAMAGE_ROW: ComparisonRow = {
+  header: MOVE_FIELD_LABELS.totalDamage,
+  phaseDependentKeys: ["totalDamage"],
+  renderCell: (move) => (
+    <>
+      {formatTotalDamage(move.totalDamage)}
+      <ResonanceOverride value={move.resonance?.totalDamage} />
+    </>
+  ),
+};
+
+/**
+ * ダメージ系の行。全変種で未入力ならセクションごと表示しない（move-detail.tsx 側 hasAnyDamage 参照）。
+ * 合計ダメージは基礎ダメージの直後（実測値との対比がしやすい位置）に挿入する。
+ */
+export const DAMAGE_ROWS: ComparisonRow[] = HIT_BREAKDOWN_NUMERIC_ROWS.flatMap(
+  (row) =>
+    row.key === "baseDamage"
+      ? [buildNumericRow(row), TOTAL_DAMAGE_ROW]
+      : [buildNumericRow(row)],
+);

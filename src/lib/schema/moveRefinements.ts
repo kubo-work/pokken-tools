@@ -6,6 +6,7 @@ import {
 } from "./frameRefinements";
 import { validateHitBreakdownExclusions } from "./hitBreakdownRefinements";
 import type { MoveInput } from "./moveObject";
+import { validateTotalDamageRequiresMultiHit } from "./totalDamageRefinements";
 import { validateVariantRelation } from "./variantRefinements";
 
 /**
@@ -22,4 +23,5 @@ export const validateMove = (move: MoveInput, ctx: z.RefinementCtx): void => {
   validateHitBreakdownExclusions(move, ctx);
   validateVariantRelation(move, ctx);
   validateActiveUntilFrame(move, ctx);
+  validateTotalDamageRequiresMultiHit(move, ctx);
 };

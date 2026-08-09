@@ -112,16 +112,20 @@ export const HIT_FRAME_ADVANTAGE_DOWN_LABEL = "ダウン";
 /** 技一覧のガード/ヒット硬直差セルで、ポケモン技キャンセル時の値の前に付ける接頭ラベル。 */
 export const POKEMON_MOVE_CANCEL_LABEL = "ポ: ";
 
+/** 技一覧の基礎ダメージセルで、併記する合計ダメージの前に付ける接頭ラベル。 */
+export const TOTAL_DAMAGE_INLINE_LABEL = "計";
+
 /**
  * 技の項目名。同じ項目を管理画面の入力欄ラベル・技詳細ページの表ヘッダ・ヒット内訳の
  * 入力欄で表示するため、画面ごとに文言を書かず 1 箇所で持つ（表記のずれを防ぐ）。
  * 数値項目は HitBreakdownNumericKey を網羅するので、項目が増えたらラベル追加を型が要求する。
  */
 export const MOVE_FIELD_LABELS: Record<
-  HitBreakdownNumericKey | "resonanceFlinch",
+  HitBreakdownNumericKey | "resonanceFlinch" | "totalDamage",
   string
 > = {
   baseDamage: "基礎ダメージ",
+  totalDamage: "合計ダメージ",
   chipDamage: "削りダメージ",
   guardCrushValue: "ガード削り値",
   phaseChangePoints: "PCH値",

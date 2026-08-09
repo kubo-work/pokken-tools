@@ -96,6 +96,7 @@ export default function MoveDetailPage({ loaderData }: Route.ComponentProps) {
   const hasAnyDamage = columns.some(
     ({ move }) =>
       move.baseDamage !== undefined ||
+      move.totalDamage !== undefined ||
       move.chipDamage !== undefined ||
       move.guardCrushValue !== undefined ||
       move.phaseChangePoints !== undefined ||
