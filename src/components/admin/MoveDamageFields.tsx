@@ -34,6 +34,10 @@ export const DAMAGE_VALUE_FIELDS: {
  */
 export const MoveDamageFields = ({ move, onChange }: MoveFieldGroupProps) => {
   const isMultiHit = isBaseDamageMultiHit(move.baseDamage, move.hitBreakdown);
+  const pchDisabledByBreakdown = hitBreakdownDefines(
+    move.hitBreakdown,
+    "phaseChangePoints",
+  );
   return (
     <SimpleGrid cols={{ base: 2, sm: 4 }}>
       {DAMAGE_VALUE_FIELDS.map(({ key, label }) => {
@@ -57,11 +61,11 @@ export const MoveDamageFields = ({ move, onChange }: MoveFieldGroupProps) => {
       })}
       <Box style={{ gridColumn: "1 / -1" }}>
         <PhaseChangePointsField
-          key={`${move.id}-phaseChangePoints-${hitBreakdownDefines(move.hitBreakdown, "phaseChangePoints")}-${isMultiHit}`}
+          key={`${move.id}-phaseChangePoints-${pchDisabledByBreakdown}-${isMultiHit}`}
           idPrefix={move.id}
           description="フェイズチェンジポイント"
           unsetPlaceholder={PLACEHOLDER_NOT_MEASURED}
-          disabled={hitBreakdownDefines(move.hitBreakdown, "phaseChangePoints")}
+          disabled={pchDisabledByBreakdown}
           isMultiHit={isMultiHit}
           value={move.phaseChangePoints}
           onChange={(value) =>

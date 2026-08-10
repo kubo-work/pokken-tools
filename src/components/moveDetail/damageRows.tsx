@@ -1,6 +1,5 @@
 import type { ComparisonRow } from "@/components/MoveComparisonTable";
 import {
-  HIT_BREAKDOWN_DAMAGE_KEYS,
   HIT_BREAKDOWN_NUMERIC_KEYS,
   type HitBreakdownDamageKey,
 } from "@/lib/moves/moveEnums";

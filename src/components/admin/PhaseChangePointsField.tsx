@@ -72,6 +72,14 @@ export const PhaseChangePointsField = ({
     onChange(draftRowsToPhaseChangePoints(nextRows));
   };
 
+  const updateRowField = <Key extends keyof PhaseChangePointsDraftRow>(
+    index: number,
+    key: Key,
+    value: PhaseChangePointsDraftRow[Key],
+  ) => {
+    updateRows(rows.map((r, i) => (i === index ? { ...r, [key]: value } : r)));
+  };
+
   if (!isMultiHit) {
     return (
       <DecimalNumberInput
@@ -116,11 +124,7 @@ export const PhaseChangePointsField = ({
             min={0}
             value={typeof row.perHit === "number" ? row.perHit : undefined}
             onChange={(nextValue) =>
-              updateRows(
-                rows.map((r, i) =>
-                  i === index ? { ...r, perHit: nextValue ?? "" } : r,
-                ),
-              )
+              updateRowField(index, "perHit", nextValue ?? "")
             }
           />
           <IntegerNumberInput
@@ -129,11 +133,7 @@ export const PhaseChangePointsField = ({
             min={1}
             value={typeof row.hitCount === "number" ? row.hitCount : undefined}
             onChange={(nextValue) =>
-              updateRows(
-                rows.map((r, i) =>
-                  i === index ? { ...r, hitCount: nextValue ?? "" } : r,
-                ),
-              )
+              updateRowField(index, "hitCount", nextValue ?? "")
             }
           />
           <Button

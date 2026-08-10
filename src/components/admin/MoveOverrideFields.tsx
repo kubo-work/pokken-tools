@@ -130,6 +130,10 @@ const OverrideDamageFields = ({
   // 再定義していなくても（技本体や他の層から継承していても）resolveMove で正しく解決する。
   const resolved = resolveMove(move, state);
   const isMultiHit = isBaseDamageMultiHit(resolved.baseDamage, resolved.hitBreakdown);
+  const pchDisabledByBreakdown = hitBreakdownDefines(
+    value?.hitBreakdown,
+    "phaseChangePoints",
+  );
   return (
     <>
       {DAMAGE_VALUE_FIELDS.map(({ key, label }) => {
@@ -153,10 +157,10 @@ const OverrideDamageFields = ({
       })}
       <Box style={{ gridColumn: "1 / -1" }}>
         <PhaseChangePointsField
-          key={`${idPrefix}-phaseChangePoints-${hitBreakdownDefines(value?.hitBreakdown, "phaseChangePoints")}-${isMultiHit}`}
+          key={`${idPrefix}-phaseChangePoints-${pchDisabledByBreakdown}-${isMultiHit}`}
           idPrefix={idPrefix}
           unsetPlaceholder={PLACEHOLDER_UNCHANGED}
-          disabled={hitBreakdownDefines(value?.hitBreakdown, "phaseChangePoints")}
+          disabled={pchDisabledByBreakdown}
           isMultiHit={isMultiHit}
           value={value?.phaseChangePoints}
           onChange={(nextValue) => onFieldChange("phaseChangePoints", nextValue)}
