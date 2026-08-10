@@ -1,11 +1,12 @@
 import type { ComparisonRow } from "@/components/MoveComparisonTable";
 import {
   HIT_BREAKDOWN_NUMERIC_KEYS,
-  type HitBreakdownNumericKey,
+  type HitBreakdownDamageKey,
 } from "@/lib/moves/moveEnums";
 import {
   formatDamageValue,
   formatHitBreakdownValue,
+  formatPhaseChangePoints,
   formatTotalDamage,
 } from "@/lib/moves/moveFormat";
 import { MOVE_FIELD_LABELS } from "@/lib/moves/moveLabels";
@@ -16,20 +17,73 @@ import { ResonanceOverride } from "./rowHelpers";
 /**
  * 技詳細ページ「ダメージ」表の行定義。
  * ダメージ系3項目と PCH値を扱い、ヒット内訳と単一値のどちらを表示するかもここで決める。
+ * PCH値はダメージ系と型が異なる（区切りの配列を持てる）ため、行の組み立てとフォーマッタを
+ * ダメージ系（buildDamageRow）と PCH（PCH_ROW）で分けている。
  */
 
 /**
- * 数値行の定義。PCH値は技単位では number、ダメージ系は DamageValue と型は違うが、
- * 「内訳があれば内訳、無ければ単一値」という表示の解決は同じなので同じ生成関数に乗せる。
- * 見出しは管理画面の入力欄と同じ文言を使うため、キー集合から導出する。
+ * ダメージ系1行分のセル。ヒット内訳がそのフィールドを定義していれば内訳表示（例: 50+45×3）、
+ * 無ければ従来通り技単位の単一値。共鳴上書きも同じ優先順位（内訳→単一値）で判定する。
  */
-const HIT_BREAKDOWN_NUMERIC_ROWS: {
-  header: string;
-  key: HitBreakdownNumericKey;
-}[] = HIT_BREAKDOWN_NUMERIC_KEYS.map((key) => ({
+const buildDamageRow = (key: HitBreakdownDamageKey): ComparisonRow => ({
   header: MOVE_FIELD_LABELS[key],
-  key,
-}));
+  phaseDependentKeys: [key],
+  renderCell: (move) => (
+    <>
+      {move.hitBreakdown !== undefined &&
+      hitBreakdownDefines(move.hitBreakdown, key)
+        ? formatHitBreakdownValue(move.hitBreakdown, key)
+        : formatDamageValue(move[key])}
+      <ResonanceOverride value={resonanceDamageText(move, key)} />
+    </>
+  ),
+});
+
+/** 共鳴のダメージ系1項目の表示テキスト。内訳優先、無ければ共鳴の単一値、どちらも無ければ undefined。 */
+const resonanceDamageText = (
+  move: Move,
+  key: HitBreakdownDamageKey,
+): string | undefined => {
+  const resonanceHitBreakdown = move.resonance?.hitBreakdown;
+  if (
+    resonanceHitBreakdown !== undefined &&
+    hitBreakdownDefines(resonanceHitBreakdown, key)
+  ) {
+    return formatHitBreakdownValue(resonanceHitBreakdown, key);
+  }
+  return move.resonance?.[key] !== undefined
+    ? formatDamageValue(move.resonance[key])
+    : undefined;
+};
+
+/** PCH値の共鳴上書きテキスト。resonanceDamageText と同じ優先順位（内訳→単一値）。 */
+const resonancePchText = (move: Move): string | undefined => {
+  const resonanceHitBreakdown = move.resonance?.hitBreakdown;
+  if (
+    resonanceHitBreakdown !== undefined &&
+    hitBreakdownDefines(resonanceHitBreakdown, "phaseChangePoints")
+  ) {
+    return formatHitBreakdownValue(resonanceHitBreakdown, "phaseChangePoints");
+  }
+  return move.resonance?.phaseChangePoints !== undefined
+    ? formatPhaseChangePoints(move.resonance.phaseChangePoints)
+    : undefined;
+};
+
+/** PCH値の行。区切りの配列を持てる点がダメージ系と異なるため、専用フォーマッタで表示する。 */
+const PCH_ROW: ComparisonRow = {
+  header: MOVE_FIELD_LABELS.phaseChangePoints,
+  phaseDependentKeys: ["phaseChangePoints"],
+  renderCell: (move) => (
+    <>
+      {move.hitBreakdown !== undefined &&
+      hitBreakdownDefines(move.hitBreakdown, "phaseChangePoints")
+        ? formatHitBreakdownValue(move.hitBreakdown, "phaseChangePoints")
+        : formatPhaseChangePoints(move.phaseChangePoints)}
+      <ResonanceOverride value={resonancePchText(move)} />
+    </>
+  ),
+};
 
 /**
  * 技（技単位・共鳴ヒット内訳のどちらか）がダメージ表の数値フィールド
@@ -43,51 +97,10 @@ export const hasBreakdownValueInDamageSection = (move: Move): boolean =>
       hitBreakdownDefines(move.resonance?.hitBreakdown, key),
   );
 
-/** 共鳴の数値1項目の表示テキスト。内訳優先、無ければ共鳴の単一値、どちらも無ければ undefined。 */
-const resonanceNumericText = (
-  move: Move,
-  key: HitBreakdownNumericKey,
-): string | undefined => {
-  const resonanceHitBreakdown = move.resonance?.hitBreakdown;
-  // hitBreakdownDefines は型述語ではないため、undefined を除く判定を別に書く必要がある
-  // （formatHitBreakdownValue は undefined を受け取れない）。
-  if (
-    resonanceHitBreakdown !== undefined &&
-    hitBreakdownDefines(resonanceHitBreakdown, key)
-  ) {
-    return formatHitBreakdownValue(resonanceHitBreakdown, key);
-  }
-  return move.resonance?.[key] !== undefined
-    ? formatDamageValue(move.resonance[key])
-    : undefined;
-};
-
-/**
- * 数値1行分のセル。ヒット内訳がそのフィールドを定義していれば内訳表示（例: 50+45×3）、
- * 無ければ従来通り技単位の単一値。共鳴上書きも同じ優先順位（内訳→単一値）で判定する。
- */
-const buildNumericRow = ({
-  header,
-  key,
-}: (typeof HIT_BREAKDOWN_NUMERIC_ROWS)[number]): ComparisonRow => ({
-  header,
-  phaseDependentKeys: [key],
-  renderCell: (move) => (
-    <>
-      {/* undefined 判定は resonanceNumericText と同じ理由で hitBreakdownDefines と別に必要。 */}
-      {move.hitBreakdown !== undefined &&
-      hitBreakdownDefines(move.hitBreakdown, key)
-        ? formatHitBreakdownValue(move.hitBreakdown, key)
-        : formatDamageValue(move[key])}
-      <ResonanceOverride value={resonanceNumericText(move, key)} />
-    </>
-  ),
-});
-
 /**
  * 合計ダメージの行。コンボ補正で perHit×hitCount やヒット内訳の総和と一致しない
  * 多段ヒット技のための実測値（totalDamage、詳細は types/move.ts 参照）で、
- * ヒット内訳を持たないため buildNumericRow の生成対象には含めず単独で定義する。
+ * ヒット内訳を持たないため buildDamageRow の生成対象には含めず単独で定義する。
  */
 const TOTAL_DAMAGE_ROW: ComparisonRow = {
   header: MOVE_FIELD_LABELS.totalDamage,
@@ -105,11 +118,13 @@ const TOTAL_DAMAGE_ROW: ComparisonRow = {
 
 /**
  * ダメージ系の行。全変種で未入力ならセクションごと表示しない（move-detail.tsx 側 hasAnyDamage 参照）。
- * 合計ダメージは基礎ダメージの直後（実測値との対比がしやすい位置）に挿入する。
+ * 合計ダメージは基礎ダメージの直後（実測値との対比がしやすい位置）に挿入し、PCH は既存の
+ * 表示順（moveEnums の HIT_BREAKDOWN_NUMERIC_KEYS で最後）に合わせて末尾に置く。
  */
-export const DAMAGE_ROWS: ComparisonRow[] = HIT_BREAKDOWN_NUMERIC_ROWS.flatMap(
-  (row) =>
-    row.key === "baseDamage"
-      ? [buildNumericRow(row), TOTAL_DAMAGE_ROW]
-      : [buildNumericRow(row)],
-);
+export const DAMAGE_ROWS: ComparisonRow[] = [
+  buildDamageRow("baseDamage"),
+  TOTAL_DAMAGE_ROW,
+  buildDamageRow("chipDamage"),
+  buildDamageRow("guardCrushValue"),
+  PCH_ROW,
+];

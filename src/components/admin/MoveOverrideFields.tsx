@@ -1,4 +1,4 @@
-import { NumberInput, Select, SimpleGrid, TextInput } from "@mantine/core";
+import { Box, NumberInput, Select, SimpleGrid, TextInput } from "@mantine/core";
 import { GUARD_LEVELS } from "@/lib/moves/moveEnums";
 import {
   hitBreakdownDefines,
@@ -129,6 +129,11 @@ const OverrideDamageFields = ({
   // のどの層が実際に baseDamage/hitBreakdown を定義しているかに依るため、この差分自体が
   // 再定義していなくても（技本体や他の層から継承していても）resolveMove で正しく解決する。
   const resolved = resolveMove(move, state);
+  const isMultiHit = isBaseDamageMultiHit(resolved.baseDamage, resolved.hitBreakdown);
+  const pchDisabledByBreakdown = hitBreakdownDefines(
+    value?.hitBreakdown,
+    "phaseChangePoints",
+  );
   return (
     <>
       {DAMAGE_VALUE_FIELDS.map(({ key, label }) => {
@@ -150,16 +155,20 @@ const OverrideDamageFields = ({
           />
         );
       })}
-      <PhaseChangePointsField
-        idPrefix={idPrefix}
-        unsetPlaceholder={PLACEHOLDER_UNCHANGED}
-        hitBreakdown={value?.hitBreakdown}
-        value={value?.phaseChangePoints}
-        onChange={(nextValue) => onFieldChange("phaseChangePoints", nextValue)}
-      />
+      <Box style={{ gridColumn: "1 / -1" }}>
+        <PhaseChangePointsField
+          key={`${idPrefix}-phaseChangePoints-${pchDisabledByBreakdown}-${isMultiHit}`}
+          idPrefix={idPrefix}
+          unsetPlaceholder={PLACEHOLDER_UNCHANGED}
+          disabled={pchDisabledByBreakdown}
+          isMultiHit={isMultiHit}
+          value={value?.phaseChangePoints}
+          onChange={(nextValue) => onFieldChange("phaseChangePoints", nextValue)}
+        />
+      </Box>
       <TotalDamageField
         idPrefix={idPrefix}
-        show={isBaseDamageMultiHit(resolved.baseDamage, resolved.hitBreakdown)}
+        show={isMultiHit}
         placeholder={PLACEHOLDER_UNCHANGED}
         value={value?.totalDamage}
         onChange={(nextValue) => onFieldChange("totalDamage", nextValue)}

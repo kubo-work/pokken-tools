@@ -2,12 +2,13 @@ import { Button, Card, Group, Select, SimpleGrid, Stack, Switch, Text } from "@m
 import {
   AIR_GROUND_JUDGMENTS,
   GUARD_LEVELS,
-  HIT_BREAKDOWN_NUMERIC_KEYS,
+  HIT_BREAKDOWN_DAMAGE_KEYS,
   RESONANCE_FLINCH_LEVELS,
 } from "@/lib/moves/moveEnums";
 import { MOVE_FIELD_LABELS } from "@/lib/moves/moveLabels";
 import { asOptionalEnumValue } from "@/lib/optionGuards";
 import type { HitBreakdownEntry } from "@/types/move";
+import { DecimalNumberInput } from "./DecimalNumberInput";
 import { IntegerNumberInput } from "./IntegerNumberInput";
 import {
   AIR_GROUND_OPTIONS,
@@ -23,10 +24,10 @@ import {
 } from "@/lib/moves/moveHitBreakdownUpdaters";
 
 /**
- * グループごとに入力する数値項目。技単位の入力欄（MoveDamageFields）と同じラベルを使う。
- * 内訳では PCH値もダメージ系と同じ「1ヒットあたりの整数」なので同じ入力欄で扱える。
+ * グループごとに入力するダメージ系の数値項目。技単位の入力欄（MoveDamageFields）と同じラベルを使う。
+ * PCH値だけ小数を許すため（DecimalNumberInput）、この一覧には含めず別に描画する。
  */
-const HIT_BREAKDOWN_NUMERIC_FIELDS = HIT_BREAKDOWN_NUMERIC_KEYS.map((key) => ({
+const HIT_BREAKDOWN_DAMAGE_FIELDS = HIT_BREAKDOWN_DAMAGE_KEYS.map((key) => ({
   key,
   label: MOVE_FIELD_LABELS[key],
 }));
@@ -111,7 +112,7 @@ export const HitBreakdownFields = ({
                       )
                     }
                   />
-                  {HIT_BREAKDOWN_NUMERIC_FIELDS.map(({ key, label }) => (
+                  {HIT_BREAKDOWN_DAMAGE_FIELDS.map(({ key, label }) => (
                     <IntegerNumberInput
                       key={key}
                       label={label}
@@ -125,6 +126,22 @@ export const HitBreakdownFields = ({
                       }
                     />
                   ))}
+                  <DecimalNumberInput
+                    label={MOVE_FIELD_LABELS.phaseChangePoints}
+                    placeholder={PLACEHOLDER_NO_VALUE}
+                    min={0}
+                    value={entry.phaseChangePoints}
+                    onChange={(value) =>
+                      onChange(
+                        setHitBreakdownEntryField(
+                          entries,
+                          index,
+                          "phaseChangePoints",
+                          value,
+                        ),
+                      )
+                    }
+                  />
                   <Select
                     label="判定"
                     placeholder={PLACEHOLDER_NO_VALUE}

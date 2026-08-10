@@ -61,6 +61,25 @@ export const damageValueSchema = z.union([
 ]);
 
 /**
+ * PCH値の区切り1つ。hitCount は1以上（ダメージ系の多段表記と違い、1ヒットの区切りも
+ * 意味を持つため MULTI_HIT_MIN_COUNT を使わない）。
+ */
+export const phaseChangePointsSegmentSchema = z.object({
+  perHit: z.number().nonnegative(),
+  hitCount: z.number().int().min(1),
+});
+
+/**
+ * PCH値。単発・全ヒット一定なら小数を許す単一の数値、ヒットごとに PCH が変わる技は
+ * 区切りの配列（例: 5×1 + 3.5×4）。damageValueSchema と違い、1ヒットの区切りも許可し、
+ * 値そのものに整数制約が無い。
+ */
+export const phaseChangePointsValueSchema = z.union([
+  z.number().nonnegative(),
+  z.array(phaseChangePointsSegmentSchema).min(1),
+]);
+
+/**
  * 合計ダメージ。実測値なので 0 は取らない（当たれば必ずダメージが入る）。
  * 技単位・各上書き層で同じ制約のため 1 つに集約する。
  */
@@ -72,7 +91,7 @@ const hitBreakdownEntrySchema = z
     baseDamage: z.number().int().nonnegative().optional(),
     chipDamage: z.number().int().nonnegative().optional(),
     guardCrushValue: z.number().int().nonnegative().optional(),
-    phaseChangePoints: z.number().int().nonnegative().optional(),
+    phaseChangePoints: z.number().nonnegative().optional(),
     guardLevel: guardLevelSchema.optional(),
     airGroundJudgment: airGroundJudgmentSchema.optional(),
     resonanceFlinch: resonanceFlinchLevelSchema.optional(),
@@ -103,7 +122,7 @@ const moveOverrideBaseSchema = z.object({
   totalDamage: totalDamageSchema.optional(),
   chipDamage: damageValueSchema.optional(),
   guardCrushValue: damageValueSchema.optional(),
-  phaseChangePoints: z.number().int().nonnegative().optional(),
+  phaseChangePoints: phaseChangePointsValueSchema.optional(),
   hitBreakdown: hitBreakdownSchema.optional(),
 });
 

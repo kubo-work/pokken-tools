@@ -3,6 +3,7 @@ import type {
   HitBreakdownEntry,
   JustInputAcceptFrames,
   Move,
+  PhaseChangePointsValue,
   ResonanceFlinch,
   SpecialAttribute,
 } from "@/types/move";
@@ -153,3 +154,26 @@ export const formatHitBreakdownValue = (
       return entry.hitCount > 1 ? `${value}×${entry.hitCount}` : `${value}`;
     })
     .join("+");
+
+/**
+ * PCH値の表示テキスト。未計測は NO_VALUE_LABEL、単一値はそのまま、区切りの配列は
+ * formatHitBreakdownValue と同じ規約（hitCount>1 なら 値×hitCount、「+」連結）で表す。
+ * 区切りが1ヒットのときはヒット数を省略する（例: 5+3.5×4）。
+ */
+export const formatPhaseChangePoints = (
+  value: PhaseChangePointsValue | undefined,
+): string => {
+  if (value === undefined) {
+    return NO_VALUE_LABEL;
+  }
+  if (typeof value === "number") {
+    return `${value}`;
+  }
+  return value
+    .map((segment) =>
+      segment.hitCount > 1
+        ? `${segment.perHit}×${segment.hitCount}`
+        : `${segment.perHit}`,
+    )
+    .join("+");
+};

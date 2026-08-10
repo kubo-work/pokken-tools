@@ -205,6 +205,65 @@ describe("moveSchema: ダメージ系の相互排他", () => {
   });
 });
 
+describe("moveSchema: PCH値の小数点・区切り配列", () => {
+  test("phaseChangePoints に小数を設定できる", () => {
+    expectValid({ ...baseMove, phaseChangePoints: 3.5 });
+  });
+
+  test("上書き層（共鳴）の phaseChangePoints にも小数を設定できる", () => {
+    expectValid({ ...baseMove, resonance: { phaseChangePoints: 12.25 } });
+  });
+
+  test("ヒット内訳の phaseChangePoints にも小数を設定できる", () => {
+    expectValid({
+      ...baseMove,
+      hitBreakdown: [{ hitCount: 1, phaseChangePoints: 30.5 }],
+    });
+  });
+
+  test("ヒットごとに違う PCH を区切りの配列で設定できる（1ヒットの区切りも許可）", () => {
+    expectValid({
+      ...baseMove,
+      phaseChangePoints: [
+        { perHit: 5, hitCount: 1 },
+        { perHit: 3.5, hitCount: 4 },
+      ],
+    });
+  });
+
+  test("区切りの hitCount が 0 だと拒否される", () => {
+    expectInvalid({
+      ...baseMove,
+      phaseChangePoints: [{ perHit: 5, hitCount: 0 }],
+    });
+  });
+
+  test("区切りの perHit が負の値だと拒否される", () => {
+    expectInvalid({
+      ...baseMove,
+      phaseChangePoints: [{ perHit: -1, hitCount: 1 }],
+    });
+  });
+
+  test("区切りの配列が空だと拒否される", () => {
+    expectInvalid({
+      ...baseMove,
+      phaseChangePoints: [],
+    });
+  });
+
+  test("hitBreakdown が phaseChangePoints を定義していると、区切り配列形式でも技単位との併用はできない", () => {
+    expectInvalid({
+      ...baseMove,
+      phaseChangePoints: [{ perHit: 5, hitCount: 1 }],
+      hitBreakdown: [
+        { hitCount: 1, phaseChangePoints: 30 },
+        { hitCount: 3, phaseChangePoints: 10 },
+      ],
+    });
+  });
+});
+
 describe("moveSchema: 合計ダメージ", () => {
   test("基礎ダメージが単一値（1ヒット）の技には設定できない", () => {
     expectInvalid({ ...baseMove, baseDamage: 40, totalDamage: 40 });
