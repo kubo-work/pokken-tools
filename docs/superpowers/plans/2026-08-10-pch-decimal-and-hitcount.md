@@ -20,7 +20,7 @@
 
 ---
 
-### Task A: PCH値の型とスキーマを拡張する
+### Task 1: PCH値の型とスキーマを拡張する
 
 **Files:**
 - Modify: `src/types/move.ts:40-44`（`PhaseChangePointsSegment`/`PhaseChangePointsValue` 追加）
@@ -238,7 +238,7 @@ git commit -m "feat: PCH値に小数点と区切り配列を許可する"
 
 ---
 
-### Task B: PCH値の下書き行⇔保存値の変換関数を書く
+### Task 2: PCH値の下書き行⇔保存値の変換関数を書く
 
 管理画面の入力欄が「N行の値×ヒット数」を編集し、保存時に `PhaseChangePointsValue` へ正規化するための純粋関数。React に依存しないため単体でテストできる。
 
@@ -247,8 +247,8 @@ git commit -m "feat: PCH値に小数点と区切り配列を許可する"
 - Test: `tests/lib/moves/phaseChangePoints.test.ts`
 
 **Interfaces:**
-- Consumes: `PhaseChangePointsValue`、`PhaseChangePointsSegment`（Task A で `src/types/move.ts` に追加済み）。
-- Produces: `PhaseChangePointsDraftRow { perHit: number | string; hitCount: number | string }`、`phaseChangePointsToDraftRows(value: PhaseChangePointsValue | undefined): PhaseChangePointsDraftRow[]`、`draftRowsToPhaseChangePoints(rows: PhaseChangePointsDraftRow[]): PhaseChangePointsValue | undefined`（Task F の `PhaseChangePointsField` が使う）。
+- Consumes: `PhaseChangePointsValue`、`PhaseChangePointsSegment`（Task 1 で `src/types/move.ts` に追加済み）。
+- Produces: `PhaseChangePointsDraftRow { perHit: number | string; hitCount: number | string }`、`phaseChangePointsToDraftRows(value: PhaseChangePointsValue | undefined): PhaseChangePointsDraftRow[]`、`draftRowsToPhaseChangePoints(rows: PhaseChangePointsDraftRow[]): PhaseChangePointsValue | undefined`（Task 6 の `PhaseChangePointsField` が使う）。
 
 - [ ] **Step 1: 失敗するテストを書く**
 
@@ -430,15 +430,15 @@ git commit -m "feat: PCH値の下書き行⇔保存値の変換関数を追加"
 
 ---
 
-### Task C: PCH値の表示フォーマッタを書く
+### Task 3: PCH値の表示フォーマッタを書く
 
 **Files:**
 - Modify: `src/lib/moves/moveFormat.ts`
 - Test: `tests/lib/moves/moveFormat.test.ts`
 
 **Interfaces:**
-- Consumes: `PhaseChangePointsValue`（Task A）。
-- Produces: `formatPhaseChangePoints(value: PhaseChangePointsValue | undefined): string`（Task D の `damageRows.tsx` が使う）。
+- Consumes: `PhaseChangePointsValue`（Task 1）。
+- Produces: `formatPhaseChangePoints(value: PhaseChangePointsValue | undefined): string`（Task 4 の `damageRows.tsx` が使う）。
 
 - [ ] **Step 1: 失敗するテストを書く**
 
@@ -547,7 +547,7 @@ git commit -m "feat: PCH値の表示フォーマッタを追加"
 
 ---
 
-### Task D: 技詳細ページの PCH 行を専用フォーマッタに差し替える
+### Task 4: 技詳細ページの PCH 行を専用フォーマッタに差し替える
 
 `damageRows.tsx` は現在、ダメージ系3項目と PCH値をまとめて `formatDamageValue` で表示している。PCH値の型がダメージ系（`DamageValue`）と分岐したため（区切りの配列 `PhaseChangePointsSegment[]` はダメージ系の `{perHit,hitCount}` 単発オブジェクトと形が違う）、PCH行だけ `formatPhaseChangePoints` を使うよう分離する。
 
@@ -556,7 +556,7 @@ git commit -m "feat: PCH値の表示フォーマッタを追加"
 - Test: `tests/components/moveDetail/damageRows.test.ts`（既存、変更なしで通ることを確認）
 
 **Interfaces:**
-- Consumes: `formatPhaseChangePoints`（Task C）、`HIT_BREAKDOWN_DAMAGE_KEYS` / `HitBreakdownDamageKey`（既存、`src/lib/moves/moveEnums.ts`）。
+- Consumes: `formatPhaseChangePoints`（Task 3）、`HIT_BREAKDOWN_DAMAGE_KEYS` / `HitBreakdownDamageKey`（既存、`src/lib/moves/moveEnums.ts`）。
 - Produces: `DAMAGE_ROWS`（既存のエクスポート名を維持。表示内容・行の並び順は変更しない）。
 
 - [ ] **Step 1: 現状のテストが通ることを確認する（変更前ベースライン）**
@@ -716,7 +716,7 @@ git commit -m "refactor: 技詳細ページの PCH 行を専用フォーマッ�
 
 ---
 
-### Task E: 小数対応の数値入力欄（DecimalNumberInput）を追加する
+### Task 5: 小数対応の数値入力欄（DecimalNumberInput）を追加する
 
 `IntegerNumberInput` は `allowDecimal={false}` 固定で小数を受け付けない。共通の非制御実装を `BaseNumberInput` に切り出し、`IntegerNumberInput`／新設の `DecimalNumberInput` はどちらも `allowDecimal` だけが異なる薄いラッパーにする。
 
@@ -728,7 +728,7 @@ git commit -m "refactor: 技詳細ページの PCH 行を専用フォーマッ�
 - Create: `src/components/admin/DecimalNumberInput.tsx`
 
 **Interfaces:**
-- Produces: `BaseNumberInputProps`（`allowDecimal: boolean` を持つ）、`IntegerNumberInputProps = Omit<BaseNumberInputProps, "allowDecimal">`（既存と同一の形）、`DecimalNumberInputProps = Omit<BaseNumberInputProps, "allowDecimal">`。`DecimalNumberInput`（Task F の `PhaseChangePointsField` と Task G の `HitBreakdownFields` が使う）。
+- Produces: `BaseNumberInputProps`（`allowDecimal: boolean` を持つ）、`IntegerNumberInputProps = Omit<BaseNumberInputProps, "allowDecimal">`（既存と同一の形）、`DecimalNumberInputProps = Omit<BaseNumberInputProps, "allowDecimal">`。`DecimalNumberInput`（Task 6 の `PhaseChangePointsField` と Task 7 の `HitBreakdownFields` が使う）。
 
 - [ ] **Step 1: 共通実装を切り出す**
 
@@ -847,7 +847,7 @@ export const DecimalNumberInput = (props: DecimalNumberInputProps) => (
 - [ ] **Step 4: 型チェックを実行する**
 
 Run: `bun run typecheck`
-Expected: この3ファイルに起因するエラーが無いこと。（Task A〜C は完了済みのためこの時点で解消しているはずのエラーと、Task F・G 未着手のために残る `PhaseChangePointsField.tsx` 関連のエラーは想定内。3ファイル自体にエラーが出ていないことを確認する。）
+Expected: この3ファイルに起因するエラーが無いこと。（Task 1〜3 は完了済みのためこの時点で解消しているはずのエラーと、Task 6・G 未着手のために残る `PhaseChangePointsField.tsx` 関連のエラーは想定内。3ファイル自体にエラーが出ていないことを確認する。）
 
 - [ ] **Step 5: コミット**
 
@@ -858,18 +858,18 @@ git commit -m "refactor: 数値入力欄の共通実装を切り出し、小数�
 
 ---
 
-### Task F: PhaseChangePointsField を複数行エディタに書き換える
+### Task 6: PhaseChangePointsField を複数行エディタに書き換える
 
-現在の `PhaseChangePointsField` は `IntegerNumberInput` 1つだけの単純な入力欄。Task B の変換関数を使い、1〜N行の「PCH値×ヒット数」を編集できるエディタに書き換える。行の追加・削除に対応し、`disabled` はヒット内訳側で設定済みかどうかを呼び出し側（Task G）から直接渡してもらう形に変える（`DamageValueField` と同じ prop 形）。
+現在の `PhaseChangePointsField` は `IntegerNumberInput` 1つだけの単純な入力欄。Task 2 の変換関数を使い、1〜N行の「PCH値×ヒット数」を編集できるエディタに書き換える。行の追加・削除に対応し、`disabled` はヒット内訳側で設定済みかどうかを呼び出し側（Task 7）から直接渡してもらう形に変える（`DamageValueField` と同じ prop 形）。
 
-このタスクにもコンポーネント単体テストの仕組みが無いため自動テストは追加しない。ロジック（下書き行⇔保存値の変換）は Task B で既にテスト済みで、このタスクはそれを UI に配線するだけである。
+このタスクにもコンポーネント単体テストの仕組みが無いため自動テストは追加しない。ロジック（下書き行⇔保存値の変換）は Task 2 で既にテスト済みで、このタスクはそれを UI に配線するだけである。
 
 **Files:**
 - Modify: `src/components/admin/PhaseChangePointsField.tsx`
 
 **Interfaces:**
-- Consumes: `phaseChangePointsToDraftRows`／`draftRowsToPhaseChangePoints`（Task B）、`DecimalNumberInput`（Task E）、`IntegerNumberInput`（既存）。
-- Produces: `PhaseChangePointsFieldProps { idPrefix: string; description?: string; unsetPlaceholder: string; disabled: boolean; value: PhaseChangePointsValue | undefined; onChange: (value: PhaseChangePointsValue | undefined) => void }`（`hitBreakdown` prop を廃止し `disabled: boolean` に変更。Task G の呼び出し側がこの新しい形に合わせて `disabled` を計算して渡す）。
+- Consumes: `phaseChangePointsToDraftRows`／`draftRowsToPhaseChangePoints`（Task 2）、`DecimalNumberInput`（Task 5）、`IntegerNumberInput`（既存）。
+- Produces: `PhaseChangePointsFieldProps { idPrefix: string; description?: string; unsetPlaceholder: string; disabled: boolean; value: PhaseChangePointsValue | undefined; onChange: (value: PhaseChangePointsValue | undefined) => void }`（`hitBreakdown` prop を廃止し `disabled: boolean` に変更。Task 7 の呼び出し側がこの新しい形に合わせて `disabled` を計算して渡す）。
 
 - [ ] **Step 1: 実装する**
 
@@ -1000,7 +1000,7 @@ export const PhaseChangePointsField = ({
 - [ ] **Step 2: 型チェックを実行する**
 
 Run: `bun run typecheck`
-Expected: `PhaseChangePointsField.tsx` 自体に起因するエラーが無いこと。呼び出し側（`MoveDamageFields.tsx`/`MoveOverrideFields.tsx`、まだ Task G 未着手）は `hitBreakdown` prop を渡しており `disabled` prop が無いためエラーが出るはずだが、これは Task G で解消する想定内のエラー。
+Expected: `PhaseChangePointsField.tsx` 自体に起因するエラーが無いこと。呼び出し側（`MoveDamageFields.tsx`/`MoveOverrideFields.tsx`、まだ Task 7 未着手）は `hitBreakdown` prop を渡しており `disabled` prop が無いためエラーが出るはずだが、これは Task 7 で解消する想定内のエラー。
 
 - [ ] **Step 3: コミット**
 
@@ -1011,9 +1011,9 @@ git commit -m "feat: PCH値の入力欄を複数行編集できるエディタ�
 
 ---
 
-### Task G: 呼び出し側を新しい PCH フィールドに合わせる
+### Task 7: 呼び出し側を新しい PCH フィールドに合わせる
 
-`PhaseChangePointsField` の props が `hitBreakdown` → `disabled` に変わったため（Task F）、2つの呼び出し側（技単位・条件付き差分）を更新する。あわせて、ヒット内訳（`HitBreakdownFields`）の PCH 入力欄も `IntegerNumberInput` から `DecimalNumberInput` に切り替え、小数を入力できるようにする（Task A でスキーマは既に小数を許可済み）。
+`PhaseChangePointsField` の props が `hitBreakdown` → `disabled` に変わったため（Task 6）、2つの呼び出し側（技単位・条件付き差分）を更新する。あわせて、ヒット内訳（`HitBreakdownFields`）の PCH 入力欄も `IntegerNumberInput` から `DecimalNumberInput` に切り替え、小数を入力できるようにする（Task 1 でスキーマは既に小数を許可済み）。
 
 **Files:**
 - Modify: `src/components/admin/MoveDamageFields.tsx`
@@ -1021,7 +1021,7 @@ git commit -m "feat: PCH値の入力欄を複数行編集できるエディタ�
 - Modify: `src/components/admin/HitBreakdownFields.tsx`
 
 **Interfaces:**
-- Consumes: `PhaseChangePointsField`（Task F、`disabled: boolean` prop）、`DecimalNumberInput`（Task E）、`hitBreakdownDefines`（既存、`src/lib/moves/moveRules.ts`）。
+- Consumes: `PhaseChangePointsField`（Task 6、`disabled: boolean` prop）、`DecimalNumberInput`（Task 5）、`hitBreakdownDefines`（既存、`src/lib/moves/moveRules.ts`）。
 
 - [ ] **Step 1: MoveDamageFields.tsx を更新する**
 
@@ -1205,7 +1205,7 @@ const HIT_BREAKDOWN_DAMAGE_FIELDS = HIT_BREAKDOWN_DAMAGE_KEYS.map((key) => ({
 - [ ] **Step 4: 型チェックとテスト全体を実行する**
 
 Run: `bun run typecheck`
-Expected: エラー無し（Task A〜G の全変更が揃い、型不整合が解消されている）
+Expected: エラー無し（Task 1〜7 の全変更が揃い、型不整合が解消されている）
 
 Run: `bun test`
 Expected: 全テスト PASS
@@ -1219,7 +1219,7 @@ git commit -m "feat: PCH値入力欄の呼び出し側を更新し、ヒット�
 
 ---
 
-### Task H: 最終確認
+### Task 8: 最終確認
 
 **Files:** なし（確認のみ）
 
