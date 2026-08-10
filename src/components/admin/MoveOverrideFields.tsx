@@ -151,9 +151,10 @@ const OverrideDamageFields = ({
         );
       })}
       <PhaseChangePointsField
+        key={`${idPrefix}-phaseChangePoints-${hitBreakdownDefines(value?.hitBreakdown, "phaseChangePoints")}`}
         idPrefix={idPrefix}
         unsetPlaceholder={PLACEHOLDER_UNCHANGED}
-        hitBreakdown={value?.hitBreakdown}
+        disabled={hitBreakdownDefines(value?.hitBreakdown, "phaseChangePoints")}
         value={value?.phaseChangePoints}
         onChange={(nextValue) => onFieldChange("phaseChangePoints", nextValue)}
       />

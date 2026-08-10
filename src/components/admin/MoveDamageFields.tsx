@@ -54,10 +54,11 @@ export const MoveDamageFields = ({ move, onChange }: MoveFieldGroupProps) => (
       );
     })}
     <PhaseChangePointsField
+      key={`${move.id}-phaseChangePoints-${hitBreakdownDefines(move.hitBreakdown, "phaseChangePoints")}`}
       idPrefix={move.id}
       description="フェイズチェンジポイント"
       unsetPlaceholder={PLACEHOLDER_NOT_MEASURED}
-      hitBreakdown={move.hitBreakdown}
+      disabled={hitBreakdownDefines(move.hitBreakdown, "phaseChangePoints")}
       value={move.phaseChangePoints}
       onChange={(value) =>
         onChange(setOptionalMoveField(move, "phaseChangePoints", value))
