@@ -125,7 +125,6 @@ export const PhaseChangePointsField = ({
           />
           <IntegerNumberInput
             label="PCH値のヒット数"
-            description="ヒットごとに PCH が違う場合のみ入力"
             disabled={disabled}
             min={1}
             value={typeof row.hitCount === "number" ? row.hitCount : undefined}
