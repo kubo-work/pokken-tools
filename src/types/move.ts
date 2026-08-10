@@ -43,6 +43,22 @@ export type ResonanceFlinch =
  */
 export type DamageValue = number | { perHit: number; hitCount: number };
 /**
+ * PCH値の区切り1つ。ヒットごとに PCH が変わる技で、同じ値が連続するヒットのまとまり。
+ * ダメージ系の多段表記（DamageValue のオブジェクト形）と違い hitCount は1以上を許す
+ * （1ヒットだけ PCH が違う技を区切り1個で表せるようにするため）。
+ */
+export interface PhaseChangePointsSegment {
+  perHit: number;
+  hitCount: number;
+}
+/**
+ * PCH値。単発・全ヒットで PCH が一定の多段技は number（小数可）、ヒットごとに PCH が
+ * 変わる技は区切りの配列（例: 5×1 + 3.5×4 は [{perHit:5,hitCount:1},{perHit:3.5,hitCount:4}]）。
+ * ヒット内訳（HitBreakdownEntry.phaseChangePoints）とは別の軸で、ダメージ等は変わらず
+ * PCH だけ違う技のために使う。
+ */
+export type PhaseChangePointsValue = number | PhaseChangePointsSegment[];
+/**
  * ヒットごとに性能が変わる技の、同じ性能が連続するヒットのまとまり（グループ）。
  * 値はすべて「グループ内の1ヒットあたり」の値（例: 45×3 なら baseDamage: 45, hitCount: 3）。
  * 未設定のフィールドは「その打点では値なし（-表示）」であり、技単位の値の継承ではない。
@@ -57,6 +73,7 @@ export interface HitBreakdownEntry {
   baseDamage?: number;
   chipDamage?: number;
   guardCrushValue?: number;
+  /** 小数可。グループ内は単一値のため、ヒットごとに違う PCH は Move.phaseChangePoints の区切り配列側で表す。 */
   phaseChangePoints?: number;
   guardLevel?: GuardLevel;
   airGroundJudgment?: AirGroundJudgment;
@@ -100,7 +117,7 @@ export interface MoveOverrideBase {
   totalDamage?: number;
   chipDamage?: DamageValue;
   guardCrushValue?: DamageValue;
-  phaseChangePoints?: number;
+  phaseChangePoints?: PhaseChangePointsValue;
   /** その条件下だけヒットごとの性能が変わる技向け。技単位の hitBreakdown と同じ規約。 */
   hitBreakdown?: HitBreakdownEntry[];
 }
@@ -247,8 +264,11 @@ export interface Move {
   chipDamage?: DamageValue;
   /** ガード削り値（相手のガードゲージを削る量）。未計測なら省略。 */
   guardCrushValue?: DamageValue;
-  /** PCH値（フェイズチェンジポイント）。未計測なら省略。 */
-  phaseChangePoints?: number;
+  /**
+   * PCH値（フェイズチェンジポイント）。未計測なら省略。小数可。ヒットごとに PCH が
+   * 変わる技は区切りの配列（PhaseChangePointsValue 参照）。
+   */
+  phaseChangePoints?: PhaseChangePointsValue;
   /**
    * ヒットごとに性能が変わる技の内訳（1グループ以上）。
    * baseDamage/chipDamage/guardCrushValue/guardLevel/airGroundJudgment のうち
