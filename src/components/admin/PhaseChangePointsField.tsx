@@ -98,6 +98,9 @@ export const PhaseChangePointsField = ({
           {description}
         </Text>
       )}
+      <Text size="xs" c="dimmed">
+        ヒットごとに PCH が違う場合のみ「ヒット数」を入力してください
+      </Text>
       {rows.map((row, index) => (
         <Group
           key={`${idPrefix}-phaseChangePoints-${index}-${rows.length}`}
