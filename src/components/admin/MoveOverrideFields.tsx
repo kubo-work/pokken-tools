@@ -1,4 +1,4 @@
-import { NumberInput, Select, SimpleGrid, TextInput } from "@mantine/core";
+import { Box, NumberInput, Select, SimpleGrid, TextInput } from "@mantine/core";
 import { GUARD_LEVELS } from "@/lib/moves/moveEnums";
 import {
   hitBreakdownDefines,
@@ -151,15 +151,17 @@ const OverrideDamageFields = ({
           />
         );
       })}
-      <PhaseChangePointsField
-        key={`${idPrefix}-phaseChangePoints-${hitBreakdownDefines(value?.hitBreakdown, "phaseChangePoints")}`}
-        idPrefix={idPrefix}
-        unsetPlaceholder={PLACEHOLDER_UNCHANGED}
-        disabled={hitBreakdownDefines(value?.hitBreakdown, "phaseChangePoints")}
-        isMultiHit={isMultiHit}
-        value={value?.phaseChangePoints}
-        onChange={(nextValue) => onFieldChange("phaseChangePoints", nextValue)}
-      />
+      <Box style={{ gridColumn: "1 / -1" }}>
+        <PhaseChangePointsField
+          key={`${idPrefix}-phaseChangePoints-${hitBreakdownDefines(value?.hitBreakdown, "phaseChangePoints")}-${isMultiHit}`}
+          idPrefix={idPrefix}
+          unsetPlaceholder={PLACEHOLDER_UNCHANGED}
+          disabled={hitBreakdownDefines(value?.hitBreakdown, "phaseChangePoints")}
+          isMultiHit={isMultiHit}
+          value={value?.phaseChangePoints}
+          onChange={(nextValue) => onFieldChange("phaseChangePoints", nextValue)}
+        />
+      </Box>
       <TotalDamageField
         idPrefix={idPrefix}
         show={isMultiHit}

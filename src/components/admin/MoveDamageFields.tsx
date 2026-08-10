@@ -1,4 +1,4 @@
-import { SimpleGrid } from "@mantine/core";
+import { Box, SimpleGrid } from "@mantine/core";
 import { MOVE_FIELD_LABELS } from "@/lib/moves/moveLabels";
 import { hitBreakdownDefines, isBaseDamageMultiHit } from "@/lib/moves/moveRules";
 import type { MoveFieldGroupProps } from "./moveFieldProps";
@@ -55,18 +55,20 @@ export const MoveDamageFields = ({ move, onChange }: MoveFieldGroupProps) => {
           />
         );
       })}
-      <PhaseChangePointsField
-        key={`${move.id}-phaseChangePoints-${hitBreakdownDefines(move.hitBreakdown, "phaseChangePoints")}`}
-        idPrefix={move.id}
-        description="フェイズチェンジポイント"
-        unsetPlaceholder={PLACEHOLDER_NOT_MEASURED}
-        disabled={hitBreakdownDefines(move.hitBreakdown, "phaseChangePoints")}
-        isMultiHit={isMultiHit}
-        value={move.phaseChangePoints}
-        onChange={(value) =>
-          onChange(setOptionalMoveField(move, "phaseChangePoints", value))
-        }
-      />
+      <Box style={{ gridColumn: "1 / -1" }}>
+        <PhaseChangePointsField
+          key={`${move.id}-phaseChangePoints-${hitBreakdownDefines(move.hitBreakdown, "phaseChangePoints")}-${isMultiHit}`}
+          idPrefix={move.id}
+          description="フェイズチェンジポイント"
+          unsetPlaceholder={PLACEHOLDER_NOT_MEASURED}
+          disabled={hitBreakdownDefines(move.hitBreakdown, "phaseChangePoints")}
+          isMultiHit={isMultiHit}
+          value={move.phaseChangePoints}
+          onChange={(value) =>
+            onChange(setOptionalMoveField(move, "phaseChangePoints", value))
+          }
+        />
+      </Box>
       <TotalDamageField
         idPrefix={move.id}
         show={isMultiHit}

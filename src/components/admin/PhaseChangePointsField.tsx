@@ -40,8 +40,10 @@ export interface PhaseChangePointsFieldProps {
  *
  * DamageValueField と同じ理由で、確定できない下書き行（値だけ入れてヒット数は未入力、
  * または追加直後の空行）をローカル state で保持する。呼び出し側は disabled が切り替わる
- * タイミング・対象の技を切り替えるタイミングで key を変えて再マウントさせること
- * （DamageValueField と同じ契約）。
+ * タイミング・対象の技を切り替えるタイミング・isMultiHit が切り替わるタイミングで key を
+ * 変えて再マウントさせること（DamageValueField と同じ契約）。isMultiHit を key に含めない
+ * と、単発↔多段の切り替えをまたいで rows がローカル state に残ったまま再初期化されず、
+ * 古い rows で value を上書きしてしまう。
  */
 export const PhaseChangePointsField = ({
   idPrefix,
