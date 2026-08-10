@@ -1219,7 +1219,434 @@ git commit -m "feat: PCH値入力欄の呼び出し側を更新し、ヒット�
 
 ---
 
-### Task 8: 最終確認
+### Task 9: 単発技では PCH 値の入力欄を単一の値だけにする
+
+Task 6〜7 の時点では、単発技（基礎ダメージが多段ヒットでない技）でも PCH 値欄は
+常に複数行エディタ（値＋ヒット数＋追加/削除ボタン）を表示していた。単発技には
+「ヒットごとに PCH が違う」という概念自体が存在しないため、ヒット数欄や追加ボタンが
+意味を持たず紛らわしい。多段ヒット技（`isBaseDamageMultiHit` が true）のときだけ
+複数行エディタを出し、単発技では値の入力欄1つだけ（Issue #79 以前の見た目に近いが
+小数入力は可能）にする。
+
+判定には既存の `isBaseDamageMultiHit(baseDamage, hitBreakdown)`
+（`src/lib/moves/moveRules.ts`）をそのまま使う。`TotalDamageField` が同じ関数で
+「多段ヒットのときだけ表示」を実現しているのと同じ考え方。
+
+**Files:**
+- Modify: `src/components/admin/PhaseChangePointsField.tsx`
+- Modify: `src/components/admin/MoveDamageFields.tsx`
+- Modify: `src/components/admin/MoveOverrideFields.tsx`
+
+**Interfaces:**
+- Consumes: `isBaseDamageMultiHit`（既存、`src/lib/moves/moveRules.ts`）。
+- Produces: `PhaseChangePointsFieldProps` に `isMultiHit: boolean` を追加（`disabled`
+  と並ぶ必須 prop。呼び出し側は `isBaseDamageMultiHit(...)` の結果を渡す）。
+
+このタスクにもコンポーネント単体テストの仕組みが無いため自動テストは追加しない。
+`isBaseDamageMultiHit` 自体は既存の `tests/lib/moves/moveRules.test.ts` で
+テスト済みであり、このタスクはその結果を UI の分岐に使うだけである。
+
+- [ ] **Step 1: PhaseChangePointsField.tsx を書き換える**
+
+`src/components/admin/PhaseChangePointsField.tsx` を全文以下に置き換える。
+
+```tsx
+import { useEffect, useState } from "react";
+import { Button, Group, Stack, Text } from "@mantine/core";
+import {
+  draftRowsToPhaseChangePoints,
+  phaseChangePointsToDraftRows,
+  type PhaseChangePointsDraftRow,
+} from "@/lib/moves/phaseChangePoints";
+import { MOVE_FIELD_LABELS } from "@/lib/moves/moveLabels";
+import type { PhaseChangePointsValue } from "@/types/move";
+import { DecimalNumberInput } from "./DecimalNumberInput";
+import { IntegerNumberInput } from "./IntegerNumberInput";
+import { PLACEHOLDER_SET_BY_HIT_BREAKDOWN } from "./moveFieldsHelpers";
+
+export interface PhaseChangePointsFieldProps {
+  /** 入力欄の key に使う接頭辞。技単位／各条件付き差分で衝突しない値を渡す。 */
+  idPrefix: string;
+  description?: string;
+  /** ヒット内訳で設定済みでないときの placeholder。技単位は「未計測」、差分は「変化なし」。 */
+  unsetPlaceholder: string;
+  /** true ならヒット内訳でこの項目が設定済み（併用不可）のため入力を無効化する。 */
+  disabled: boolean;
+  /**
+   * 基礎ダメージが実効的に多段ヒットか（isBaseDamageMultiHit の結果を呼び出し側から渡す）。
+   * false（単発技）のときは値の入力欄1つだけを表示し、ヒット数入力・行の追加削除は出さない
+   * （単発技には「ヒットごとに違う PCH」という概念が無いため）。
+   */
+  isMultiHit: boolean;
+  value: PhaseChangePointsValue | undefined;
+  onChange: (value: PhaseChangePointsValue | undefined) => void;
+}
+
+/**
+ * PCH値の入力欄。
+ *
+ * 多段ヒット技（isMultiHit）だけ、1〜N行の「値×ヒット数」を編集できるようにする。
+ * ヒットごとに他の性能は変わらず PCH だけ違う技のために、ヒット内訳（HitBreakdownFields）
+ * とは独立に任意個の区切りを持てる。単発技には「ヒットごとに違う PCH」という概念が無いため、
+ * isMultiHit が false のときは値の入力欄1つだけを表示する（Issue #79 以前の見た目に相当、
+ * 小数入力にのみ対応した形）。
+ *
+ * DamageValueField と同じ理由で、確定できない下書き行（値だけ入れてヒット数は未入力、
+ * または追加直後の空行）をローカル state で保持する。呼び出し側は disabled が切り替わる
+ * タイミング・対象の技を切り替えるタイミングで key を変えて再マウントさせること
+ * （DamageValueField と同じ契約）。
+ */
+export const PhaseChangePointsField = ({
+  idPrefix,
+  description,
+  unsetPlaceholder,
+  disabled,
+  isMultiHit,
+  value,
+  onChange,
+}: PhaseChangePointsFieldProps) => {
+  const [rows, setRows] = useState<PhaseChangePointsDraftRow[]>(() =>
+    phaseChangePointsToDraftRows(value),
+  );
+
+  // 単発技になった（isMultiHit が false になった）のに区切りの配列が残っていると、
+  // 単一値の入力欄には出せない値が保存されたままになる。TotalDamageField が
+  // 非表示化と同時に値を消すのと同じ理由で、ここでも表示を切り替えると同時に消す。
+  useEffect(() => {
+    if (!isMultiHit && Array.isArray(value)) {
+      onChange(undefined);
+    }
+  }, [isMultiHit, value, onChange]);
+
+  const updateRows = (nextRows: PhaseChangePointsDraftRow[]) => {
+    setRows(nextRows);
+    onChange(draftRowsToPhaseChangePoints(nextRows));
+  };
+
+  if (!isMultiHit) {
+    return (
+      <DecimalNumberInput
+        label={MOVE_FIELD_LABELS.phaseChangePoints}
+        description={description}
+        placeholder={
+          disabled ? PLACEHOLDER_SET_BY_HIT_BREAKDOWN : unsetPlaceholder
+        }
+        disabled={disabled}
+        min={0}
+        value={typeof value === "number" ? value : undefined}
+        onChange={onChange}
+      />
+    );
+  }
+
+  return (
+    <Stack gap="xs">
+      <Text size="sm" fw={500}>
+        {MOVE_FIELD_LABELS.phaseChangePoints}
+      </Text>
+      {description !== undefined && (
+        <Text size="xs" c="dimmed">
+          {description}
+        </Text>
+      )}
+      {rows.map((row, index) => (
+        <Group
+          key={`${idPrefix}-phaseChangePoints-${index}-${rows.length}`}
+          gap="xs"
+          align="flex-end"
+        >
+          <DecimalNumberInput
+            label={rows.length > 1 ? `PCH値${index + 1}` : "PCH値"}
+            placeholder={
+              disabled ? PLACEHOLDER_SET_BY_HIT_BREAKDOWN : unsetPlaceholder
+            }
+            disabled={disabled}
+            min={0}
+            value={typeof row.perHit === "number" ? row.perHit : undefined}
+            onChange={(nextValue) =>
+              updateRows(
+                rows.map((r, i) =>
+                  i === index ? { ...r, perHit: nextValue ?? "" } : r,
+                ),
+              )
+            }
+          />
+          <IntegerNumberInput
+            label="PCH値のヒット数"
+            description="ヒットごとに PCH が違う場合のみ入力"
+            disabled={disabled}
+            min={1}
+            value={typeof row.hitCount === "number" ? row.hitCount : undefined}
+            onChange={(nextValue) =>
+              updateRows(
+                rows.map((r, i) =>
+                  i === index ? { ...r, hitCount: nextValue ?? "" } : r,
+                ),
+              )
+            }
+          />
+          <Button
+            variant="subtle"
+            color="red"
+            size="compact-xs"
+            disabled={disabled || rows.length <= 1}
+            onClick={() => updateRows(rows.filter((_, i) => i !== index))}
+          >
+            削除
+          </Button>
+        </Group>
+      ))}
+      <Button
+        variant="light"
+        size="xs"
+        disabled={disabled}
+        onClick={() => updateRows([...rows, { perHit: "", hitCount: "" }])}
+      >
+        PCH値を追加
+      </Button>
+    </Stack>
+  );
+};
+```
+
+- [ ] **Step 2: MoveDamageFields.tsx を更新する**
+
+`src/components/admin/MoveDamageFields.tsx` の `MoveDamageFields` 全体を以下に置き換える
+（`isBaseDamageMultiHit` の呼び出しを1箇所にまとめ、`PhaseChangePointsField` と
+`TotalDamageField` の両方で使い回す）。
+
+変更前:
+```tsx
+export const MoveDamageFields = ({ move, onChange }: MoveFieldGroupProps) => (
+  <SimpleGrid cols={{ base: 2, sm: 4 }}>
+    {DAMAGE_VALUE_FIELDS.map(({ key, label }) => {
+      const disabledByBreakdown = hitBreakdownDefines(move.hitBreakdown, key);
+      return (
+        <DamageValueField
+          // disabled 切替時に DamageValueField 内部の非制御 draft state を
+          // 破棄するため、key に disabledByBreakdown を含めて強制的に再マウントする。
+          key={`${move.id}-${key}-${disabledByBreakdown}`}
+          label={label}
+          placeholder={
+            disabledByBreakdown
+              ? PLACEHOLDER_SET_BY_HIT_BREAKDOWN
+              : PLACEHOLDER_NOT_MEASURED
+          }
+          disabled={disabledByBreakdown}
+          value={move[key]}
+          onChange={(value) => onChange(setOptionalMoveField(move, key, value))}
+        />
+      );
+    })}
+    <PhaseChangePointsField
+      key={`${move.id}-phaseChangePoints-${hitBreakdownDefines(move.hitBreakdown, "phaseChangePoints")}`}
+      idPrefix={move.id}
+      description="フェイズチェンジポイント"
+      unsetPlaceholder={PLACEHOLDER_NOT_MEASURED}
+      disabled={hitBreakdownDefines(move.hitBreakdown, "phaseChangePoints")}
+      value={move.phaseChangePoints}
+      onChange={(value) =>
+        onChange(setOptionalMoveField(move, "phaseChangePoints", value))
+      }
+    />
+    <TotalDamageField
+      idPrefix={move.id}
+      show={isBaseDamageMultiHit(move.baseDamage, move.hitBreakdown)}
+      placeholder={PLACEHOLDER_NOT_MEASURED}
+      value={move.totalDamage}
+      onChange={(value) =>
+        onChange(setOptionalMoveField(move, "totalDamage", value))
+      }
+    />
+  </SimpleGrid>
+);
+```
+
+変更後:
+```tsx
+export const MoveDamageFields = ({ move, onChange }: MoveFieldGroupProps) => {
+  const isMultiHit = isBaseDamageMultiHit(move.baseDamage, move.hitBreakdown);
+  return (
+    <SimpleGrid cols={{ base: 2, sm: 4 }}>
+      {DAMAGE_VALUE_FIELDS.map(({ key, label }) => {
+        const disabledByBreakdown = hitBreakdownDefines(move.hitBreakdown, key);
+        return (
+          <DamageValueField
+            // disabled 切替時に DamageValueField 内部の非制御 draft state を
+            // 破棄するため、key に disabledByBreakdown を含めて強制的に再マウントする。
+            key={`${move.id}-${key}-${disabledByBreakdown}`}
+            label={label}
+            placeholder={
+              disabledByBreakdown
+                ? PLACEHOLDER_SET_BY_HIT_BREAKDOWN
+                : PLACEHOLDER_NOT_MEASURED
+            }
+            disabled={disabledByBreakdown}
+            value={move[key]}
+            onChange={(value) => onChange(setOptionalMoveField(move, key, value))}
+          />
+        );
+      })}
+      <PhaseChangePointsField
+        key={`${move.id}-phaseChangePoints-${hitBreakdownDefines(move.hitBreakdown, "phaseChangePoints")}`}
+        idPrefix={move.id}
+        description="フェイズチェンジポイント"
+        unsetPlaceholder={PLACEHOLDER_NOT_MEASURED}
+        disabled={hitBreakdownDefines(move.hitBreakdown, "phaseChangePoints")}
+        isMultiHit={isMultiHit}
+        value={move.phaseChangePoints}
+        onChange={(value) =>
+          onChange(setOptionalMoveField(move, "phaseChangePoints", value))
+        }
+      />
+      <TotalDamageField
+        idPrefix={move.id}
+        show={isMultiHit}
+        placeholder={PLACEHOLDER_NOT_MEASURED}
+        value={move.totalDamage}
+        onChange={(value) =>
+          onChange(setOptionalMoveField(move, "totalDamage", value))
+        }
+      />
+    </SimpleGrid>
+  );
+};
+```
+
+- [ ] **Step 3: MoveOverrideFields.tsx を更新する**
+
+`src/components/admin/MoveOverrideFields.tsx` の `OverrideDamageFields` を以下に
+置き換える（`resolved` から求めた多段ヒット判定を1箇所にまとめ、`PhaseChangePointsField`
+と `TotalDamageField` の両方で使い回す）。
+
+変更前:
+```tsx
+const OverrideDamageFields = ({
+  move,
+  state,
+  idPrefix,
+  value,
+  onFieldChange,
+}: OverrideFieldGroupProps & { move: Move; state: MoveState }) => {
+  // この条件下で実効的に基礎ダメージが多段ヒットかどうかは、resonance/justInput/fieldPhase
+  // のどの層が実際に baseDamage/hitBreakdown を定義しているかに依るため、この差分自体が
+  // 再定義していなくても（技本体や他の層から継承していても）resolveMove で正しく解決する。
+  const resolved = resolveMove(move, state);
+  return (
+    <>
+      {DAMAGE_VALUE_FIELDS.map(({ key, label }) => {
+        const disabledByBreakdown = hitBreakdownDefines(value?.hitBreakdown, key);
+        return (
+          <DamageValueField
+            // disabled 切替時に DamageValueField 内部の非制御 draft state を
+            // 破棄するため、key に disabledByBreakdown を含めて強制的に再マウントする。
+            key={`${idPrefix}-${key}-${disabledByBreakdown}`}
+            label={label}
+            placeholder={
+              disabledByBreakdown
+                ? PLACEHOLDER_SET_BY_HIT_BREAKDOWN
+                : PLACEHOLDER_UNCHANGED
+            }
+            disabled={disabledByBreakdown}
+            value={value?.[key]}
+            onChange={(nextValue) => onFieldChange(key, nextValue)}
+          />
+        );
+      })}
+      <PhaseChangePointsField
+        key={`${idPrefix}-phaseChangePoints-${hitBreakdownDefines(value?.hitBreakdown, "phaseChangePoints")}`}
+        idPrefix={idPrefix}
+        unsetPlaceholder={PLACEHOLDER_UNCHANGED}
+        disabled={hitBreakdownDefines(value?.hitBreakdown, "phaseChangePoints")}
+        value={value?.phaseChangePoints}
+        onChange={(nextValue) => onFieldChange("phaseChangePoints", nextValue)}
+      />
+      <TotalDamageField
+        idPrefix={idPrefix}
+        show={isBaseDamageMultiHit(resolved.baseDamage, resolved.hitBreakdown)}
+        placeholder={PLACEHOLDER_UNCHANGED}
+        value={value?.totalDamage}
+        onChange={(nextValue) => onFieldChange("totalDamage", nextValue)}
+      />
+    </>
+  );
+};
+```
+
+変更後:
+```tsx
+const OverrideDamageFields = ({
+  move,
+  state,
+  idPrefix,
+  value,
+  onFieldChange,
+}: OverrideFieldGroupProps & { move: Move; state: MoveState }) => {
+  // この条件下で実効的に基礎ダメージが多段ヒットかどうかは、resonance/justInput/fieldPhase
+  // のどの層が実際に baseDamage/hitBreakdown を定義しているかに依るため、この差分自体が
+  // 再定義していなくても（技本体や他の層から継承していても）resolveMove で正しく解決する。
+  const resolved = resolveMove(move, state);
+  const isMultiHit = isBaseDamageMultiHit(resolved.baseDamage, resolved.hitBreakdown);
+  return (
+    <>
+      {DAMAGE_VALUE_FIELDS.map(({ key, label }) => {
+        const disabledByBreakdown = hitBreakdownDefines(value?.hitBreakdown, key);
+        return (
+          <DamageValueField
+            // disabled 切替時に DamageValueField 内部の非制御 draft state を
+            // 破棄するため、key に disabledByBreakdown を含めて強制的に再マウントする。
+            key={`${idPrefix}-${key}-${disabledByBreakdown}`}
+            label={label}
+            placeholder={
+              disabledByBreakdown
+                ? PLACEHOLDER_SET_BY_HIT_BREAKDOWN
+                : PLACEHOLDER_UNCHANGED
+            }
+            disabled={disabledByBreakdown}
+            value={value?.[key]}
+            onChange={(nextValue) => onFieldChange(key, nextValue)}
+          />
+        );
+      })}
+      <PhaseChangePointsField
+        key={`${idPrefix}-phaseChangePoints-${hitBreakdownDefines(value?.hitBreakdown, "phaseChangePoints")}`}
+        idPrefix={idPrefix}
+        unsetPlaceholder={PLACEHOLDER_UNCHANGED}
+        disabled={hitBreakdownDefines(value?.hitBreakdown, "phaseChangePoints")}
+        isMultiHit={isMultiHit}
+        value={value?.phaseChangePoints}
+        onChange={(nextValue) => onFieldChange("phaseChangePoints", nextValue)}
+      />
+      <TotalDamageField
+        idPrefix={idPrefix}
+        show={isMultiHit}
+        placeholder={PLACEHOLDER_UNCHANGED}
+        value={value?.totalDamage}
+        onChange={(nextValue) => onFieldChange("totalDamage", nextValue)}
+      />
+    </>
+  );
+};
+```
+
+- [ ] **Step 4: 型チェックとテスト全体を実行する**
+
+Run: `bun run typecheck`
+Expected: エラー無し
+
+Run: `bun test`
+Expected: 全テスト PASS（既存テストのみ、このタスクは自動テストを追加しない）
+
+- [ ] **Step 5: コミット**
+
+```bash
+git add src/components/admin/PhaseChangePointsField.tsx src/components/admin/MoveDamageFields.tsx src/components/admin/MoveOverrideFields.tsx
+git commit -m "feat: 単発技では PCH 値の入力欄を単一の値だけにする"
+```
+
+---
+
+### Task 10: 最終確認
 
 **Files:** なし（確認のみ）
 
@@ -1238,8 +1665,12 @@ Expected: 全テスト PASS
 Run: `bun run dev`
 
 管理画面で以下を確認する。
-- 既存技の PCH 値欄（技単位・共鳴/ジャスト入力/フィールドフェイズの各差分パネル）に小数（例: `3.5`）を入力して保存できること。
-- 「PCH値を追加」ボタンで2行目以降を追加でき、各行に別々の値×ヒット数（例: `5`×`1` と `3.5`×`4`）を入力して保存できること。
+- 単発技（基礎ダメージが多段ヒットでない技）の PCH 値欄は、値の入力欄1つだけが表示され、
+  ヒット数欄や「PCH値を追加」ボタンが出ないこと。小数（例: `3.5`）を入力して保存できること。
+- 多段ヒット技の PCH 値欄（技単位・共鳴/ジャスト入力/フィールドフェイズの各差分パネル）に
+  小数（例: `3.5`）を入力して保存できること。
+- 多段ヒット技で「PCH値を追加」ボタンで2行目以降を追加でき、各行に別々の値×ヒット数
+  （例: `5`×`1` と `3.5`×`4`）を入力して保存できること。
 - 保存後、技詳細ページの PCH値行が `5+3.5×4` のように表示されること。
 - ヒット内訳（「ヒットごとに性能が変わる」）を ON にした技では、PCH値欄（技単位・上書き層どちらも）が「ヒット内訳で設定済み」表示で無効化されること。
 - ヒット内訳のグループ内 PCH値欄に小数を入力して保存できること。
