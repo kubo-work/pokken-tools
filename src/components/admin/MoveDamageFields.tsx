@@ -32,46 +32,50 @@ export const DAMAGE_VALUE_FIELDS: {
  * ヒット内訳（hitBreakdown）が定義済みの項目は、schema の相互排他ルールに合わせて
  * ここでの入力を無効化する（内訳側の入力欄を使う）。
  */
-export const MoveDamageFields = ({ move, onChange }: MoveFieldGroupProps) => (
-  <SimpleGrid cols={{ base: 2, sm: 4 }}>
-    {DAMAGE_VALUE_FIELDS.map(({ key, label }) => {
-      const disabledByBreakdown = hitBreakdownDefines(move.hitBreakdown, key);
-      return (
-        <DamageValueField
-          // disabled 切替時に DamageValueField 内部の非制御 draft state を
-          // 破棄するため、key に disabledByBreakdown を含めて強制的に再マウントする。
-          key={`${move.id}-${key}-${disabledByBreakdown}`}
-          label={label}
-          placeholder={
-            disabledByBreakdown
-              ? PLACEHOLDER_SET_BY_HIT_BREAKDOWN
-              : PLACEHOLDER_NOT_MEASURED
-          }
-          disabled={disabledByBreakdown}
-          value={move[key]}
-          onChange={(value) => onChange(setOptionalMoveField(move, key, value))}
-        />
-      );
-    })}
-    <PhaseChangePointsField
-      key={`${move.id}-phaseChangePoints-${hitBreakdownDefines(move.hitBreakdown, "phaseChangePoints")}`}
-      idPrefix={move.id}
-      description="フェイズチェンジポイント"
-      unsetPlaceholder={PLACEHOLDER_NOT_MEASURED}
-      disabled={hitBreakdownDefines(move.hitBreakdown, "phaseChangePoints")}
-      value={move.phaseChangePoints}
-      onChange={(value) =>
-        onChange(setOptionalMoveField(move, "phaseChangePoints", value))
-      }
-    />
-    <TotalDamageField
-      idPrefix={move.id}
-      show={isBaseDamageMultiHit(move.baseDamage, move.hitBreakdown)}
-      placeholder={PLACEHOLDER_NOT_MEASURED}
-      value={move.totalDamage}
-      onChange={(value) =>
-        onChange(setOptionalMoveField(move, "totalDamage", value))
-      }
-    />
-  </SimpleGrid>
-);
+export const MoveDamageFields = ({ move, onChange }: MoveFieldGroupProps) => {
+  const isMultiHit = isBaseDamageMultiHit(move.baseDamage, move.hitBreakdown);
+  return (
+    <SimpleGrid cols={{ base: 2, sm: 4 }}>
+      {DAMAGE_VALUE_FIELDS.map(({ key, label }) => {
+        const disabledByBreakdown = hitBreakdownDefines(move.hitBreakdown, key);
+        return (
+          <DamageValueField
+            // disabled 切替時に DamageValueField 内部の非制御 draft state を
+            // 破棄するため、key に disabledByBreakdown を含めて強制的に再マウントする。
+            key={`${move.id}-${key}-${disabledByBreakdown}`}
+            label={label}
+            placeholder={
+              disabledByBreakdown
+                ? PLACEHOLDER_SET_BY_HIT_BREAKDOWN
+                : PLACEHOLDER_NOT_MEASURED
+            }
+            disabled={disabledByBreakdown}
+            value={move[key]}
+            onChange={(value) => onChange(setOptionalMoveField(move, key, value))}
+          />
+        );
+      })}
+      <PhaseChangePointsField
+        key={`${move.id}-phaseChangePoints-${hitBreakdownDefines(move.hitBreakdown, "phaseChangePoints")}`}
+        idPrefix={move.id}
+        description="フェイズチェンジポイント"
+        unsetPlaceholder={PLACEHOLDER_NOT_MEASURED}
+        disabled={hitBreakdownDefines(move.hitBreakdown, "phaseChangePoints")}
+        isMultiHit={isMultiHit}
+        value={move.phaseChangePoints}
+        onChange={(value) =>
+          onChange(setOptionalMoveField(move, "phaseChangePoints", value))
+        }
+      />
+      <TotalDamageField
+        idPrefix={move.id}
+        show={isMultiHit}
+        placeholder={PLACEHOLDER_NOT_MEASURED}
+        value={move.totalDamage}
+        onChange={(value) =>
+          onChange(setOptionalMoveField(move, "totalDamage", value))
+        }
+      />
+    </SimpleGrid>
+  );
+};

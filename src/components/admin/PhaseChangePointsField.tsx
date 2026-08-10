@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Group, Stack, Text } from "@mantine/core";
 import {
   draftRowsToPhaseChangePoints,
@@ -19,13 +19,24 @@ export interface PhaseChangePointsFieldProps {
   unsetPlaceholder: string;
   /** true ならヒット内訳でこの項目が設定済み（併用不可）のため入力を無効化する。 */
   disabled: boolean;
+  /**
+   * 基礎ダメージが実効的に多段ヒットか（isBaseDamageMultiHit の結果を呼び出し側から渡す）。
+   * false（単発技）のときは値の入力欄1つだけを表示し、ヒット数入力・行の追加削除は出さない
+   * （単発技には「ヒットごとに違う PCH」という概念が無いため）。
+   */
+  isMultiHit: boolean;
   value: PhaseChangePointsValue | undefined;
   onChange: (value: PhaseChangePointsValue | undefined) => void;
 }
 
 /**
- * PCH値の入力欄。1〜N行の「値×ヒット数」を編集する。ヒットごとに他の性能は変わらず
- * PCH だけ違う技のために、ヒット内訳（HitBreakdownFields）とは独立に任意個の区切りを持てる。
+ * PCH値の入力欄。
+ *
+ * 多段ヒット技（isMultiHit）だけ、1〜N行の「値×ヒット数」を編集できるようにする。
+ * ヒットごとに他の性能は変わらず PCH だけ違う技のために、ヒット内訳（HitBreakdownFields）
+ * とは独立に任意個の区切りを持てる。単発技には「ヒットごとに違う PCH」という概念が無いため、
+ * isMultiHit が false のときは値の入力欄1つだけを表示する（Issue #79 以前の見た目に相当、
+ * 小数入力にのみ対応した形）。
  *
  * DamageValueField と同じ理由で、確定できない下書き行（値だけ入れてヒット数は未入力、
  * または追加直後の空行）をローカル state で保持する。呼び出し側は disabled が切り替わる
@@ -37,6 +48,7 @@ export const PhaseChangePointsField = ({
   description,
   unsetPlaceholder,
   disabled,
+  isMultiHit,
   value,
   onChange,
 }: PhaseChangePointsFieldProps) => {
@@ -44,10 +56,35 @@ export const PhaseChangePointsField = ({
     phaseChangePointsToDraftRows(value),
   );
 
+  // 単発技になった（isMultiHit が false になった）のに区切りの配列が残っていると、
+  // 単一値の入力欄には出せない値が保存されたままになる。TotalDamageField が
+  // 非表示化と同時に値を消すのと同じ理由で、ここでも表示を切り替えると同時に消す。
+  useEffect(() => {
+    if (!isMultiHit && Array.isArray(value)) {
+      onChange(undefined);
+    }
+  }, [isMultiHit, value, onChange]);
+
   const updateRows = (nextRows: PhaseChangePointsDraftRow[]) => {
     setRows(nextRows);
     onChange(draftRowsToPhaseChangePoints(nextRows));
   };
+
+  if (!isMultiHit) {
+    return (
+      <DecimalNumberInput
+        label={MOVE_FIELD_LABELS.phaseChangePoints}
+        description={description}
+        placeholder={
+          disabled ? PLACEHOLDER_SET_BY_HIT_BREAKDOWN : unsetPlaceholder
+        }
+        disabled={disabled}
+        min={0}
+        value={typeof value === "number" ? value : undefined}
+        onChange={onChange}
+      />
+    );
+  }
 
   return (
     <Stack gap="xs">

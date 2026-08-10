@@ -129,6 +129,7 @@ const OverrideDamageFields = ({
   // のどの層が実際に baseDamage/hitBreakdown を定義しているかに依るため、この差分自体が
   // 再定義していなくても（技本体や他の層から継承していても）resolveMove で正しく解決する。
   const resolved = resolveMove(move, state);
+  const isMultiHit = isBaseDamageMultiHit(resolved.baseDamage, resolved.hitBreakdown);
   return (
     <>
       {DAMAGE_VALUE_FIELDS.map(({ key, label }) => {
@@ -155,12 +156,13 @@ const OverrideDamageFields = ({
         idPrefix={idPrefix}
         unsetPlaceholder={PLACEHOLDER_UNCHANGED}
         disabled={hitBreakdownDefines(value?.hitBreakdown, "phaseChangePoints")}
+        isMultiHit={isMultiHit}
         value={value?.phaseChangePoints}
         onChange={(nextValue) => onFieldChange("phaseChangePoints", nextValue)}
       />
       <TotalDamageField
         idPrefix={idPrefix}
-        show={isBaseDamageMultiHit(resolved.baseDamage, resolved.hitBreakdown)}
+        show={isMultiHit}
         placeholder={PLACEHOLDER_UNCHANGED}
         value={value?.totalDamage}
         onChange={(nextValue) => onFieldChange("totalDamage", nextValue)}
