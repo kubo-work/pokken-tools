@@ -30,7 +30,7 @@ jobs:
     name: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Bun
         # バージョンは package.json の packageManager から解決させる（単一ソース化）。
@@ -39,9 +39,14 @@ jobs:
       - name: Setup Node
         # React Router v8 は Node >=22.22 を要求する。バージョンは .node-version を単一ソースにする。
         # `react-router build` は node シェバンで動くため、ランナー既定 Node ではなくここで固定する。
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: ".node-version"
+          # setup-node v5 以降は package.json の packageManager を見て自動キャッシュを行うが、
+          # 対応するのは npm / yarn / pnpm のみ。本リポジトリは bun のため実際には無効となる。
+          # 暗黙の挙動に依存しないよう明示的に切る。依存の取得は setup-bun + bun install が担い、
+          # ここでの setup-node の役割は node バイナリの供給だけ。
+          package-manager-cache: false
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
