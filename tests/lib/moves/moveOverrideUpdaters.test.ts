@@ -20,6 +20,17 @@ import { makeMove } from "./testFixtures";
 const baseMove = makeMove({ id: "test_move" });
 
 /**
+ * 差分に設定する startup の値。値そのものに意味はなく、4 経路すべてで同じ値を使うことで
+ * 結果の差が経路の違いによるものだと言えるようにしている。
+ */
+const OVERRIDE_STARTUP = 8;
+
+/**
+ * 更新対象ではない既存フィールドの値。更新やトグルのあとも保持されることの確認に使う。
+ */
+const PRESERVED_GUARD_FRAME_ADVANTAGE = -3;
+
+/**
  * 条件付き差分を 1 フィールド更新する 4 つの公開関数は、内部の setOptionalOverrideField を
  * 共有している。1 経路だけ検証すると共有部分を壊したときに巻き添えを名指しできないため、
  * 差分の位置だけを差し替えて同じ検証を 4 経路すべてに適用する。
@@ -42,7 +53,7 @@ const OVERRIDE_PATHS: OverridePathCase[] = [
     read: (move) => move.resonance,
     withExistingField: (move) => ({
       ...move,
-      resonance: { guardFrameAdvantage: -3 },
+      resonance: { guardFrameAdvantage: PRESERVED_GUARD_FRAME_ADVANTAGE },
     }),
   },
   {
@@ -52,7 +63,7 @@ const OVERRIDE_PATHS: OverridePathCase[] = [
     read: (move) => move.justInput,
     withExistingField: (move) => ({
       ...move,
-      justInput: { guardFrameAdvantage: -3 },
+      justInput: { guardFrameAdvantage: PRESERVED_GUARD_FRAME_ADVANTAGE },
     }),
   },
   {
@@ -62,7 +73,7 @@ const OVERRIDE_PATHS: OverridePathCase[] = [
     read: (move) => move.justInput?.resonance,
     withExistingField: (move) => ({
       ...move,
-      justInput: { resonance: { guardFrameAdvantage: -3 } },
+      justInput: { resonance: { guardFrameAdvantage: PRESERVED_GUARD_FRAME_ADVANTAGE } },
     }),
   },
   {
@@ -72,7 +83,7 @@ const OVERRIDE_PATHS: OverridePathCase[] = [
     read: (move) => move.fieldPhase,
     withExistingField: (move) => ({
       ...move,
-      fieldPhase: { guardFrameAdvantage: -3 },
+      fieldPhase: { guardFrameAdvantage: PRESERVED_GUARD_FRAME_ADVANTAGE },
     }),
   },
 ];
@@ -80,11 +91,11 @@ const OVERRIDE_PATHS: OverridePathCase[] = [
 for (const path of OVERRIDE_PATHS) {
   describe(path.name, () => {
     test("値を指定すると差分に設定される", () => {
-      expect(path.read(path.setStartup(baseMove, 8))?.startup).toBe(8);
+      expect(path.read(path.setStartup(baseMove, OVERRIDE_STARTUP))?.startup).toBe(OVERRIDE_STARTUP);
     });
 
     test("undefined を渡すとキーごと削除される", () => {
-      const withValue = path.setStartup(baseMove, 8);
+      const withValue = path.setStartup(baseMove, OVERRIDE_STARTUP);
       const override = path.read(path.setStartup(withValue, undefined));
       expect(override).toBeDefined();
       // { startup: undefined } として残ると JSON 化したときにフィールドが出てしまう。
@@ -92,14 +103,14 @@ for (const path of OVERRIDE_PATHS) {
     });
 
     test("同じ差分の他フィールドは保持される", () => {
-      const next = path.setStartup(path.withExistingField(baseMove), 8);
-      expect(path.read(next)).toEqual({ guardFrameAdvantage: -3, startup: 8 });
+      const next = path.setStartup(path.withExistingField(baseMove), OVERRIDE_STARTUP);
+      expect(path.read(next)).toEqual({ guardFrameAdvantage: PRESERVED_GUARD_FRAME_ADVANTAGE, startup: OVERRIDE_STARTUP });
     });
 
     test("元の Move を変更しない（イミュータブル）", () => {
       const move = path.withExistingField(baseMove);
       const snapshot = JSON.parse(JSON.stringify(move));
-      path.setStartup(move, 8);
+      path.setStartup(move, OVERRIDE_STARTUP);
       expect(move).toEqual(snapshot);
     });
   });
@@ -111,12 +122,12 @@ describe("toggleResonance", () => {
   });
 
   test("ON かつ既存の差分があれば維持する", () => {
-    const move: Move = { ...baseMove, resonance: { startup: 8 } };
-    expect(toggleResonance(move, true).resonance).toEqual({ startup: 8 });
+    const move: Move = { ...baseMove, resonance: { startup: OVERRIDE_STARTUP } };
+    expect(toggleResonance(move, true).resonance).toEqual({ startup: OVERRIDE_STARTUP });
   });
 
   test("OFF なら差分ごと削除される", () => {
-    const move: Move = { ...baseMove, resonance: { startup: 8 } };
+    const move: Move = { ...baseMove, resonance: { startup: OVERRIDE_STARTUP } };
     expect(toggleResonance(move, false).resonance).toBeUndefined();
   });
 });
@@ -127,12 +138,12 @@ describe("toggleJustInput", () => {
   });
 
   test("ON かつ既存の差分があれば維持する", () => {
-    const move: Move = { ...baseMove, justInput: { startup: 8 } };
-    expect(toggleJustInput(move, true).justInput).toEqual({ startup: 8 });
+    const move: Move = { ...baseMove, justInput: { startup: OVERRIDE_STARTUP } };
+    expect(toggleJustInput(move, true).justInput).toEqual({ startup: OVERRIDE_STARTUP });
   });
 
   test("OFF なら差分ごと削除される", () => {
-    const move: Move = { ...baseMove, justInput: { startup: 8 } };
+    const move: Move = { ...baseMove, justInput: { startup: OVERRIDE_STARTUP } };
     expect(toggleJustInput(move, false).justInput).toBeUndefined();
   });
 });
@@ -154,11 +165,11 @@ describe("toggleFieldPhase", () => {
 });
 
 describe("toggleJustInputResonance", () => {
-  const justInputMove: Move = { ...baseMove, justInput: { startup: 8 } };
+  const justInputMove: Move = { ...baseMove, justInput: { startup: OVERRIDE_STARTUP } };
 
   test("ON かつ未設定なら空オブジェクトで初期化し、他のジャスト入力差分は保持する", () => {
     expect(toggleJustInputResonance(justInputMove, true).justInput).toEqual({
-      startup: 8,
+      startup: OVERRIDE_STARTUP,
       resonance: {},
     });
   });
@@ -166,21 +177,21 @@ describe("toggleJustInputResonance", () => {
   test("ON かつ既存の差分があれば維持する", () => {
     const move: Move = {
       ...baseMove,
-      justInput: { startup: 8, resonance: { guardFrameAdvantage: -3 } },
+      justInput: { startup: OVERRIDE_STARTUP, resonance: { guardFrameAdvantage: PRESERVED_GUARD_FRAME_ADVANTAGE } },
     };
     expect(toggleJustInputResonance(move, true).justInput?.resonance).toEqual({
-      guardFrameAdvantage: -3,
+      guardFrameAdvantage: PRESERVED_GUARD_FRAME_ADVANTAGE,
     });
   });
 
   test("OFF なら resonance だけ消え、他のジャスト入力差分は残る", () => {
     const move: Move = {
       ...baseMove,
-      justInput: { startup: 8, resonance: { guardFrameAdvantage: -3 } },
+      justInput: { startup: OVERRIDE_STARTUP, resonance: { guardFrameAdvantage: PRESERVED_GUARD_FRAME_ADVANTAGE } },
     };
     const next = toggleJustInputResonance(move, false);
     expect(next.justInput?.resonance).toBeUndefined();
-    expect(next.justInput?.startup).toBe(8);
+    expect(next.justInput?.startup).toBe(OVERRIDE_STARTUP);
   });
 
   /**
