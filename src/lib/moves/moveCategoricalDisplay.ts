@@ -1,10 +1,11 @@
-import type { HitBreakdownEntry, Move } from "@/types/move";
+import type { HitBreakdownEntry, Move, MoveAttackType } from "@/types/move";
 import type { HitBreakdownCategoricalKey } from "./moveEnums";
 import { resonanceFlinchLabel } from "./moveFormat";
 import {
   AIR_GROUND_JUDGMENT_META,
-  GUARD_LEVEL_LABEL_KEY_BY_STYLE,
+  ATTACK_TYPE_META,
   GUARD_LEVEL_META,
+  LABEL_KEY_BY_STYLE,
   RESONANCE_FLINCH_META,
   type LabelStyle,
 } from "./moveLabels";
@@ -35,6 +36,23 @@ const hitRangeLabel = (start: number, hitCount: number): string => {
 };
 
 /**
+ * 攻撃属性・強度は内訳グループと技単位でフィールドの型が同じため、ラベル化の式も同一になる。
+ * グループ側（CATEGORICAL_ENTRY_LABELERS）と技単位側（*_RESOLVER）で書き分けると
+ * 書式変更のたび2箇所直すことになるため、値だけを受け取る関数として共有する。
+ */
+const attackTypeLabelOf = (
+  attackType: MoveAttackType | undefined,
+  labelStyle: LabelStyle,
+): string | undefined =>
+  attackType === undefined
+    ? undefined
+    : ATTACK_TYPE_META[attackType][LABEL_KEY_BY_STYLE[labelStyle]];
+
+/** 強度は数値そのものが表示値のため labelStyle で変えない。 */
+const strengthLabelOf = (strength: number | undefined): string | undefined =>
+  strength === undefined ? undefined : `${strength}`;
+
+/**
  * ヒット内訳1グループ分の判定系フィールドを表示ラベルにする関数。未設定なら undefined を返す。
  * 分岐で書くと判定系フィールドが増えたときに黙って undefined を返す枝ができるため、
  * キーを網羅する Record として持ち、追加漏れをコンパイルエラーにする。
@@ -46,9 +64,7 @@ const CATEGORICAL_ENTRY_LABELERS: Record<
   guardLevel: (entry, labelStyle) =>
     entry.guardLevel === undefined
       ? undefined
-      : GUARD_LEVEL_META[entry.guardLevel][
-          GUARD_LEVEL_LABEL_KEY_BY_STYLE[labelStyle]
-        ],
+      : GUARD_LEVEL_META[entry.guardLevel][LABEL_KEY_BY_STYLE[labelStyle]],
   // 空・地は元々 label が短いため labelStyle に関わらず同じ表記を使う。
   airGroundJudgment: (entry) =>
     entry.airGroundJudgment === undefined
@@ -59,6 +75,8 @@ const CATEGORICAL_ENTRY_LABELERS: Record<
     entry.resonanceFlinch === undefined
       ? undefined
       : RESONANCE_FLINCH_META[entry.resonanceFlinch].label,
+  attackType: (entry, labelStyle) => attackTypeLabelOf(entry.attackType, labelStyle),
+  strength: (entry) => strengthLabelOf(entry.strength),
 };
 
 /** ヒット内訳1グループ分の判定系フィールドの表示ラベル。未設定なら undefined。 */
@@ -120,9 +138,7 @@ const GUARD_LEVEL_RESOLVER: CategoricalFieldResolver = {
   representativeLabel: (move, labelStyle) =>
     move.guardLevel === null
       ? undefined
-      : GUARD_LEVEL_META[move.guardLevel][
-          GUARD_LEVEL_LABEL_KEY_BY_STYLE[labelStyle]
-        ],
+      : GUARD_LEVEL_META[move.guardLevel][LABEL_KEY_BY_STYLE[labelStyle]],
 };
 
 const AIR_GROUND_JUDGMENT_RESOLVER: CategoricalFieldResolver = {
@@ -144,6 +160,17 @@ const RESONANCE_FLINCH_RESOLVER: CategoricalFieldResolver = {
     move.resonanceFlinch === undefined
       ? undefined
       : resonanceFlinchLabel(move.resonanceFlinch),
+};
+
+const ATTACK_TYPE_RESOLVER: CategoricalFieldResolver = {
+  hitBreakdownKey: "attackType",
+  representativeLabel: (move, labelStyle) =>
+    attackTypeLabelOf(move.attackType, labelStyle),
+};
+
+const STRENGTH_RESOLVER: CategoricalFieldResolver = {
+  hitBreakdownKey: "strength",
+  representativeLabel: (move) => strengthLabelOf(move.strength),
 };
 
 /**
@@ -212,3 +239,19 @@ export const moveAirGroundJudgmentLabel = (move: Move): string | undefined =>
 /** 「共鳴怯ませ」の詳細ページ向け表示行。技単位の値も未設定なら空配列。 */
 export const moveResonanceFlinchLines = (move: Move): string[] =>
   categoricalLinesFor(move, RESONANCE_FLINCH_RESOLVER);
+
+/** 「攻撃属性」の詳細ページ向け表示行。技単位の値も未設定なら空配列。 */
+export const moveAttackTypeLines = (move: Move): string[] =>
+  categoricalLinesFor(move, ATTACK_TYPE_RESOLVER);
+
+/** 「攻撃属性」の一覧向け表示。 */
+export const moveAttackTypeShortLabel = (move: Move): string | undefined =>
+  categoricalSummaryFor(move, ATTACK_TYPE_RESOLVER);
+
+/** 「強度」の詳細ページ向け表示行。技単位の値も未設定なら空配列。 */
+export const moveStrengthLines = (move: Move): string[] =>
+  categoricalLinesFor(move, STRENGTH_RESOLVER);
+
+/** 「強度」の一覧向け表示。 */
+export const moveStrengthShortLabel = (move: Move): string | undefined =>
+  categoricalSummaryFor(move, STRENGTH_RESOLVER);

@@ -3,12 +3,13 @@ import type { HitBreakdownCategoricalKey } from "@/lib/moves/moveEnums";
 import {
   hitBreakdownCategoricalLines,
   moveAirGroundJudgmentLines,
+  moveAttackTypeLines,
   moveGuardLevelLines,
   moveResonanceFlinchLines,
+  moveStrengthLines,
 } from "@/lib/moves/moveCategoricalDisplay";
 import { specialAttributeLabel } from "@/lib/moves/moveFormat";
 import {
-  ATTACK_TYPE_META,
   GUARD_LEVEL_META,
   MOVE_FIELD_LABELS,
   NO_VALUE_LABEL,
@@ -45,11 +46,6 @@ const CategoricalLines = ({ lines }: { lines: string[] }) => {
     </>
   );
 };
-
-const attackTypeLabel = (move: Move): string =>
-  move.attackType === undefined
-    ? NO_VALUE_LABEL
-    : ATTACK_TYPE_META[move.attackType].label;
 
 const specialAttributesLabel = (move: Move): string =>
   move.specialAttributes === undefined || move.specialAttributes.length === 0
@@ -99,6 +95,21 @@ const resonanceFlinchOverrideText = (move: Move): string | undefined =>
   resonanceHitBreakdownCategoricalText(move, "resonanceFlinch");
 
 /**
+ * 共鳴の攻撃属性の表示テキスト。attackType は上書き層を持たない（Move にのみ存在）ため、
+ * 空・地判定と同じくヒット内訳で定義されている場合のみ表示する。
+ */
+const resonanceAttackTypeText = (move: Move): string | undefined =>
+  resonanceHitBreakdownCategoricalText(move, "attackType");
+
+/**
+ * 共鳴の強度の表示。内訳優先、無ければ共鳴の単一値、どちらも無ければ undefined。
+ * ResonanceOverride は数値もそのまま描けるため、単一値は文字列化せずに渡す。
+ */
+const resonanceStrength = (move: Move): string | number | undefined =>
+  resonanceHitBreakdownCategoricalText(move, "strength") ??
+  move.resonance?.strength;
+
+/**
  * 判定・属性表の行。ため/派生のコマンドは親コマンドを基準に組み立てるが、その親コマンドは
  * 列ごと（フェイズごと）に変わりうるため、列が持つ値を使う。
  */
@@ -134,16 +145,22 @@ export const ATTRIBUTE_ROWS: ComparisonRow[] = [
   },
   {
     header: "攻撃属性",
+    // attackType はフェイズで変わらない（FieldPhaseOverride に無い）。判定と同じ扱い。
     phaseDependentKeys: [],
-    renderCell: (move) => attackTypeLabel(move),
+    renderCell: (move) => (
+      <>
+        <CategoricalLines lines={moveAttackTypeLines(move)} />
+        <ResonanceOverride value={resonanceAttackTypeText(move)} />
+      </>
+    ),
   },
   {
     header: "強度",
     phaseDependentKeys: ["strength"],
     renderCell: (move) => (
       <>
-        {move.strength ?? NO_VALUE_LABEL}
-        <ResonanceOverride value={move.resonance?.strength} />
+        <CategoricalLines lines={moveStrengthLines(move)} />
+        <ResonanceOverride value={resonanceStrength(move)} />
       </>
     ),
   },

@@ -95,6 +95,8 @@ const hitBreakdownEntrySchema = z
     guardLevel: guardLevelSchema.optional(),
     airGroundJudgment: airGroundJudgmentSchema.optional(),
     resonanceFlinch: resonanceFlinchLevelSchema.optional(),
+    attackType: attackTypeSchema.optional(),
+    strength: strengthSchema.optional(),
   })
   // 項目を列挙して判定すると、項目が増えたときに追記漏れでその項目だけのグループが
   // 弾かれてしまうため、hitCount 以外に値があるかを走査する形で判定する。
