@@ -54,8 +54,12 @@ const attackTypeLabelOf = (
     ? undefined
     : ATTACK_TYPE_META[attackType][LABEL_KEY_BY_STYLE[labelStyle]];
 
-/** 数値はそのまま、記号は ◎ / ● に。どちらも 1 文字表記のため labelStyle では変えない。 */
-const strengthLabelOf = (
+/**
+ * 数値はそのまま、記号は ◎ / ● に。どちらも 1 文字表記のため labelStyle では変えない。
+ * StrengthValue を画面に出す箇所は必ずこれを通し、記号キー（"erase"/"inert"）が
+ * そのまま文字列化されて漏れ出ないようにする（一覧行のバッジ・共鳴上書きの表示もこれを使う）。
+ */
+export const strengthLabelOf = (
   strength: StrengthValue | undefined,
 ): string | undefined => {
   if (strength === undefined) {
