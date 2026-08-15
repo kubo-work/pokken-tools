@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   damageValueHitCount,
   hitBreakdownDefines,
+  hitBreakdownEntryHasAnyValue,
   hitBreakdownTotalHitCount,
   isBaseDamageMultiHit,
   isStrengthAllowedFor,
@@ -141,5 +142,28 @@ describe("isStrengthAllowedFor", () => {
     expect(isStrengthAllowedFor("inert", "projectile")).toBe(true);
     expect(isStrengthAllowedFor("erase", "strike")).toBe(false);
     expect(isStrengthAllowedFor("inert", "strike")).toBe(false);
+  });
+});
+
+describe("hitBreakdownEntryHasAnyValue", () => {
+  test("hitCount 以外に値があれば true", () => {
+    const entry: HitBreakdownEntry = { hitCount: 3, baseDamage: 10 };
+    expect(hitBreakdownEntryHasAnyValue(entry)).toBe(true);
+  });
+
+  test("hitCount しか値が無ければ false", () => {
+    const entry: HitBreakdownEntry = { hitCount: 3 };
+    expect(hitBreakdownEntryHasAnyValue(entry)).toBe(false);
+  });
+
+  test("hitCount 以外の項目が undefined だけなら false（属性変更で強度が落ちた直後の状態）", () => {
+    const entry: HitBreakdownEntry = {
+      hitCount: 3,
+      baseDamage: undefined,
+      strength: undefined,
+      attackType: undefined,
+      guardLevel: undefined,
+    };
+    expect(hitBreakdownEntryHasAnyValue(entry)).toBe(false);
   });
 });

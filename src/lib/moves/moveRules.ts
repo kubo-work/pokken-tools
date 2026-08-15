@@ -99,6 +99,16 @@ export const maxChargeLevel = (childMoves: Move[]): number =>
     0,
   );
 
+/**
+ * ヒット内訳の1グループが、ヒット数以外に何か値を持っているか。
+ * 項目を列挙して判定すると、項目が増えたときに追記漏れでその項目だけのグループが
+ * 弾かれてしまうため、hitCount 以外に undefined でない値があるかを走査する形で判定する。
+ * schema/fields.ts の refine（保存時の検証）と HitBreakdownFields（保存前の警告表示）が
+ * 同じ判断を共有するための唯一の述語。
+ */
+export const hitBreakdownEntryHasAnyValue = (entry: HitBreakdownEntry): boolean =>
+  Object.entries(entry).some(([key, value]) => key !== "hitCount" && value !== undefined);
+
 /** ヒット内訳のいずれかのグループでフィールドが設定されているか。 */
 export const hitBreakdownDefines = (
   entries: HitBreakdownEntry[] | undefined,

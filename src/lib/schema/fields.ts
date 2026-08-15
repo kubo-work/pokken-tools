@@ -1,5 +1,8 @@
 import { z } from "zod";
-import { MULTI_HIT_MIN_COUNT } from "@/lib/moves/moveRules";
+import {
+  hitBreakdownEntryHasAnyValue,
+  MULTI_HIT_MIN_COUNT,
+} from "@/lib/moves/moveRules";
 
 /**
  * Move を構成する個々のフィールドのスキーマ。
@@ -112,15 +115,11 @@ const hitBreakdownEntrySchema = z
     attackType: attackTypeSchema.optional(),
     strength: strengthSchema.optional(),
   })
-  // 項目を列挙して判定すると、項目が増えたときに追記漏れでその項目だけのグループが
-  // 弾かれてしまうため、hitCount 以外に値があるかを走査する形で判定する。
-  .refine(
-    (entry) =>
-      Object.entries(entry).some(
-        ([key, value]) => key !== "hitCount" && value !== undefined,
-      ),
-    { message: "ヒット数以外に最低1項目は設定してください" },
-  );
+  // 判定ロジックは moveRules.hitBreakdownEntryHasAnyValue に集約する
+  // （管理画面側の警告表示 HitBreakdownFields.tsx と同じ判断を共有するため）。
+  .refine((entry) => hitBreakdownEntryHasAnyValue(entry), {
+    message: "ヒット数以外に最低1項目は設定してください",
+  });
 export const hitBreakdownSchema = z
   .array(hitBreakdownEntrySchema)
   .min(1, "ヒットごとの内訳は1グループ以上で入力してください");

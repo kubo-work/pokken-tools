@@ -1,4 +1,4 @@
-import { Button, Card, Group, Select, SimpleGrid, Stack, Switch, Text } from "@mantine/core";
+import { Alert, Button, Card, Group, Select, SimpleGrid, Stack, Switch, Text } from "@mantine/core";
 import {
   AIR_GROUND_JUDGMENTS,
   GUARD_LEVELS,
@@ -7,6 +7,7 @@ import {
   RESONANCE_FLINCH_LEVELS,
 } from "@/lib/moves/moveEnums";
 import { MOVE_FIELD_LABELS } from "@/lib/moves/moveLabels";
+import { hitBreakdownEntryHasAnyValue } from "@/lib/moves/moveRules";
 import { asOptionalEnumValue } from "@/lib/optionGuards";
 import type { HitBreakdownEntry, MoveAttackType } from "@/types/move";
 import { DecimalNumberInput } from "./DecimalNumberInput";
@@ -15,6 +16,7 @@ import {
   AIR_GROUND_OPTIONS,
   ATTACK_TYPE_OPTIONS,
   GUARD_LEVEL_OPTIONS,
+  HIT_BREAKDOWN_ENTRY_EMPTY_WARNING,
   PLACEHOLDER_NO_VALUE,
   RESONANCE_FLINCH_LEVEL_OPTIONS,
 } from "./moveFieldsHelpers";
@@ -166,6 +168,11 @@ const HitBreakdownEntryCard = ({
             onChange={(value) => onFieldChange("strength", value)}
           />
         </SimpleGrid>
+        {!hitBreakdownEntryHasAnyValue(entry) && (
+          <Alert color="red" py={6} px="md">
+            {HIT_BREAKDOWN_ENTRY_EMPTY_WARNING}
+          </Alert>
+        )}
       </Stack>
     </Card>
   );

@@ -67,6 +67,15 @@ export const PLACEHOLDER_NO_STRENGTH = "強度なし";
 export const PLACEHOLDER_NO_VALUE = "なし";
 
 /**
+ * ヒット内訳のグループがヒット数以外に値を持たない（hitBreakdownEntryHasAnyValue が false）
+ * ときに、そのグループのカードに出す警告文言。schema/fields.ts の hitBreakdownEntrySchema の
+ * refine で保存時に弾かれる状態と同じ条件を指すため、保存できないことが伝わる文言にする。
+ * 攻撃属性の変更で強度が落ちて空になった場合・追加直後の空グループの両方で表示される。
+ */
+export const HIT_BREAKDOWN_ENTRY_EMPTY_WARNING =
+  "ヒット数以外の値がありません。値を入力するか、このグループを削除してください";
+
+/**
  * 合計ダメージ欄の説明文。技単位・共鳴/ジャスト入力/FP の各差分パネルで共通して使う
  * （どの条件の差分かは囲んでいるパネルが示すため、ここでは条件名を名乗らない）。
  * 欄そのものは基礎ダメージが多段ヒットのときだけ表示される（TotalDamageField 参照）ため、
