@@ -2,16 +2,20 @@ import { describe, expect, test } from "bun:test";
 import {
   bestGuardFrameAdvantage,
   formatPunishWindow,
-  worstGuardFrameAdvantage,
+  knownWorstGuardFrameAdvantage,
 } from "@/lib/frame/frameAdvantage";
 
-describe("worstGuardFrameAdvantage", () => {
+describe("knownWorstGuardFrameAdvantage", () => {
   test("単一値はそのまま返す", () => {
-    expect(worstGuardFrameAdvantage(-5)).toBe(-5);
+    expect(knownWorstGuardFrameAdvantage(-5)).toBe(-5);
   });
 
   test("範囲なら min（攻撃側が最も不利な当て方）を返す", () => {
-    expect(worstGuardFrameAdvantage({ min: -8, max: -4 })).toBe(-8);
+    expect(knownWorstGuardFrameAdvantage({ min: -8, max: -4 })).toBe(-8);
+  });
+
+  test("min が未計測なら、下限は保証せず既知の max で代用する", () => {
+    expect(knownWorstGuardFrameAdvantage({ max: -4 })).toBe(-4);
   });
 });
 
@@ -22,6 +26,10 @@ describe("bestGuardFrameAdvantage", () => {
 
   test("範囲なら max（攻撃側が最も有利な当て方）を返す", () => {
     expect(bestGuardFrameAdvantage({ min: -8, max: -4 })).toBe(-4);
+  });
+
+  test("max が未計測なら undefined を返す（有利側は不明）", () => {
+    expect(bestGuardFrameAdvantage({ min: -8 })).toBeUndefined();
   });
 });
 
@@ -40,5 +48,13 @@ describe("formatPunishWindow", () => {
 
   test("範囲は「最小〜最大」の順で返す", () => {
     expect(formatPunishWindow({ min: -8, max: -4 })).toBe("4〜8");
+  });
+
+  test("min のみ（max 未計測）なら有利側（余裕が最小になる側）を省略して返す", () => {
+    expect(formatPunishWindow({ min: -8 })).toBe("〜8");
+  });
+
+  test("max のみ（min 未計測）なら不利側（余裕が最大になる側）を省略して返す", () => {
+    expect(formatPunishWindow({ max: -4 })).toBe("4〜");
   });
 });

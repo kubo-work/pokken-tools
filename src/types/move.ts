@@ -93,10 +93,12 @@ export interface HitBreakdownEntry {
 /**
  * 硬直差の範囲。当て方や距離で硬直差が変わる技に使う。
  * min が最も不利側（小さい値）、max が最も有利側で、min <= max。
+ * 飛び道具など計測が難しい技向けに、どちらか一方だけの入力も許容する
+ * （未計測を ±0 として扱わないため）。少なくとも片方は必須。
  */
 export interface FrameAdvantageRange {
-  min: number;
-  max: number;
+  min?: number;
+  max?: number;
 }
 /** ガード硬直差。単一値、または当て方で変わる技の範囲。 */
 export type GuardFrameAdvantage = number | FrameAdvantageRange;
