@@ -4,7 +4,9 @@ import { FrameAdvantageText } from "@/components/FrameAdvantageText";
 import { FrameNumber } from "@/components/FrameNumber";
 import {
   moveAirGroundJudgmentLabel,
+  moveAttackTypeShortLabel,
   moveGuardLevelShortLabel,
+  moveStrengthShortLabel,
 } from "@/lib/moves/moveCategoricalDisplay";
 import {
   childVariantLabel,
@@ -13,7 +15,6 @@ import {
   formatTotalDamageNote,
 } from "@/lib/moves/moveFormat";
 import {
-  ATTACK_TYPE_META,
   NO_VALUE_LABEL,
   POKEMON_MOVE_CANCEL_LABEL,
 } from "@/lib/moves/moveLabels";
@@ -119,7 +120,7 @@ const MoveFrameCells = ({
 }) => (
   <>
     <PhaseCell merge={mergeFor(["strength"])} className="num">
-      {move.strength ?? NO_VALUE_LABEL}
+      {moveStrengthShortLabel(move) ?? NO_VALUE_LABEL}
     </PhaseCell>
     <PhaseCell merge={mergeFor(["startup"])} className="num">
       {move.startup}
@@ -196,9 +197,7 @@ export const MoveRow = ({
       <PhaseCell merge={mergeFor(["command"])}>{command}</PhaseCell>
       {/* 攻撃属性はフェイズで変わらない。 */}
       <PhaseCell merge={mergeFor([])} className="moves-table__secondary">
-        {move.attackType === undefined
-          ? NO_VALUE_LABEL
-          : ATTACK_TYPE_META[move.attackType].label}
+        {moveAttackTypeShortLabel(move) ?? NO_VALUE_LABEL}
       </PhaseCell>
       <MoveFrameCells move={move} mergeFor={mergeFor} />
     </tr>

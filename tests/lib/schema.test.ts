@@ -383,6 +383,83 @@ describe("moveSchema: 攻撃属性を持たない技の制約", () => {
       ],
     });
   });
+
+  test("攻撃属性を持たない技の hitBreakdown に攻撃属性・強度は設定できない", () => {
+    expectInvalid({
+      id: "test_grab",
+      name: "テストつかみ",
+      command: "6Y",
+      category: "grab",
+      guardLevel: null,
+      startup: 15,
+      guardFrameAdvantage: -3,
+      hitBreakdown: [
+        { hitCount: 1, baseDamage: 30, attackType: "strike" },
+        { hitCount: 1, baseDamage: 20 },
+      ],
+    });
+    expectInvalid({
+      id: "test_grab",
+      name: "テストつかみ",
+      command: "6Y",
+      category: "grab",
+      guardLevel: null,
+      startup: 15,
+      guardFrameAdvantage: -3,
+      hitBreakdown: [
+        { hitCount: 1, baseDamage: 30, strength: 1 },
+        { hitCount: 1, baseDamage: 20 },
+      ],
+    });
+  });
+});
+
+describe("moveSchema: hitBreakdown の攻撃属性・強度", () => {
+  test("1ヒット目打撃・2ヒット目弾のようにヒットごとに攻撃属性が違う技は通る", () => {
+    expectValid({
+      ...baseMove,
+      hitBreakdown: [
+        { hitCount: 1, attackType: "strike", strength: 5 },
+        { hitCount: 1, attackType: "projectile", strength: 3 },
+      ],
+    });
+  });
+
+  test("hitBreakdown の attackType・strength は技単位の値と併用できる（数値4項目と違い相互排他の対象外）", () => {
+    expectValid({
+      ...baseMove,
+      attackType: "strike",
+      strength: 5,
+      hitBreakdown: [
+        { hitCount: 1, attackType: "strike", strength: 5 },
+        { hitCount: 2, attackType: "projectile", strength: 3 },
+      ],
+    });
+  });
+
+  test("ヒット内訳の強度は、そのグループの攻撃属性の範囲で検証される", () => {
+    expectValid({
+      ...baseMove,
+      hitBreakdown: [{ hitCount: 1, attackType: "strike", strength: 8 }],
+    });
+    expectInvalid({
+      ...baseMove,
+      hitBreakdown: [{ hitCount: 1, attackType: "strike", strength: 9 }],
+    });
+  });
+
+  test("ヒット内訳のグループが攻撃属性を省略していれば、技単位の攻撃属性の範囲で強度を検証する", () => {
+    expectValid({
+      ...baseMove,
+      attackType: "strike",
+      hitBreakdown: [{ hitCount: 1, strength: 8 }],
+    });
+    expectInvalid({
+      ...baseMove,
+      attackType: "strike",
+      hitBreakdown: [{ hitCount: 1, strength: 9 }],
+    });
+  });
 });
 
 /** 攻撃属性を持たない有効なつかみ技。属性系の制約テストで部分上書きして使う。 */

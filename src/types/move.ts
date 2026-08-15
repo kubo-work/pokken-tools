@@ -64,8 +64,8 @@ export type PhaseChangePointsValue = number | PhaseChangePointsSegment[];
  * 未設定のフィールドは「その打点では値なし（-表示）」であり、技単位の値の継承ではない。
  * 数値4項目（baseDamage/chipDamage/guardCrushValue/phaseChangePoints）はいずれかのグループで
  * 定義したら、技単位・共鳴単位の同名フィールド（単一値）は設定禁止（二重入力防止、schema で検証）。
- * guardLevel/airGroundJudgment/resonanceFlinch は技単位の値との共存を許可し、技単位の値は代表値
- * （通常は1ヒット目）として扱う。
+ * guardLevel/airGroundJudgment/resonanceFlinch/attackType/strength は技単位の値との共存を許可し、
+ * 技単位の値は代表値（通常は1ヒット目）として扱う。
  */
 export interface HitBreakdownEntry {
   /** グループ内の連続ヒット数。1以上（DamageValue の hitCount は総ヒット数で min 2 だが、これは別物）。 */
@@ -82,6 +82,13 @@ export interface HitBreakdownEntry {
    * 弱→強に変わる技）のような切替形式は持たず、弱／強のいずれかだけを取る。
    */
   resonanceFlinch?: ResonanceFlinchLevel;
+  /**
+   * このグループの攻撃属性。1ヒット目打撃・2ヒット目弾のように、ヒットごとに攻撃属性
+   * そのものが変わる技向け（Issue #90）。未設定のグループは技単位の attackType を代表値とする。
+   */
+  attackType?: MoveAttackType;
+  /** このグループの強度。attackType と同じくヒットごとに変わりうるため対で持つ。 */
+  strength?: number;
 }
 /**
  * 硬直差の範囲。当て方や距離で硬直差が変わる技に使う。

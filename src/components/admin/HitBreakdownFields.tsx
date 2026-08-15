@@ -3,15 +3,18 @@ import {
   AIR_GROUND_JUDGMENTS,
   GUARD_LEVELS,
   HIT_BREAKDOWN_DAMAGE_KEYS,
+  MOVE_ATTACK_TYPES,
   RESONANCE_FLINCH_LEVELS,
 } from "@/lib/moves/moveEnums";
 import { MOVE_FIELD_LABELS } from "@/lib/moves/moveLabels";
+import { strengthRangeForAttackType } from "@/lib/moves/moveRules";
 import { asOptionalEnumValue } from "@/lib/optionGuards";
-import type { HitBreakdownEntry } from "@/types/move";
+import type { HitBreakdownEntry, MoveAttackType } from "@/types/move";
 import { DecimalNumberInput } from "./DecimalNumberInput";
 import { IntegerNumberInput } from "./IntegerNumberInput";
 import {
   AIR_GROUND_OPTIONS,
+  ATTACK_TYPE_OPTIONS,
   GUARD_LEVEL_OPTIONS,
   PLACEHOLDER_NO_VALUE,
   RESONANCE_FLINCH_LEVEL_OPTIONS,
@@ -32,6 +35,143 @@ const HIT_BREAKDOWN_DAMAGE_FIELDS = HIT_BREAKDOWN_DAMAGE_KEYS.map((key) => ({
   label: MOVE_FIELD_LABELS[key],
 }));
 
+/** グループ 1 件分の入力欄。配列操作は親が担い、ここは 1 グループの値だけを扱う。 */
+interface HitBreakdownEntryCardProps {
+  entry: HitBreakdownEntry;
+  /** 見出し「グループN」に使う 0 始まりの位置。 */
+  index: number;
+  /** グループが 1 件だけのときは削除できない（スキーマ上 1 件以上必須）。 */
+  canRemove: boolean;
+  onRemove: () => void;
+  onFieldChange: <Key extends keyof HitBreakdownEntry>(
+    key: Key,
+    value: HitBreakdownEntry[Key] | undefined,
+  ) => void;
+  /** 強度の入力範囲を決めるための技単位の攻撃属性。グループ側が未設定のときの基準。 */
+  moveAttackType: MoveAttackType | undefined;
+}
+
+const HitBreakdownEntryCard = ({
+  entry,
+  index,
+  canRemove,
+  onRemove,
+  onFieldChange,
+  moveAttackType,
+}: HitBreakdownEntryCardProps) => {
+  // 強度の範囲は攻撃属性で決まる。グループが攻撃属性を持たなければ技単位の値を基準にする。
+  const strengthRange = strengthRangeForAttackType(
+    entry.attackType ?? moveAttackType,
+  );
+  return (
+    <Card withBorder bg="var(--surface-1)" padding="sm">
+      <Stack gap="xs">
+        <Group justify="space-between">
+          <Text size="sm" fw={600}>
+            グループ{index + 1}
+          </Text>
+          <Button
+            variant="subtle"
+            color="red"
+            size="compact-xs"
+            disabled={!canRemove}
+            onClick={onRemove}
+          >
+            削除
+          </Button>
+        </Group>
+        <SimpleGrid cols={{ base: 2, sm: 3 }}>
+          <IntegerNumberInput
+            label="ヒット数"
+            description="このグループの連続ヒット数"
+            withAsterisk
+            min={1}
+            value={entry.hitCount}
+            onChange={(value) => onFieldChange("hitCount", value ?? 1)}
+          />
+          {HIT_BREAKDOWN_DAMAGE_FIELDS.map(({ key, label }) => (
+            <IntegerNumberInput
+              key={key}
+              label={label}
+              placeholder={PLACEHOLDER_NO_VALUE}
+              min={0}
+              value={entry[key]}
+              onChange={(value) => onFieldChange(key, value)}
+            />
+          ))}
+          <DecimalNumberInput
+            label={MOVE_FIELD_LABELS.phaseChangePoints}
+            placeholder={PLACEHOLDER_NO_VALUE}
+            min={0}
+            value={entry.phaseChangePoints}
+            onChange={(value) => onFieldChange("phaseChangePoints", value)}
+          />
+          <Select
+            label="判定"
+            placeholder={PLACEHOLDER_NO_VALUE}
+            clearable
+            data={GUARD_LEVEL_OPTIONS}
+            value={entry.guardLevel ?? null}
+            onChange={(value) =>
+              onFieldChange("guardLevel", asOptionalEnumValue(value, GUARD_LEVELS))
+            }
+          />
+          <Select
+            label="空・地判定"
+            placeholder={PLACEHOLDER_NO_VALUE}
+            clearable
+            data={AIR_GROUND_OPTIONS}
+            value={entry.airGroundJudgment ?? null}
+            onChange={(value) =>
+              onFieldChange(
+                "airGroundJudgment",
+                asOptionalEnumValue(value, AIR_GROUND_JUDGMENTS),
+              )
+            }
+          />
+          <Select
+            label={MOVE_FIELD_LABELS.resonanceFlinch}
+            placeholder={PLACEHOLDER_NO_VALUE}
+            clearable
+            data={RESONANCE_FLINCH_LEVEL_OPTIONS}
+            value={entry.resonanceFlinch ?? null}
+            onChange={(value) =>
+              onFieldChange(
+                "resonanceFlinch",
+                asOptionalEnumValue(value, RESONANCE_FLINCH_LEVELS),
+              )
+            }
+          />
+          <Select
+            label="攻撃属性"
+            placeholder={PLACEHOLDER_NO_VALUE}
+            clearable
+            data={ATTACK_TYPE_OPTIONS}
+            value={entry.attackType ?? null}
+            onChange={(value) =>
+              onFieldChange(
+                "attackType",
+                asOptionalEnumValue(value, MOVE_ATTACK_TYPES),
+              )
+            }
+          />
+          <IntegerNumberInput
+            // 入力可能範囲は攻撃属性で決まるため、属性が変わったらこの欄だけ作り直す
+            // （非制御コンポーネントの再マウント契約。BaseNumberInput 参照）。
+            key={`strength-${entry.attackType ?? moveAttackType ?? "none"}`}
+            label="強度"
+            placeholder={PLACEHOLDER_NO_VALUE}
+            min={strengthRange?.min}
+            max={strengthRange?.max}
+            value={entry.strength}
+            onChange={(value) => onFieldChange("strength", value)}
+          />
+        </SimpleGrid>
+      </Stack>
+    </Card>
+  );
+};
+
 export interface HitBreakdownFieldsProps {
   /** グループ入力欄の key に使う接頭辞。技単位/共鳴差分で別の値を渡し、衝突を防ぐ。 */
   idPrefix: string;
@@ -39,6 +179,12 @@ export interface HitBreakdownFieldsProps {
   switchDescription?: string;
   entries: HitBreakdownEntry[] | undefined;
   onChange: (entries: HitBreakdownEntry[] | undefined) => void;
+  /**
+   * 技単位の攻撃属性。グループが攻撃属性を省略したときの強度の入力可能範囲の基準に使う
+   * （範囲は攻撃属性ごとに決まるため）。技本体・各上書き層のどのパネルから開いても
+   * 技単位の値は共通のため、呼び出し側は常に move.attackType を渡す。
+   */
+  moveAttackType: MoveAttackType | undefined;
 }
 
 /**
@@ -56,6 +202,7 @@ export const HitBreakdownFields = ({
   switchDescription,
   entries,
   onChange,
+  moveAttackType,
 }: HitBreakdownFieldsProps) => {
   const enabled = entries !== undefined;
   return (
@@ -71,131 +218,17 @@ export const HitBreakdownFields = ({
       {enabled && (
         <Stack gap="sm">
           {entries.map((entry, index) => (
-            <Card
+            <HitBreakdownEntryCard
               key={`${idPrefix}-${index}-${entries.length}`}
-              withBorder
-              bg="var(--surface-1)"
-              padding="sm"
-            >
-              <Stack gap="xs">
-                <Group justify="space-between">
-                  <Text size="sm" fw={600}>
-                    グループ{index + 1}
-                  </Text>
-                  <Button
-                    variant="subtle"
-                    color="red"
-                    size="compact-xs"
-                    disabled={entries.length <= 1}
-                    onClick={() =>
-                      onChange(removeHitBreakdownEntry(entries, index))
-                    }
-                  >
-                    削除
-                  </Button>
-                </Group>
-                <SimpleGrid cols={{ base: 2, sm: 3 }}>
-                  <IntegerNumberInput
-                    label="ヒット数"
-                    description="このグループの連続ヒット数"
-                    withAsterisk
-                    min={1}
-                    value={entry.hitCount}
-                    onChange={(value) =>
-                      onChange(
-                        setHitBreakdownEntryField(
-                          entries,
-                          index,
-                          "hitCount",
-                          value ?? 1,
-                        ),
-                      )
-                    }
-                  />
-                  {HIT_BREAKDOWN_DAMAGE_FIELDS.map(({ key, label }) => (
-                    <IntegerNumberInput
-                      key={key}
-                      label={label}
-                      placeholder={PLACEHOLDER_NO_VALUE}
-                      min={0}
-                      value={entry[key]}
-                      onChange={(value) =>
-                        onChange(
-                          setHitBreakdownEntryField(entries, index, key, value),
-                        )
-                      }
-                    />
-                  ))}
-                  <DecimalNumberInput
-                    label={MOVE_FIELD_LABELS.phaseChangePoints}
-                    placeholder={PLACEHOLDER_NO_VALUE}
-                    min={0}
-                    value={entry.phaseChangePoints}
-                    onChange={(value) =>
-                      onChange(
-                        setHitBreakdownEntryField(
-                          entries,
-                          index,
-                          "phaseChangePoints",
-                          value,
-                        ),
-                      )
-                    }
-                  />
-                  <Select
-                    label="判定"
-                    placeholder={PLACEHOLDER_NO_VALUE}
-                    clearable
-                    data={GUARD_LEVEL_OPTIONS}
-                    value={entry.guardLevel ?? null}
-                    onChange={(value) =>
-                      onChange(
-                        setHitBreakdownEntryField(
-                          entries,
-                          index,
-                          "guardLevel",
-                          asOptionalEnumValue(value, GUARD_LEVELS),
-                        ),
-                      )
-                    }
-                  />
-                  <Select
-                    label="空・地判定"
-                    placeholder={PLACEHOLDER_NO_VALUE}
-                    clearable
-                    data={AIR_GROUND_OPTIONS}
-                    value={entry.airGroundJudgment ?? null}
-                    onChange={(value) =>
-                      onChange(
-                        setHitBreakdownEntryField(
-                          entries,
-                          index,
-                          "airGroundJudgment",
-                          asOptionalEnumValue(value, AIR_GROUND_JUDGMENTS),
-                        ),
-                      )
-                    }
-                  />
-                  <Select
-                    label={MOVE_FIELD_LABELS.resonanceFlinch}
-                    placeholder={PLACEHOLDER_NO_VALUE}
-                    clearable
-                    data={RESONANCE_FLINCH_LEVEL_OPTIONS}
-                    value={entry.resonanceFlinch ?? null}
-                    onChange={(value) =>
-                      onChange(
-                        setHitBreakdownEntryField(
-                          entries,
-                          index,
-                          "resonanceFlinch",
-                          asOptionalEnumValue(value, RESONANCE_FLINCH_LEVELS),
-                        ),
-                      )
-                    }
-                  />
-                </SimpleGrid>
-              </Stack>
-            </Card>
+              entry={entry}
+              index={index}
+              canRemove={entries.length > 1}
+              onRemove={() => onChange(removeHitBreakdownEntry(entries, index))}
+              onFieldChange={(key, value) =>
+                onChange(setHitBreakdownEntryField(entries, index, key, value))
+              }
+              moveAttackType={moveAttackType}
+            />
           ))}
           <Button
             variant="light"

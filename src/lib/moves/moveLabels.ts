@@ -138,10 +138,11 @@ export const MOVE_FIELD_LABELS: Record<
  */
 export type LabelStyle = "full" | "short";
 
-export const GUARD_LEVEL_LABEL_KEY_BY_STYLE: Record<
-  LabelStyle,
-  "label" | "shortLabel"
-> = {
+/**
+ * label / shortLabel の両方を持つ META（GUARD_LEVEL_META・ATTACK_TYPE_META など）から、
+ * 表示の詳細度に応じてどちらのキーを引くかの対応表。META の種類に依存しないため 1 つで共有する。
+ */
+export const LABEL_KEY_BY_STYLE: Record<LabelStyle, "label" | "shortLabel"> = {
   full: "label",
   short: "shortLabel",
 };

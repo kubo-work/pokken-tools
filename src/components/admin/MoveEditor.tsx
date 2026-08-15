@@ -89,9 +89,10 @@ export const MoveEditor = ({
         <HitBreakdownFields
           idPrefix={`${move.id}-hitBreakdown`}
           switchLabel="ヒットごとに性能が変わる"
-          switchDescription="ダメージ・PCH値・判定・空地判定・共鳴怯ませがヒットごとに異なる技のみ ON"
+          switchDescription="ダメージ・PCH値・判定・空地判定・共鳴怯ませ・攻撃属性・強度がヒットごとに異なる技のみ ON"
           entries={move.hitBreakdown}
           onChange={(entries) => onChange(setMoveHitBreakdown(move, entries))}
+          moveAttackType={move.attackType}
         />
         <MoveTextFields move={move} onChange={onChange} />
         <MoveResonancePanel move={move} onChange={onChange} />

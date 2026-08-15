@@ -218,6 +218,7 @@ export const MoveOverrideFields = ({
       switchDescription={HIT_BREAKDOWN_SWITCH_DESCRIPTION}
       entries={value?.hitBreakdown}
       onChange={onHitBreakdownChange}
+      moveAttackType={move.attackType}
     />
   </>
 );
@@ -269,6 +270,7 @@ export const MoveFieldPhaseOverrideFields = ({
       switchDescription={HIT_BREAKDOWN_SWITCH_DESCRIPTION}
       entries={value?.hitBreakdown}
       onChange={onHitBreakdownChange}
+      moveAttackType={move.attackType}
     />
   </>
 );

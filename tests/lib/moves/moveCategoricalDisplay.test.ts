@@ -2,8 +2,12 @@ import { describe, expect, test } from "bun:test";
 import {
   hitBreakdownCategoricalLines,
   moveAirGroundJudgmentLabel,
+  moveAttackTypeLines,
+  moveAttackTypeShortLabel,
   moveGuardLevelShortLabel,
   moveResonanceFlinchLines,
+  moveStrengthLines,
+  moveStrengthShortLabel,
 } from "@/lib/moves/moveCategoricalDisplay";
 import type { HitBreakdownEntry, Move } from "@/types/move";
 import {
@@ -127,5 +131,99 @@ describe("moveResonanceFlinchLines（詳細ページ向け）", () => {
 
   test("内訳も技単位も無ければ空配列", () => {
     expect(moveResonanceFlinchLines(buildMove({}))).toEqual([]);
+  });
+});
+
+describe("moveAttackTypeLines（詳細ページ向け）", () => {
+  test("内訳が攻撃属性を定義していればヒット範囲ごとの行になる", () => {
+    const move = buildMove({
+      hitBreakdown: [
+        { hitCount: 1, attackType: "strike" },
+        { hitCount: 3, attackType: "projectile" },
+      ],
+    });
+    expect(moveAttackTypeLines(move)).toEqual([
+      "1ヒット目: 打撃",
+      "2〜4ヒット目: 弾",
+    ]);
+  });
+
+  test("内訳が攻撃属性を定義していなければ技単位の代表値", () => {
+    const move = buildMove({
+      attackType: "strike",
+      hitBreakdown: meditationBreakdown,
+    });
+    expect(moveAttackTypeLines(move)).toEqual(["打撃"]);
+  });
+
+  test("内訳も技単位も無ければ空配列", () => {
+    expect(moveAttackTypeLines(buildMove({}))).toEqual([]);
+  });
+});
+
+describe("moveAttackTypeShortLabel（一覧向け）", () => {
+  test("ヒット内訳がある技は値だけを表示し、ヒット位置を出さない", () => {
+    const move = buildMove({
+      hitBreakdown: [
+        { hitCount: 1, attackType: "strike" },
+        { hitCount: 3, attackType: "projectile" },
+      ],
+    });
+    expect(moveAttackTypeShortLabel(move)).toBe("打/弾");
+  });
+
+  test("内訳が無ければ技単位の値", () => {
+    expect(
+      moveAttackTypeShortLabel(buildMove({ attackType: "projectile" })),
+    ).toBe("弾");
+  });
+
+  test("どちらも無ければ undefined", () => {
+    expect(moveAttackTypeShortLabel(buildMove({}))).toBeUndefined();
+  });
+});
+
+describe("moveStrengthLines（詳細ページ向け）", () => {
+  test("内訳が強度を定義していればヒット範囲ごとの行になる", () => {
+    const move = buildMove({
+      hitBreakdown: [
+        { hitCount: 1, strength: 5 },
+        { hitCount: 3, strength: 3 },
+      ],
+    });
+    expect(moveStrengthLines(move)).toEqual([
+      "1ヒット目: 5",
+      "2〜4ヒット目: 3",
+    ]);
+  });
+
+  test("内訳が強度を定義していなければ技単位の代表値", () => {
+    const move = buildMove({ strength: 4, hitBreakdown: meditationBreakdown });
+    expect(moveStrengthLines(move)).toEqual(["4"]);
+  });
+
+  test("内訳も技単位も無ければ空配列", () => {
+    expect(moveStrengthLines(buildMove({}))).toEqual([]);
+  });
+});
+
+describe("moveStrengthShortLabel（一覧向け）", () => {
+  test("ヒット内訳がある技は値だけを重複を除いて / で連結する", () => {
+    const move = buildMove({
+      hitBreakdown: [
+        { hitCount: 1, strength: 5 },
+        { hitCount: 1, strength: 3 },
+        { hitCount: 1, strength: 3 },
+      ],
+    });
+    expect(moveStrengthShortLabel(move)).toBe("5/3");
+  });
+
+  test("内訳が無ければ技単位の値", () => {
+    expect(moveStrengthShortLabel(buildMove({ strength: 6 }))).toBe("6");
+  });
+
+  test("どちらも無ければ undefined", () => {
+    expect(moveStrengthShortLabel(buildMove({}))).toBeUndefined();
   });
 });
