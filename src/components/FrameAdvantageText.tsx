@@ -6,6 +6,7 @@ import { FrameNumber } from "./FrameNumber";
  * ガード/ヒット硬直差の共通表示。
  * - 単一値: FrameNumber（符号付き・有利不利の色分け）
  * - 範囲（当て方で変わる技）: 「min〜max」を両端それぞれ色分け
+ *   片側が未計測（飛び道具など計測が難しい技）なら、その側を省略して「min〜」「〜max」と表示する
  * - "down"（相手がダウンする技）: 「ダウン」
  */
 export const FrameAdvantageText = ({
@@ -21,9 +22,9 @@ export const FrameAdvantageText = ({
   }
   return (
     <span style={{ whiteSpace: "nowrap" }}>
-      <FrameNumber value={value.min} />
+      {value.min !== undefined && <FrameNumber value={value.min} />}
       〜
-      <FrameNumber value={value.max} />
+      {value.max !== undefined && <FrameNumber value={value.max} />}
     </span>
   );
 };

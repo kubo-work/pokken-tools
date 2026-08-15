@@ -133,6 +133,42 @@ describe("searchPunishes: ガード硬直差が範囲の技", () => {
   });
 });
 
+describe("searchPunishes: ガード硬直差が片側未計測の範囲の技", () => {
+  test("有利側（max）が未計測なら既知の不利側（min）で判定し、全件 spacingDependent が付く", () => {
+    const attacker = makeMove({
+      id: "attacker",
+      guardFrameAdvantage: { min: -8 },
+    });
+    const results = searchPunishes({
+      phase: "duel",
+      attackerMove: attacker,
+      defenderMoves: [makeMove({ id: "startup_8", startup: 8 })],
+      defenderState: "normal",
+      exceptions: [],
+    });
+    expect(results).toHaveLength(1);
+    expect(results[0]!.frameAdvantage).toBe(0);
+    expect(results[0]!.spacingDependent).toBe(true);
+  });
+
+  test("不利側（min）が未計測なら既知の有利側（max）で判定し、spacingDependent は付かない", () => {
+    const attacker = makeMove({
+      id: "attacker",
+      guardFrameAdvantage: { max: -4 },
+    });
+    const results = searchPunishes({
+      phase: "duel",
+      attackerMove: attacker,
+      defenderMoves: [makeMove({ id: "startup_4", startup: 4 })],
+      defenderState: "normal",
+      exceptions: [],
+    });
+    expect(results).toHaveLength(1);
+    expect(results[0]!.frameAdvantage).toBe(0);
+    expect(results[0]!.spacingDependent).toBe(false);
+  });
+});
+
 describe("searchPunishes: 防御側候補の絞り込み", () => {
   const attacker = makeMove({ id: "attacker", guardFrameAdvantage: -20 });
 

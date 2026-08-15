@@ -8,7 +8,7 @@ import type {
 import { moveStateOf, resolveMove } from "@/lib/moves/resolveMove";
 import {
   bestGuardFrameAdvantage,
-  worstGuardFrameAdvantage,
+  knownWorstGuardFrameAdvantage,
 } from "./frameAdvantage";
 
 /** その状態で使用可能な技か。共鳴専用技は通常状態では使えない（ジャスト入力の有無は問わない）。 */
@@ -58,18 +58,34 @@ export interface SearchPunishParams {
 /**
  * 防御側の余裕フレーム。max=攻撃側が最も不利な当て方、min=最も有利な当て方のときの値。
  * 単一値の硬直差では max と min が一致する。
+ * min は攻撃側の有利側が未計測（bestGuardFrameAdvantage が undefined）なら不明になる。
+ * その場合は「有利側でも確定するか」を判定できないため、常に spacingDependent とする。
  */
 interface AvailableFrames {
   max: number;
-  min: number;
+  min: number | undefined;
 }
 
 const availableFramesOf = (
   guardFrameAdvantage: GuardFrameAdvantage,
-): AvailableFrames => ({
-  max: -worstGuardFrameAdvantage(guardFrameAdvantage),
-  min: -bestGuardFrameAdvantage(guardFrameAdvantage),
-});
+): AvailableFrames => {
+  const best = bestGuardFrameAdvantage(guardFrameAdvantage);
+  return {
+    max: -knownWorstGuardFrameAdvantage(guardFrameAdvantage),
+    min: best === undefined ? undefined : -best,
+  };
+};
+
+/**
+ * 攻撃側が最も有利な当て方をしても確定する、と言い切れないなら true。
+ * 有利側が未計測（min が undefined）なら判定できないため、同じく true とする。
+ */
+const isSpacingDependent = (
+  availableFrames: AvailableFrames,
+  defenderStartup: number,
+): boolean =>
+  availableFrames.min === undefined ||
+  availableFrames.min - defenderStartup < 0;
 
 /** 例外なしの通常判定。最大余裕でも間に合わない技は undefined（確定しない）。 */
 const punishResultOf = (
@@ -83,7 +99,7 @@ const punishResultOf = (
   return {
     defenderMove,
     frameAdvantage,
-    spacingDependent: availableFrames.min - defenderMove.startup < 0,
+    spacingDependent: isSpacingDependent(availableFrames, defenderMove.startup),
   };
 };
 
@@ -111,7 +127,8 @@ const forcedPunishResultOf = (
     defenderMove,
     frameAdvantage,
     spacingDependent:
-      frameAdvantage >= 0 && availableFrames.min - defenderMove.startup < 0,
+      frameAdvantage >= 0 &&
+      isSpacingDependent(availableFrames, defenderMove.startup),
     forcedBy: exception,
   };
 };

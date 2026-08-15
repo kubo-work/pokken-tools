@@ -32,10 +32,15 @@ export const airGroundJudgmentSchema = z.enum(["air", "ground"]);
 export const variantSchema = z.enum(["normal", "charge", "derivative"]);
 
 const frameAdvantageRangeSchema = z
-  .object({ min: z.number(), max: z.number() })
-  .refine((range) => range.min <= range.max, {
-    message: "範囲は 最小（不利側）<= 最大（有利側）で入力してください",
-  });
+  .object({ min: z.number().optional(), max: z.number().optional() })
+  .refine((range) => range.min !== undefined || range.max !== undefined, {
+    message: "範囲は最小・最大の少なくとも片方を入力してください",
+  })
+  .refine(
+    (range) =>
+      range.min === undefined || range.max === undefined || range.min <= range.max,
+    { message: "範囲は 最小（不利側）<= 最大（有利側）で入力してください" },
+  );
 export const guardFrameAdvantageSchema = z.union([
   z.number(),
   frameAdvantageRangeSchema,

@@ -486,6 +486,18 @@ describe("moveSchema: ガード硬直差の範囲", () => {
     expectInvalid({ ...baseMove, guardFrameAdvantage: { min: -4, max: -8 } });
   });
 
+  test("min のみ（max 未計測）の範囲は通る", () => {
+    expectValid({ ...baseMove, guardFrameAdvantage: { min: -8 } });
+  });
+
+  test("max のみ（min 未計測）の範囲は通る", () => {
+    expectValid({ ...baseMove, guardFrameAdvantage: { max: -4 } });
+  });
+
+  test("min も max も無い範囲は拒否される", () => {
+    expectInvalid({ ...baseMove, guardFrameAdvantage: {} });
+  });
+
   test("ヒット硬直差は down リテラルも通る", () => {
     expectValid({ ...baseMove, hitFrameAdvantage: "down" });
   });

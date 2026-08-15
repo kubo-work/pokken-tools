@@ -11,9 +11,13 @@ import { IntegerNumberInput, type IntegerNumberInputProps } from "./IntegerNumbe
 import { PLACEHOLDER_NOT_MEASURED } from "./moveFieldsHelpers";
 
 /** 硬直差の入力形式。guard は single / range、hit はさらに down を選べる。 */
-type FrameAdvantageInputMode = "single" | "range" | "down";
+export type FrameAdvantageInputMode = "single" | "range" | "down";
 
-type FrameAdvantageFieldValue = number | FrameAdvantageRange | "down";
+/** 入力欄が保持しうる硬直差の値。範囲は片側だけ入力された過渡状態も取りうる。 */
+export type FrameAdvantageFieldValue =
+  | number
+  | FrameAdvantageRange
+  | "down";
 
 const GUARD_MODES: FrameAdvantageInputMode[] = ["single", "range"];
 const HIT_MODES: FrameAdvantageInputMode[] = ["single", "range", "down"];
@@ -72,8 +76,14 @@ const modeOfValue = (
   return typeof value === "number" ? "single" : "range";
 };
 
-/** 形式変更時の初期値。単一値⇄範囲の切替では今の値をできるだけ引き継ぐ。 */
-const valueForMode = (
+/**
+ * 形式変更時の初期値。単一値⇄範囲の切替では今の値をできるだけ引き継ぐ。
+ * - 範囲→単一値: min（無ければ max）を引き継ぎ、どちらも無ければ 0
+ * - 単一値→範囲: その値を min・max 両方に複製する
+ * - 未計測・ダウン→範囲: 両側とも空欄で始める。数値が無い状態から ±0 を作ると、
+ *   計測していない硬直差を「ちょうど 0F」として保存してしまうため
+ */
+export const valueForMode = (
   mode: FrameAdvantageInputMode,
   current: FrameAdvantageFieldValue | undefined,
 ): FrameAdvantageFieldValue => {
@@ -81,10 +91,12 @@ const valueForMode = (
     return "down";
   }
   if (typeof current === "object") {
-    return mode === "range" ? current : current.min;
+    return mode === "range" ? current : (current.min ?? current.max ?? 0);
   }
-  const base = typeof current === "number" ? current : 0;
-  return mode === "range" ? { min: base, max: base } : base;
+  if (mode === "range") {
+    return typeof current === "number" ? { min: current, max: current } : {};
+  }
+  return typeof current === "number" ? current : 0;
 };
 
 /**
@@ -150,20 +162,22 @@ export const FrameAdvantageField = (props: FrameAdvantageFieldProps) => {
           <IntegerNumberInput
             key={`${inputKeyPrefix}-range-min`}
             label="最小（最も不利側）"
+            description="計測できていなければ空欄のままにする"
             allowNegative
             value={range?.min}
             onChange={(nextValue) =>
-              emitChange({ min: nextValue ?? 0, max: range?.max ?? 0 })
+              emitChange({ min: nextValue, max: range?.max })
             }
             classNames={ITEM_CLASS_NAMES}
           />
           <IntegerNumberInput
             key={`${inputKeyPrefix}-range-max`}
             label="最大（最も有利側）"
+            description="計測できていなければ空欄のままにする"
             allowNegative
             value={range?.max}
             onChange={(nextValue) =>
-              emitChange({ min: range?.min ?? 0, max: nextValue ?? 0 })
+              emitChange({ min: range?.min, max: nextValue })
             }
             classNames={ITEM_CLASS_NAMES}
           />
