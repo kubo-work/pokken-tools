@@ -87,13 +87,16 @@ export const StrengthField = ({
   // MoveAttackType（undefined を含まない）を受け取る関数へそのまま渡せる。
   const range = STRENGTH_RANGE_BY_ATTACK_TYPE[attackType];
   const symbols = strengthSymbolsForAttackType(attackType);
+  // 未入力時の表示は数値入力・Select のどちらでも同じ。呼び出し側の指定が無ければ
+  // 入力できる値の一覧（例「1〜9・◎・●」）を出す。
+  const emptyPlaceholder = placeholder ?? formatStrengthAllowedValues(attackType);
   if (symbols.length === 0) {
     return (
       <IntegerNumberInput
         key={`${fieldKey}-${attackType}`}
         label={STRENGTH_LABEL}
         withAsterisk={withAsterisk}
-        placeholder={placeholder ?? formatStrengthAllowedValues(attackType)}
+        placeholder={emptyPlaceholder}
         min={range.min}
         max={range.max}
         value={typeof value === "number" ? value : undefined}

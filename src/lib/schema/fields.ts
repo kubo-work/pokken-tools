@@ -117,7 +117,7 @@ const hitBreakdownEntrySchema = z
   })
   // 判定ロジックは moveRules.hitBreakdownEntryHasAnyValue に集約する
   // （管理画面側の警告表示 HitBreakdownFields.tsx と同じ判断を共有するため）。
-  .refine((entry) => hitBreakdownEntryHasAnyValue(entry), {
+  .refine(hitBreakdownEntryHasAnyValue, {
     message: "ヒット数以外に最低1項目は設定してください",
   });
 export const hitBreakdownSchema = z
