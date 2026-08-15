@@ -273,3 +273,12 @@ export const moveStrengthLines = (move: Move): string[] =>
 /** 「強度」の一覧向け表示。 */
 export const moveStrengthShortLabel = (move: Move): string | undefined =>
   categoricalSummaryFor(move, STRENGTH_RESOLVER);
+
+/**
+ * 技一覧行バッジに表示する強度ラベル。数値も記号（◎/●）も strengthLabelOf を通すことで、
+ * "erase"/"inert" のキーがそのまま文字列化されて出るのを防ぐ。未設定はバッジの見た目を
+ * 保つため空文字（strengthLabelOf は undefined を返すが、このバッジは値なしでも枠を出す）。
+ */
+export const moveStrengthBadgeLabel = (
+  strength: StrengthValue | undefined,
+): string => strengthLabelOf(strength) ?? "";

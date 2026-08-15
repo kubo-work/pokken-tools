@@ -97,10 +97,10 @@ export const setMoveCategory = (
  * グループが自前の攻撃属性を持つ場合はそちらが優先されるため対象外。
  */
 const clearDisallowedEntryStrengths = (
-  entries: HitBreakdownEntry[] | undefined,
+  entries: HitBreakdownEntry[],
   attackType: MoveAttackType,
-): HitBreakdownEntry[] | undefined =>
-  entries?.map((entry) => {
+): HitBreakdownEntry[] =>
+  entries.map((entry) => {
     if (
       entry.attackType !== undefined ||
       entry.strength === undefined ||
@@ -114,11 +114,16 @@ const clearDisallowedEntryStrengths = (
   });
 
 /**
- * 強度（と、その層のヒット内訳の強度）を持ちうる上書き層から、新しい攻撃属性で
- * 許容されない強度を取り除いた層を返す。resonance / justInput / fieldPhase は
- * それぞれ別の型（MoveOverride / JustInputOverride / FieldPhaseOverride）のため、
- * union のキーで動的にプロパティへ書き込むと代入位置の型が合わない。呼び出し側で
- * 層ごとに明示的に呼び出すことで、型を保ったまま同じロジックを共有する。
+ * 強度（と、その層のヒット内訳の強度）を持ちうる層から、新しい攻撃属性で
+ * 許容されない強度を取り除いた層を返す。resonance / justInput / fieldPhase / Move 自身は
+ * それぞれ別の型のため、union のキーで動的にプロパティへ書き込むと代入位置の型が合わない。
+ * 呼び出し側で層ごとに明示的に呼び出すことで、型を保ったまま同じロジックを共有する
+ * （Move も strength/hitBreakdown を持つため、技単位のクリアにもそのまま使える）。
+ *
+ * hitBreakdown は元々持っていたときだけ書き戻す。setOptionalMoveField が明文化している
+ * 「undefined ならキーごと削除（省略＝未計測の規約）」に反して undefined 値でキーを生やすと、
+ * resolveMove のスプレッドや Object.keys 系の判定（fieldPhaseDisplay・variantMoves）が
+ * 「hitBreakdown を持つ層」と誤認して表示が崩れるため。
  */
 const clearDisallowedLayerStrengths = <
   Layer extends { strength?: StrengthValue; hitBreakdown?: HitBreakdownEntry[] },
@@ -133,7 +138,9 @@ const clearDisallowedLayerStrengths = <
   ) {
     delete next.strength;
   }
-  next.hitBreakdown = clearDisallowedEntryStrengths(next.hitBreakdown, attackType);
+  if (next.hitBreakdown !== undefined) {
+    next.hitBreakdown = clearDisallowedEntryStrengths(next.hitBreakdown, attackType);
+  }
   return next;
 };
 
@@ -141,18 +148,13 @@ const clearDisallowedLayerStrengths = <
  * 新しい攻撃属性で許容されない強度を、技単位・各上書き層・各ヒット内訳から削除する。
  * 打撃の数値入力欄は ◎ を表示できず値が消えたように見えるため、保存時の検証まで待たず
  * 属性を変えた時点で落とす。判定基準は検証と同じ isStrengthAllowedFor。
+ * 技単位の strength / hitBreakdown のクリアは clearDisallowedLayerStrengths と同じ形
+ * （Move も同じ制約を満たす）なので、そのまま同じ関数を通して二重実装を避ける。
  * 共鳴中のジャスト入力 (justInput.resonance) は justInput のさらに下にもう一段あるため
  * 個別に見る。
  */
 const clearDisallowedStrengths = (move: Move, attackType: MoveAttackType): Move => {
-  const next: Move = { ...move };
-  if (
-    next.strength !== undefined &&
-    !isStrengthAllowedFor(next.strength, attackType)
-  ) {
-    delete next.strength;
-  }
-  next.hitBreakdown = clearDisallowedEntryStrengths(next.hitBreakdown, attackType);
+  const next: Move = clearDisallowedLayerStrengths(move, attackType);
   if (next.resonance !== undefined) {
     next.resonance = clearDisallowedLayerStrengths(next.resonance, attackType);
   }

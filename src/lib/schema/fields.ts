@@ -23,10 +23,10 @@ export const strengthSymbolSchema = z.enum(["erase", "inert"]);
  * 「記号は弾だけ」「数値は属性ごとの範囲内」といったフィールド同士の相関は
  * schema/attackRefinements が担う（このファイルは値単体の妥当性だけを持つ）。
  */
-export const strengthSchema = z.union([
-  z.number().int().positive(),
-  strengthSymbolSchema,
-]);
+export const strengthSchema = z.union(
+  [z.number().int().positive(), strengthSymbolSchema],
+  { error: "強度は数値か ◎・● で入力してください" },
+);
 export const resonanceFlinchLevelSchema = z.enum(["weak", "strong"]);
 export const resonanceFlinchSchema = z.union([
   resonanceFlinchLevelSchema,

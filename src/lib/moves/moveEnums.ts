@@ -79,8 +79,8 @@ export type HitBreakdownNumericKey = (typeof HIT_BREAKDOWN_NUMERIC_KEYS)[number]
 /**
  * ヒット内訳系の判定系フィールド。数値項目（HIT_BREAKDOWN_NUMERIC_KEYS）と違い技単位の値との
  * 共存を許可し、技単位の値は代表値（通常は1ヒット目）として扱う。
- * strength は数値だが、×hitCount で合算するダメージ系と違い「ヒット範囲ごとの代表値」として
- * ラベル化する扱いが判定系フィールドと同じため、ここに含める。
+ * strength は数値と記号（◎・●）を取るが、×hitCount で合算するダメージ系と違い
+ * 「ヒット範囲ごとの代表値」としてラベル化する扱いが判定系フィールドと同じため、ここに含める。
  */
 export type HitBreakdownCategoricalKey =
   | "guardLevel"

@@ -159,7 +159,7 @@ const HitBreakdownEntryCard = ({
             }
           />
           <StrengthField
-            fieldKey={`strength-${entryAttackType ?? "none"}`}
+            fieldKey="strength"
             attackType={entryAttackType}
             placeholder={PLACEHOLDER_NO_VALUE}
             value={entry.strength}

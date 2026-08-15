@@ -1,12 +1,8 @@
 import type { z } from "zod";
 import type { HitBreakdownCategoricalKey } from "@/lib/moves/moveEnums";
-import { ATTACK_TYPE_META, STRENGTH_SYMBOL_META } from "@/lib/moves/moveLabels";
-import {
-  hitBreakdownDefines,
-  isStrengthAllowedFor,
-  STRENGTH_RANGE_BY_ATTACK_TYPE,
-  strengthSymbolsForAttackType,
-} from "@/lib/moves/moveRules";
+import { formatStrengthAllowedValues } from "@/lib/moves/moveFormat";
+import { ATTACK_TYPE_META } from "@/lib/moves/moveLabels";
+import { hitBreakdownDefines, isStrengthAllowedFor } from "@/lib/moves/moveRules";
 import type { MoveAttackType, StrengthValue } from "@/types/move";
 import type { MoveInput } from "./moveObject";
 
@@ -16,25 +12,15 @@ import type { MoveInput } from "./moveObject";
  */
 
 /**
- * その攻撃属性で入力できる値の表現。「1〜8」「1〜9・◎・●」のように、
- * 必須メッセージと不正値メッセージが同じ表現を共有する。
- */
-const strengthAllowedText = (attackType: MoveAttackType): string => {
-  const range = STRENGTH_RANGE_BY_ATTACK_TYPE[attackType];
-  const symbols = strengthSymbolsForAttackType(attackType).map(
-    (symbol) => STRENGTH_SYMBOL_META[symbol].label,
-  );
-  return [`${range.min}〜${range.max}`, ...symbols].join("・");
-};
-
-/**
  * 強度が入力可能な値でないときの指摘文言。技単位・上書き層・ヒット内訳のどれで出しても
  * 述部は同じで、主語（「打撃技の強度」「共鳴中の強度」など）だけが変わる。
+ * 値の表現（「1〜8」「1〜9・◎・●」）は formatStrengthAllowedValues（moveFormat）と共有する。
  */
 const strengthNotAllowedMessage = (
   subject: string,
   attackType: MoveAttackType,
-): string => `${subject}は${strengthAllowedText(attackType)}で入力してください`;
+): string =>
+  `${subject}は${formatStrengthAllowedValues(attackType)}で入力してください`;
 
 /** 攻撃属性由来の主語。技単位とヒット内訳のどちらの指摘でも同じ呼び方をする。 */
 const attackTypeStrengthSubject = (attackType: MoveAttackType): string =>
@@ -96,7 +82,7 @@ const validateNonAttackFields = (
  * グループが攻撃属性を省略していれば技単位の攻撃属性を基準にする（attackType は上書き層を
  * 持たず技単位にのみ存在するため、基準は常に move.attackType 一本）。
  */
-const validateHitBreakdownStrengthRange = (
+const validateHitBreakdownStrength = (
   move: MoveInput,
   attackType: NonNullable<MoveInput["attackType"]>,
   ctx: z.RefinementCtx,
@@ -161,7 +147,7 @@ const validateStrength = (
     ctx.addIssue({
       code: "custom",
       path: ["strength"],
-      message: `${ATTACK_TYPE_META[attackType].label}技は強度（${strengthAllowedText(attackType)}）が必須です`,
+      message: `${ATTACK_TYPE_META[attackType].label}技は強度（${formatStrengthAllowedValues(attackType)}）が必須です`,
     });
   } else if (!isStrengthAllowedFor(move.strength, attackType)) {
     ctx.addIssue({
@@ -203,5 +189,5 @@ export const validateAttackFields = (
     return;
   }
   validateStrength(move, move.attackType, ctx);
-  validateHitBreakdownStrengthRange(move, move.attackType, ctx);
+  validateHitBreakdownStrength(move, move.attackType, ctx);
 };

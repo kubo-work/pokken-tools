@@ -3,6 +3,7 @@ import type {
   HitBreakdownEntry,
   JustInputAcceptFrames,
   Move,
+  MoveAttackType,
   PhaseChangePointsValue,
   ResonanceFlinch,
   SpecialAttribute,
@@ -14,8 +15,13 @@ import {
   NO_VALUE_LABEL,
   RESONANCE_FLINCH_META,
   SPECIAL_ATTRIBUTE_META,
+  STRENGTH_SYMBOL_META,
   TOTAL_DAMAGE_INLINE_LABEL,
 } from "./moveLabels";
+import {
+  STRENGTH_RANGE_BY_ATTACK_TYPE,
+  strengthSymbolsForAttackType,
+} from "./moveRules";
 
 /**
  * 技の値 1 つを表示文字列に変換する。文言そのものは moveLabels にあり、
@@ -23,6 +29,21 @@ import {
  * 「ヒット内訳があれば内訳ごと、無ければ技単位の代表値」という解決を伴う判定系の表示は
  * 抽象度が異なるため moveCategoricalDisplay に分ける。
  */
+
+/**
+ * その攻撃属性で入力できる強度の値の表現（例:「1〜8」「1〜9・◎・●」）。
+ * 検証エラー文言（schema/attackRefinements の strengthNotAllowedMessage）と
+ * 入力欄の placeholder（StrengthField）が同じ表現を共有するための唯一の整形関数。
+ * 範囲は moveRules、記号ラベルは moveLabels の値を使うため、両方を扱えるここに置く
+ * （moveLabels は moveRules を import できない横同士の関係のため）。
+ */
+export const formatStrengthAllowedValues = (attackType: MoveAttackType): string => {
+  const range = STRENGTH_RANGE_BY_ATTACK_TYPE[attackType];
+  const symbols = strengthSymbolsForAttackType(attackType).map(
+    (symbol) => STRENGTH_SYMBOL_META[symbol].label,
+  );
+  return [`${range.min}〜${range.max}`, ...symbols].join("・");
+};
 
 /**
  * 特殊属性 1 件の表示ラベルを返す。

@@ -57,6 +57,9 @@ export const PLACEHOLDER_UNCHANGED = "変化なし";
 /** ヒット内訳側で設定済みのため、この入力欄では設定できないことを示す placeholder。 */
 export const PLACEHOLDER_SET_BY_HIT_BREAKDOWN = "ヒット内訳で設定済み";
 
+/** 攻撃属性を持たない技の強度欄（disabled）に表示する placeholder。 */
+export const PLACEHOLDER_NO_STRENGTH = "強度なし";
+
 /**
  * その項目に値が無いことを示す placeholder。ヒット内訳のグループのように「未計測」でも
  * 「変化なし」でもなく、単にその打点では値を持たない欄に使う。

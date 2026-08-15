@@ -2,20 +2,10 @@ import { Badge, Group, Stack, Text, UnstyledButton } from "@mantine/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { ACCENT_BORDER, SURFACE } from "@/lib/admin/surfaceTokens";
-import { strengthLabelOf } from "@/lib/moves/moveCategoricalDisplay";
+import { moveStrengthBadgeLabel } from "@/lib/moves/moveCategoricalDisplay";
 import { CATEGORY_META } from "@/lib/moves/moveLabels";
 import type { MoveGroup } from "@/lib/moves/grouping";
-import type { StrengthValue } from "@/types/move";
 import { MoveDragHandle } from "./MoveDragHandle";
-
-/**
- * 一覧行バッジに表示する強度ラベル。数値も記号（◎/●）も strengthLabelOf を通すことで、
- * "erase"/"inert" のキーがそのまま文字列化されて出るのを防ぐ。未設定はバッジの見た目を
- * 保つため空文字（strengthLabelOf は undefined を返すが、このバッジは値なしでも枠を出す）。
- */
-export const moveStrengthBadgeLabel = (
-  strength: StrengthValue | undefined,
-): string => strengthLabelOf(strength) ?? "";
 
 export interface MoveListRowProps {
   group: MoveGroup;

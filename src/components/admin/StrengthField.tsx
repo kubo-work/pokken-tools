@@ -1,20 +1,25 @@
 import { Select } from "@mantine/core";
 import { PROJECTILE_STRENGTH_SYMBOLS } from "@/lib/moves/moveEnums";
+import { formatStrengthAllowedValues } from "@/lib/moves/moveFormat";
 import { STRENGTH_SYMBOL_META } from "@/lib/moves/moveLabels";
 import {
   isStrengthSymbol,
-  strengthRangeForAttackType,
+  STRENGTH_RANGE_BY_ATTACK_TYPE,
   strengthSymbolsForAttackType,
 } from "@/lib/moves/moveRules";
 import { asOptionalEnumValue } from "@/lib/optionGuards";
 import type { MoveAttackType, StrengthValue } from "@/types/move";
 import { IntegerNumberInput } from "./IntegerNumberInput";
+import { PLACEHOLDER_NO_STRENGTH } from "./moveFieldsHelpers";
 
 /**
  * 強度の入力欄。弾は数値に加えて ◎・● を取れるため Select、打撃は数値入力と、
  * 攻撃属性で UI そのものが変わる。この分岐を 5 か所の呼び出し側に散らさないよう
  * ここに閉じ、呼び出し側は StrengthValue の読み書きだけを意識する。
  */
+
+/** 強度欄のラベル。分岐（disabled／数値入力／Select）のどれでも同じ文言を使う。 */
+const STRENGTH_LABEL = "強度";
 
 /** Mantine Select は文字列しか扱えないため、強度を option の値に変換する。 */
 export const strengthToOptionValue = (
@@ -65,28 +70,30 @@ export const StrengthField = ({
   withAsterisk,
   placeholder,
 }: StrengthFieldProps) => {
-  const range = strengthRangeForAttackType(attackType);
-  const symbols = strengthSymbolsForAttackType(attackType);
-  if (range === undefined) {
+  if (attackType === undefined) {
     // 攻撃属性を持たない技は強度を持たない（スキーマ側でも設定を禁止している）。
     return (
       <IntegerNumberInput
         key={`${fieldKey}-none`}
-        label="強度"
-        placeholder="強度なし"
+        label={STRENGTH_LABEL}
+        placeholder={PLACEHOLDER_NO_STRENGTH}
         disabled
         value={undefined}
         onChange={() => undefined}
       />
     );
   }
+  // attackType を上で narrow 済みのため、以降は formatStrengthAllowedValues など
+  // MoveAttackType（undefined を含まない）を受け取る関数へそのまま渡せる。
+  const range = STRENGTH_RANGE_BY_ATTACK_TYPE[attackType];
+  const symbols = strengthSymbolsForAttackType(attackType);
   if (symbols.length === 0) {
     return (
       <IntegerNumberInput
         key={`${fieldKey}-${attackType}`}
-        label="強度"
+        label={STRENGTH_LABEL}
         withAsterisk={withAsterisk}
-        placeholder={placeholder ?? `${range.min}〜${range.max}`}
+        placeholder={placeholder ?? formatStrengthAllowedValues(attackType)}
         min={range.min}
         max={range.max}
         value={typeof value === "number" ? value : undefined}
@@ -108,9 +115,9 @@ export const StrengthField = ({
   return (
     <Select
       key={`${fieldKey}-${attackType}`}
-      label="強度"
+      label={STRENGTH_LABEL}
       withAsterisk={withAsterisk}
-      placeholder={placeholder ?? `${range.min}〜${range.max}・◎・●`}
+      placeholder={placeholder ?? formatStrengthAllowedValues(attackType)}
       clearable
       data={[...numericOptions, ...symbolOptions]}
       value={strengthToOptionValue(value)}
