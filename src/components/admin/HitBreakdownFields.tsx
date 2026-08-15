@@ -22,6 +22,7 @@ import { StrengthField } from "./StrengthField";
 import {
   addHitBreakdownEntry,
   removeHitBreakdownEntry,
+  setHitBreakdownEntryAttackType,
   setHitBreakdownEntryField,
   toggleHitBreakdown,
 } from "@/lib/moves/moveHitBreakdownUpdaters";
@@ -47,6 +48,12 @@ interface HitBreakdownEntryCardProps {
     key: Key,
     value: HitBreakdownEntry[Key] | undefined,
   ) => void;
+  /**
+   * グループの攻撃属性の変更専用。属性が変わると許容される強度の範囲も変わるため、
+   * onFieldChange の単一フィールド更新ではなく、強度の見直しも合わせて行う専用の
+   * 更新関数（setHitBreakdownEntryAttackType）を親から渡してもらう。
+   */
+  onAttackTypeChange: (attackType: MoveAttackType | undefined) => void;
   /** 強度の入力範囲を決めるための技単位の攻撃属性。グループ側が未設定のときの基準。 */
   moveAttackType: MoveAttackType | undefined;
 }
@@ -57,6 +64,7 @@ const HitBreakdownEntryCard = ({
   canRemove,
   onRemove,
   onFieldChange,
+  onAttackTypeChange,
   moveAttackType,
 }: HitBreakdownEntryCardProps) => {
   // 強度の入力可能な値は攻撃属性で決まる。グループが攻撃属性を持たなければ技単位の値を基準にする。
@@ -147,10 +155,7 @@ const HitBreakdownEntryCard = ({
             data={ATTACK_TYPE_OPTIONS}
             value={entry.attackType ?? null}
             onChange={(value) =>
-              onFieldChange(
-                "attackType",
-                asOptionalEnumValue(value, MOVE_ATTACK_TYPES),
-              )
+              onAttackTypeChange(asOptionalEnumValue(value, MOVE_ATTACK_TYPES))
             }
           />
           <StrengthField
@@ -220,6 +225,16 @@ export const HitBreakdownFields = ({
               onRemove={() => onChange(removeHitBreakdownEntry(entries, index))}
               onFieldChange={(key, value) =>
                 onChange(setHitBreakdownEntryField(entries, index, key, value))
+              }
+              onAttackTypeChange={(attackType) =>
+                onChange(
+                  setHitBreakdownEntryAttackType(
+                    entries,
+                    index,
+                    attackType,
+                    moveAttackType,
+                  ),
+                )
               }
               moveAttackType={moveAttackType}
             />

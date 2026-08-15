@@ -1,9 +1,9 @@
-import type { HitBreakdownEntry, Move } from "@/types/move";
+import type { HitBreakdownEntry, Move, MoveAttackType } from "@/types/move";
 import {
   HIT_BREAKDOWN_NUMERIC_KEYS,
   type HitBreakdownNumericKey,
 } from "./moveEnums";
-import { hitBreakdownDefines } from "./moveRules";
+import { hitBreakdownDefines, isStrengthAllowedFor } from "./moveRules";
 import { setOptionalMoveField } from "./moveUpdaters";
 
 /**
@@ -98,3 +98,32 @@ export const setMoveHitBreakdown = (
   move: Move,
   entries: HitBreakdownEntry[] | undefined,
 ): Move => setHitBreakdownWith(move, entries, setOptionalMoveField);
+
+/**
+ * 内訳グループの攻撃属性を更新し、新しい属性で許容されない強度を同時に落とす。
+ * 属性と強度は対で意味が決まるため、2 つの操作に分けると不正な組み合わせが一瞬でも生まれる。
+ * グループが属性を外した場合は技単位の属性が基準になる。
+ */
+export const setHitBreakdownEntryAttackType = (
+  entries: HitBreakdownEntry[],
+  index: number,
+  attackType: MoveAttackType | undefined,
+  moveAttackType: MoveAttackType | undefined,
+): HitBreakdownEntry[] => {
+  const withAttackType = setHitBreakdownEntryField(
+    entries,
+    index,
+    "attackType",
+    attackType,
+  );
+  const effectiveAttackType = attackType ?? moveAttackType;
+  const strength = withAttackType[index]?.strength;
+  if (
+    strength === undefined ||
+    effectiveAttackType === undefined ||
+    isStrengthAllowedFor(strength, effectiveAttackType)
+  ) {
+    return withAttackType;
+  }
+  return setHitBreakdownEntryField(withAttackType, index, "strength", undefined);
+};
