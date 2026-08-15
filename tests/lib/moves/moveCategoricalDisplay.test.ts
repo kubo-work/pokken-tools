@@ -226,4 +226,23 @@ describe("moveStrengthShortLabel（一覧向け）", () => {
   test("どちらも無ければ undefined", () => {
     expect(moveStrengthShortLabel(buildMove({}))).toBeUndefined();
   });
+
+  test("記号の強度は ◎ / ● で表示される", () => {
+    expect(moveStrengthLines(buildMove({ strength: "erase" }))).toEqual(["◎"]);
+    expect(moveStrengthShortLabel(buildMove({ strength: "inert" }))).toBe("●");
+  });
+
+  test("内訳が数値と記号を混在させても値だけを連結する", () => {
+    const move = buildMove({
+      hitBreakdown: [
+        { hitCount: 1, strength: 5 },
+        { hitCount: 2, strength: "erase" },
+      ],
+    });
+    expect(moveStrengthLines(move)).toEqual([
+      "1ヒット目: 5",
+      "2〜3ヒット目: ◎",
+    ]);
+    expect(moveStrengthShortLabel(move)).toBe("5/◎");
+  });
 });

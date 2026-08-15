@@ -1,11 +1,13 @@
 import type { z } from "zod";
 import type { HitBreakdownCategoricalKey } from "@/lib/moves/moveEnums";
-import { ATTACK_TYPE_META } from "@/lib/moves/moveLabels";
+import { ATTACK_TYPE_META, STRENGTH_SYMBOL_META } from "@/lib/moves/moveLabels";
 import {
   hitBreakdownDefines,
+  isStrengthAllowedFor,
   STRENGTH_RANGE_BY_ATTACK_TYPE,
+  strengthSymbolsForAttackType,
 } from "@/lib/moves/moveRules";
-import type { MoveAttackType, StrengthRange } from "@/types/move";
+import type { MoveAttackType, StrengthValue } from "@/types/move";
 import type { MoveInput } from "./moveObject";
 
 /**
@@ -14,13 +16,25 @@ import type { MoveInput } from "./moveObject";
  */
 
 /**
- * 強度が範囲外のときの指摘文言。技単位・上書き層・ヒット内訳のどれで出しても述部は同じで、
- * 主語（「打撃技の強度」「共鳴中の強度」など）だけが変わるため、主語を受け取って組み立てる。
+ * その攻撃属性で入力できる値の表現。「1〜8」「1〜9・◎・●」のように、
+ * 必須メッセージと不正値メッセージが同じ表現を共有する。
  */
-const strengthOutOfRangeMessage = (
+const strengthAllowedText = (attackType: MoveAttackType): string => {
+  const range = STRENGTH_RANGE_BY_ATTACK_TYPE[attackType];
+  const symbols = strengthSymbolsForAttackType(attackType).map(
+    (symbol) => STRENGTH_SYMBOL_META[symbol].label,
+  );
+  return [`${range.min}〜${range.max}`, ...symbols].join("・");
+};
+
+/**
+ * 強度が入力可能な値でないときの指摘文言。技単位・上書き層・ヒット内訳のどれで出しても
+ * 述部は同じで、主語（「打撃技の強度」「共鳴中の強度」など）だけが変わる。
+ */
+const strengthNotAllowedMessage = (
   subject: string,
-  range: StrengthRange,
-): string => `${subject}は${range.min}〜${range.max}で入力してください`;
+  attackType: MoveAttackType,
+): string => `${subject}は${strengthAllowedText(attackType)}で入力してください`;
 
 /** 攻撃属性由来の主語。技単位とヒット内訳のどちらの指摘でも同じ呼び方をする。 */
 const attackTypeStrengthSubject = (attackType: MoveAttackType): string =>
@@ -92,14 +106,13 @@ const validateHitBreakdownStrengthRange = (
       return;
     }
     const entryAttackType = entry.attackType ?? attackType;
-    const entryRange = STRENGTH_RANGE_BY_ATTACK_TYPE[entryAttackType];
-    if (entry.strength < entryRange.min || entry.strength > entryRange.max) {
+    if (!isStrengthAllowedFor(entry.strength, entryAttackType)) {
       ctx.addIssue({
         code: "custom",
         path: ["hitBreakdown", index, "strength"],
-        message: strengthOutOfRangeMessage(
+        message: strengthNotAllowedMessage(
           attackTypeStrengthSubject(entryAttackType),
-          entryRange,
+          entryAttackType,
         ),
       });
     }
@@ -114,7 +127,7 @@ const validateHitBreakdownStrengthRange = (
 const STRENGTH_OVERRIDE_LAYERS: {
   path: (string | number)[];
   subject: string;
-  strengthOf: (move: MoveInput) => number | undefined;
+  strengthOf: (move: MoveInput) => StrengthValue | undefined;
 }[] = [
   {
     path: ["resonance", "strength"],
@@ -138,36 +151,35 @@ const STRENGTH_OVERRIDE_LAYERS: {
   },
 ];
 
-/** 攻撃属性を持つ技の強度が、属性ごとの範囲に収まっているか（条件付き差分も含む）。 */
-const validateStrengthRange = (
+/** 攻撃属性を持つ技の強度が入力可能な値か（条件付き差分も含む）。 */
+const validateStrength = (
   move: MoveInput,
   attackType: NonNullable<MoveInput["attackType"]>,
   ctx: z.RefinementCtx,
 ): void => {
-  const range = STRENGTH_RANGE_BY_ATTACK_TYPE[attackType];
   if (move.strength === undefined) {
     ctx.addIssue({
       code: "custom",
       path: ["strength"],
-      message: `${ATTACK_TYPE_META[attackType].label}技は強度（${range.min}〜${range.max}）が必須です`,
+      message: `${ATTACK_TYPE_META[attackType].label}技は強度（${strengthAllowedText(attackType)}）が必須です`,
     });
-  } else if (move.strength < range.min || move.strength > range.max) {
+  } else if (!isStrengthAllowedFor(move.strength, attackType)) {
     ctx.addIssue({
       code: "custom",
       path: ["strength"],
-      message: strengthOutOfRangeMessage(
+      message: strengthNotAllowedMessage(
         attackTypeStrengthSubject(attackType),
-        range,
+        attackType,
       ),
     });
   }
   for (const layer of STRENGTH_OVERRIDE_LAYERS) {
     const strength = layer.strengthOf(move);
-    if (strength !== undefined && (strength < range.min || strength > range.max)) {
+    if (strength !== undefined && !isStrengthAllowedFor(strength, attackType)) {
       ctx.addIssue({
         code: "custom",
         path: layer.path,
-        message: strengthOutOfRangeMessage(layer.subject, range),
+        message: strengthNotAllowedMessage(layer.subject, attackType),
       });
     }
   }
@@ -190,6 +202,6 @@ export const validateAttackFields = (
     validateNonAttackFields(move, ctx);
     return;
   }
-  validateStrengthRange(move, move.attackType, ctx);
+  validateStrength(move, move.attackType, ctx);
   validateHitBreakdownStrengthRange(move, move.attackType, ctx);
 };

@@ -1,10 +1,6 @@
-import { Box, NumberInput, Select, SimpleGrid, TextInput } from "@mantine/core";
+import { Box, Select, SimpleGrid, TextInput } from "@mantine/core";
 import { GUARD_LEVELS } from "@/lib/moves/moveEnums";
-import {
-  hitBreakdownDefines,
-  isBaseDamageMultiHit,
-  strengthRangeForAttackType,
-} from "@/lib/moves/moveRules";
+import { hitBreakdownDefines, isBaseDamageMultiHit } from "@/lib/moves/moveRules";
 import { asOptionalEnumValue } from "@/lib/optionGuards";
 import { resolveMove, type MoveState } from "@/lib/moves/resolveMove";
 import type {
@@ -25,6 +21,7 @@ import { HitBreakdownFields } from "./HitBreakdownFields";
 import { IntegerNumberInput } from "./IntegerNumberInput";
 import { DAMAGE_VALUE_FIELDS } from "./MoveDamageFields";
 import { PhaseChangePointsField } from "./PhaseChangePointsField";
+import { StrengthField } from "./StrengthField";
 import { TotalDamageField } from "./TotalDamageField";
 
 /** 上書き差分の入力欄が共通で受け取るもの。上書きの形ごとに Override を差し替える。 */
@@ -83,39 +80,27 @@ const OverrideFrameFields = ({
   idPrefix,
   value,
   onFieldChange,
-}: OverrideFieldGroupProps & { move: Move }) => {
-  const strengthRange = strengthRangeForAttackType(move.attackType);
-  return (
-    <>
-      {MOVE_OVERRIDE_NUMBER_FIELDS.map(({ key, label, negative, min }) => (
-        <IntegerNumberInput
-          key={`${idPrefix}-${key}`}
-          label={label}
-          allowNegative={negative}
-          min={min}
-          value={value?.[key]}
-          onChange={(nextValue) => onFieldChange(key, nextValue)}
-        />
-      ))}
-      <NumberInput
-        label="強度"
-        placeholder={
-          strengthRange === undefined ? "強度なし" : PLACEHOLDER_UNCHANGED
-        }
-        disabled={strengthRange === undefined}
-        min={strengthRange?.min}
-        max={strengthRange?.max}
-        value={value?.strength ?? ""}
-        onChange={(nextValue) =>
-          onFieldChange(
-            "strength",
-            typeof nextValue === "number" ? nextValue : undefined,
-          )
-        }
+}: OverrideFieldGroupProps & { move: Move }) => (
+  <>
+    {MOVE_OVERRIDE_NUMBER_FIELDS.map(({ key, label, negative, min }) => (
+      <IntegerNumberInput
+        key={`${idPrefix}-${key}`}
+        label={label}
+        allowNegative={negative}
+        min={min}
+        value={value?.[key]}
+        onChange={(nextValue) => onFieldChange(key, nextValue)}
       />
-    </>
-  );
-};
+    ))}
+    <StrengthField
+      fieldKey={`${idPrefix}-strength`}
+      attackType={move.attackType}
+      placeholder={PLACEHOLDER_UNCHANGED}
+      value={value?.strength}
+      onChange={(nextValue) => onFieldChange("strength", nextValue)}
+    />
+  </>
+);
 
 /** ダメージ系と PCH 値。ヒット内訳で設定済みの項目は入力を無効化する（併用不可のため）。 */
 const OverrideDamageFields = ({

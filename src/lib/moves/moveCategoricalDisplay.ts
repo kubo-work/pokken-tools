@@ -1,4 +1,9 @@
-import type { HitBreakdownEntry, Move, MoveAttackType } from "@/types/move";
+import type {
+  HitBreakdownEntry,
+  Move,
+  MoveAttackType,
+  StrengthValue,
+} from "@/types/move";
 import type { HitBreakdownCategoricalKey } from "./moveEnums";
 import { resonanceFlinchLabel } from "./moveFormat";
 import {
@@ -7,9 +12,10 @@ import {
   GUARD_LEVEL_META,
   LABEL_KEY_BY_STYLE,
   RESONANCE_FLINCH_META,
+  STRENGTH_SYMBOL_META,
   type LabelStyle,
 } from "./moveLabels";
-import { hitBreakdownDefines } from "./moveRules";
+import { hitBreakdownDefines, isStrengthSymbol } from "./moveRules";
 
 /**
  * 判定系フィールド（判定・空地・共鳴怯ませ）の表示。値を文字列にするだけの moveFormat と違い、
@@ -48,9 +54,17 @@ const attackTypeLabelOf = (
     ? undefined
     : ATTACK_TYPE_META[attackType][LABEL_KEY_BY_STYLE[labelStyle]];
 
-/** 強度は数値そのものが表示値のため labelStyle で変えない。 */
-const strengthLabelOf = (strength: number | undefined): string | undefined =>
-  strength === undefined ? undefined : `${strength}`;
+/** 数値はそのまま、記号は ◎ / ● に。どちらも 1 文字表記のため labelStyle では変えない。 */
+const strengthLabelOf = (
+  strength: StrengthValue | undefined,
+): string | undefined => {
+  if (strength === undefined) {
+    return undefined;
+  }
+  return isStrengthSymbol(strength)
+    ? STRENGTH_SYMBOL_META[strength].label
+    : `${strength}`;
+};
 
 /**
  * ヒット内訳1グループ分の判定系フィールドを表示ラベルにする関数。未設定なら undefined を返す。

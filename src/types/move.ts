@@ -97,7 +97,7 @@ export interface HitBreakdownEntry {
    */
   attackType?: MoveAttackType;
   /** このグループの強度。attackType と同じくヒットごとに変わりうるため対で持つ。 */
-  strength?: number;
+  strength?: StrengthValue;
 }
 /**
  * 硬直差の範囲。当て方や距離で硬直差が変わる技に使う。
@@ -129,7 +129,7 @@ export interface MoveOverrideBase {
   guardFrameAdvantageOnPokemonMoveCancel?: number;
   hitFrameAdvantage?: number;
   hitFrameAdvantageOnPokemonMoveCancel?: number;
-  strength?: number;
+  strength?: StrengthValue;
   baseDamage?: DamageValue;
   /** Move の totalDamage と同じ規約（実測合計）。詳細は Move.totalDamage 参照。 */
   totalDamage?: number;
@@ -213,10 +213,11 @@ export interface Move {
    */
   hitFrameAdvantageOnPokemonMoveCancel?: number;
   /**
-   * 攻撃の強度。攻撃属性 (attackType) に応じた範囲で入力する：打撃 (strike) は 1〜8、弾 (projectile) は 1〜8。
+   * 攻撃の強度。攻撃属性 (attackType) に応じた値を入力する：打撃 (strike) は 1〜8、
+   * 弾 (projectile) は 1〜9 と ◎・●（ProjectileStrengthSymbol）。
    * 攻撃属性を持たない「つかみ」技には強度がないため省略する。
    */
-  strength?: number;
+  strength?: StrengthValue;
   /**
    * 共鳴中の相手を怯ませられるか（共鳴怯ませ強度）。攻撃属性を持たない「つかみ」技には設定しない。
    * 出始め弱→途中から強の技は { switchActiveFrame } で切替フレームを持つ。

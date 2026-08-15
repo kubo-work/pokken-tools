@@ -17,7 +17,16 @@ export const guardLevelSchema = z.enum([
 ]);
 export const categorySchema = z.enum(["attack", "block", "grab"]);
 export const attackTypeSchema = z.enum(["strike", "projectile"]);
-export const strengthSchema = z.number().int().positive();
+export const strengthSymbolSchema = z.enum(["erase", "inert"]);
+/**
+ * 強度の値単体の形。数値か記号かだけを見る。
+ * 「記号は弾だけ」「数値は属性ごとの範囲内」といったフィールド同士の相関は
+ * schema/attackRefinements が担う（このファイルは値単体の妥当性だけを持つ）。
+ */
+export const strengthSchema = z.union([
+  z.number().int().positive(),
+  strengthSymbolSchema,
+]);
 export const resonanceFlinchLevelSchema = z.enum(["weak", "strong"]);
 export const resonanceFlinchSchema = z.union([
   resonanceFlinchLevelSchema,

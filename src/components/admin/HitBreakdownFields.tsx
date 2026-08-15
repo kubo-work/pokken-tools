@@ -7,7 +7,6 @@ import {
   RESONANCE_FLINCH_LEVELS,
 } from "@/lib/moves/moveEnums";
 import { MOVE_FIELD_LABELS } from "@/lib/moves/moveLabels";
-import { strengthRangeForAttackType } from "@/lib/moves/moveRules";
 import { asOptionalEnumValue } from "@/lib/optionGuards";
 import type { HitBreakdownEntry, MoveAttackType } from "@/types/move";
 import { DecimalNumberInput } from "./DecimalNumberInput";
@@ -19,6 +18,7 @@ import {
   PLACEHOLDER_NO_VALUE,
   RESONANCE_FLINCH_LEVEL_OPTIONS,
 } from "./moveFieldsHelpers";
+import { StrengthField } from "./StrengthField";
 import {
   addHitBreakdownEntry,
   removeHitBreakdownEntry,
@@ -59,10 +59,8 @@ const HitBreakdownEntryCard = ({
   onFieldChange,
   moveAttackType,
 }: HitBreakdownEntryCardProps) => {
-  // 強度の範囲は攻撃属性で決まる。グループが攻撃属性を持たなければ技単位の値を基準にする。
-  const strengthRange = strengthRangeForAttackType(
-    entry.attackType ?? moveAttackType,
-  );
+  // 強度の入力可能な値は攻撃属性で決まる。グループが攻撃属性を持たなければ技単位の値を基準にする。
+  const entryAttackType = entry.attackType ?? moveAttackType;
   return (
     <Card withBorder bg="var(--surface-1)" padding="sm">
       <Stack gap="xs">
@@ -155,14 +153,10 @@ const HitBreakdownEntryCard = ({
               )
             }
           />
-          <IntegerNumberInput
-            // 入力可能範囲は攻撃属性で決まるため、属性が変わったらこの欄だけ作り直す
-            // （非制御コンポーネントの再マウント契約。BaseNumberInput 参照）。
-            key={`strength-${entry.attackType ?? moveAttackType ?? "none"}`}
-            label="強度"
+          <StrengthField
+            fieldKey={`strength-${entryAttackType ?? "none"}`}
+            attackType={entryAttackType}
             placeholder={PLACEHOLDER_NO_VALUE}
-            min={strengthRange?.min}
-            max={strengthRange?.max}
             value={entry.strength}
             onChange={(value) => onFieldChange("strength", value)}
           />
