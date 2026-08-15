@@ -3,6 +3,7 @@ import type { HitBreakdownEntry } from "@/types/move";
 import {
   addHitBreakdownEntry,
   removeHitBreakdownEntry,
+  setHitBreakdownEntryAttackType,
   setHitBreakdownEntryField,
   setMoveHitBreakdown,
   toggleHitBreakdown,
@@ -78,6 +79,32 @@ describe("setMoveHitBreakdown", () => {
     expect("phaseChangePoints" in next).toBe(false);
     // 内訳が定義していない項目は単一値のまま残る。
     expect(next.chipDamage).toBe(5);
+  });
+});
+
+describe("setHitBreakdownEntryAttackType", () => {
+  const entries: HitBreakdownEntry[] = [
+    { hitCount: 1, attackType: "projectile", strength: "erase" },
+    { hitCount: 2, attackType: "projectile", strength: "inert" },
+  ];
+
+  test("打撃に変えたグループの記号の強度だけが消える", () => {
+    const next = setHitBreakdownEntryAttackType(entries, 0, "strike", "projectile");
+    expect(next[0]).toEqual({ hitCount: 1, attackType: "strike" });
+    expect(next[1]).toEqual(entries[1]);
+  });
+
+  test("新しい属性でも有効な強度は残る", () => {
+    const numeric: HitBreakdownEntry[] = [
+      { hitCount: 1, attackType: "projectile", strength: 5 },
+    ];
+    const next = setHitBreakdownEntryAttackType(numeric, 0, "strike", "projectile");
+    expect(next[0].strength).toBe(5);
+  });
+
+  test("グループの属性を外したら技単位の属性で判定する", () => {
+    const next = setHitBreakdownEntryAttackType(entries, 0, undefined, "strike");
+    expect(next[0]).toEqual({ hitCount: 1 });
   });
 });
 

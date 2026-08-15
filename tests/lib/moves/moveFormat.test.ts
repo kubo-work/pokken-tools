@@ -2,11 +2,22 @@ import { describe, expect, test } from "bun:test";
 import {
   formatHitBreakdownValue,
   formatPhaseChangePoints,
+  formatStrengthAllowedValues,
   formatTotalDamage,
   formatTotalDamageNote,
 } from "@/lib/moves/moveFormat";
 import type { HitBreakdownEntry } from "@/types/move";
 import { gardevoirBreakdown, meditationBreakdown } from "./testFixtures";
+
+describe("formatStrengthAllowedValues", () => {
+  test("打撃は記号を取らないため範囲だけになる", () => {
+    expect(formatStrengthAllowedValues("strike")).toBe("1〜8");
+  });
+
+  test("弾は範囲に加えて ◎・● も連結する", () => {
+    expect(formatStrengthAllowedValues("projectile")).toBe("1〜9・◎・●");
+  });
+});
 
 describe("formatHitBreakdownValue", () => {
   test("瞑想3段階アシストパワー: 50+45×3", () => {

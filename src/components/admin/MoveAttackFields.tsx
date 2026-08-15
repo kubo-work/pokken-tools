@@ -1,8 +1,6 @@
 import { Select, SimpleGrid } from "@mantine/core";
 import { GUARD_LEVELS } from "@/lib/moves/moveEnums";
-import { strengthRangeForAttackType } from "@/lib/moves/moveRules";
 import { asNullableEnumValue } from "@/lib/optionGuards";
-import { IntegerNumberInput } from "./IntegerNumberInput";
 import type { MoveFieldGroupProps } from "./moveFieldProps";
 import {
   GUARD_LEVEL_OPTIONS,
@@ -10,6 +8,7 @@ import {
   PLACEHOLDER_NO_VALUE,
 } from "./moveFieldsHelpers";
 import { ResonanceFlinchField } from "./ResonanceFlinchField";
+import { StrengthField } from "./StrengthField";
 import { setMoveField, setOptionalMoveField } from "@/lib/moves/moveUpdaters";
 
 /**
@@ -23,20 +22,13 @@ export const MoveAttackFields = ({ move, onChange }: MoveFieldGroupProps) => {
   if (isGrabMove(move) || !hasAttackType) {
     return null;
   }
-  // 入力可能な強度の範囲は攻撃属性（打撃／弾）で決まる。
-  const strengthRange = strengthRangeForAttackType(move.attackType);
   return (
     <>
       <SimpleGrid cols={{ base: 1, sm: 2 }}>
-        <IntegerNumberInput
-          key={`${move.id}-strength`}
-          label="強度"
+        <StrengthField
+          fieldKey={`${move.id}-strength`}
+          attackType={move.attackType}
           withAsterisk
-          placeholder={
-            strengthRange && `${strengthRange.min}〜${strengthRange.max}`
-          }
-          min={strengthRange?.min}
-          max={strengthRange?.max}
           value={move.strength}
           onChange={(value) =>
             onChange(setOptionalMoveField(move, "strength", value))

@@ -1,4 +1,9 @@
-import type { HitBreakdownEntry, Move, MoveAttackType } from "@/types/move";
+import type {
+  HitBreakdownEntry,
+  Move,
+  MoveAttackType,
+  StrengthValue,
+} from "@/types/move";
 import type { HitBreakdownCategoricalKey } from "./moveEnums";
 import { resonanceFlinchLabel } from "./moveFormat";
 import {
@@ -7,9 +12,10 @@ import {
   GUARD_LEVEL_META,
   LABEL_KEY_BY_STYLE,
   RESONANCE_FLINCH_META,
+  STRENGTH_SYMBOL_META,
   type LabelStyle,
 } from "./moveLabels";
-import { hitBreakdownDefines } from "./moveRules";
+import { hitBreakdownDefines, isStrengthSymbol } from "./moveRules";
 
 /**
  * 判定系フィールド（判定・空地・共鳴怯ませ）の表示。値を文字列にするだけの moveFormat と違い、
@@ -48,9 +54,21 @@ const attackTypeLabelOf = (
     ? undefined
     : ATTACK_TYPE_META[attackType][LABEL_KEY_BY_STYLE[labelStyle]];
 
-/** 強度は数値そのものが表示値のため labelStyle で変えない。 */
-const strengthLabelOf = (strength: number | undefined): string | undefined =>
-  strength === undefined ? undefined : `${strength}`;
+/**
+ * 数値はそのまま、記号は ◎ / ● に。どちらも 1 文字表記のため labelStyle では変えない。
+ * StrengthValue を画面に出す箇所は必ずこれを通し、記号キー（"erase"/"inert"）が
+ * そのまま文字列化されて漏れ出ないようにする（一覧行のバッジ・共鳴上書きの表示もこれを使う）。
+ */
+export const strengthLabelOf = (
+  strength: StrengthValue | undefined,
+): string | undefined => {
+  if (strength === undefined) {
+    return undefined;
+  }
+  return isStrengthSymbol(strength)
+    ? STRENGTH_SYMBOL_META[strength].label
+    : `${strength}`;
+};
 
 /**
  * ヒット内訳1グループ分の判定系フィールドを表示ラベルにする関数。未設定なら undefined を返す。
@@ -255,3 +273,12 @@ export const moveStrengthLines = (move: Move): string[] =>
 /** 「強度」の一覧向け表示。 */
 export const moveStrengthShortLabel = (move: Move): string | undefined =>
   categoricalSummaryFor(move, STRENGTH_RESOLVER);
+
+/**
+ * 技一覧行バッジに表示する強度ラベル。数値も記号（◎/●）も strengthLabelOf を通すことで、
+ * "erase"/"inert" のキーがそのまま文字列化されて出るのを防ぐ。未設定はバッジの見た目を
+ * 保つため空文字（strengthLabelOf は undefined を返すが、このバッジは値なしでも枠を出す）。
+ */
+export const moveStrengthBadgeLabel = (
+  strength: StrengthValue | undefined,
+): string => strengthLabelOf(strength) ?? "";

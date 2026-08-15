@@ -5,6 +5,7 @@ import type {
   MoveCategory,
   MoveVariant,
   Phase,
+  ProjectileStrengthSymbol,
   ResonanceFlinchLevel,
   SpecialAttribute,
 } from "@/types/move";
@@ -30,6 +31,21 @@ export const ATTACK_TYPE_META: Record<
 > = {
   strike: { label: "打撃", shortLabel: "打" },
   projectile: { label: "弾", shortLabel: "弾" },
+};
+
+/**
+ * 弾の強度の記号。表記と意味を対で持ち、一覧・詳細の表示と説明ポップアップが
+ * 同じ定義を参照する（表記だけ変えて説明が古いまま、を防ぐ）。
+ */
+export const STRENGTH_SYMBOL_META: Record<
+  ProjectileStrengthSymbol,
+  { label: string; description: string }
+> = {
+  erase: {
+    label: "◎",
+    description: "相手の弾を一方的に消す（◎同士はすり抜ける）",
+  },
+  inert: { label: "●", description: "他の弾と一切干渉しない" },
 };
 
 export const SPECIAL_ATTRIBUTE_META: Record<

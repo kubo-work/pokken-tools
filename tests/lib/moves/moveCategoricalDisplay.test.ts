@@ -6,6 +6,7 @@ import {
   moveAttackTypeShortLabel,
   moveGuardLevelShortLabel,
   moveResonanceFlinchLines,
+  moveStrengthBadgeLabel,
   moveStrengthLines,
   moveStrengthShortLabel,
 } from "@/lib/moves/moveCategoricalDisplay";
@@ -225,5 +226,39 @@ describe("moveStrengthShortLabel（一覧向け）", () => {
 
   test("どちらも無ければ undefined", () => {
     expect(moveStrengthShortLabel(buildMove({}))).toBeUndefined();
+  });
+
+  test("記号の強度は ◎ / ● で表示される", () => {
+    expect(moveStrengthLines(buildMove({ strength: "erase" }))).toEqual(["◎"]);
+    expect(moveStrengthShortLabel(buildMove({ strength: "inert" }))).toBe("●");
+  });
+
+  test("内訳が数値と記号を混在させても値だけを連結する", () => {
+    const move = buildMove({
+      hitBreakdown: [
+        { hitCount: 1, strength: 5 },
+        { hitCount: 2, strength: "erase" },
+      ],
+    });
+    expect(moveStrengthLines(move)).toEqual([
+      "1ヒット目: 5",
+      "2〜3ヒット目: ◎",
+    ]);
+    expect(moveStrengthShortLabel(move)).toBe("5/◎");
+  });
+});
+
+describe("moveStrengthBadgeLabel: 技一覧行バッジの強度表示", () => {
+  test("数値はそのまま表示する", () => {
+    expect(moveStrengthBadgeLabel(5)).toBe("5");
+  });
+
+  test("記号は ◎ / ● で表示する（記号キーがそのまま出ない）", () => {
+    expect(moveStrengthBadgeLabel("erase")).toBe("◎");
+    expect(moveStrengthBadgeLabel("inert")).toBe("●");
+  });
+
+  test("未設定は空文字（バッジの枠自体は残す）", () => {
+    expect(moveStrengthBadgeLabel(undefined)).toBe("");
   });
 });

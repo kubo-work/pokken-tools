@@ -1,4 +1,4 @@
-import { Button, Card, Group, Select, SimpleGrid, Stack, Switch, Text } from "@mantine/core";
+import { Alert, Button, Card, Group, Select, SimpleGrid, Stack, Switch, Text } from "@mantine/core";
 import {
   AIR_GROUND_JUDGMENTS,
   GUARD_LEVELS,
@@ -7,7 +7,7 @@ import {
   RESONANCE_FLINCH_LEVELS,
 } from "@/lib/moves/moveEnums";
 import { MOVE_FIELD_LABELS } from "@/lib/moves/moveLabels";
-import { strengthRangeForAttackType } from "@/lib/moves/moveRules";
+import { hitBreakdownEntryHasAnyValue } from "@/lib/moves/moveRules";
 import { asOptionalEnumValue } from "@/lib/optionGuards";
 import type { HitBreakdownEntry, MoveAttackType } from "@/types/move";
 import { DecimalNumberInput } from "./DecimalNumberInput";
@@ -16,12 +16,15 @@ import {
   AIR_GROUND_OPTIONS,
   ATTACK_TYPE_OPTIONS,
   GUARD_LEVEL_OPTIONS,
+  HIT_BREAKDOWN_ENTRY_EMPTY_WARNING,
   PLACEHOLDER_NO_VALUE,
   RESONANCE_FLINCH_LEVEL_OPTIONS,
 } from "./moveFieldsHelpers";
+import { StrengthField } from "./StrengthField";
 import {
   addHitBreakdownEntry,
   removeHitBreakdownEntry,
+  setHitBreakdownEntryAttackType,
   setHitBreakdownEntryField,
   toggleHitBreakdown,
 } from "@/lib/moves/moveHitBreakdownUpdaters";
@@ -47,6 +50,12 @@ interface HitBreakdownEntryCardProps {
     key: Key,
     value: HitBreakdownEntry[Key] | undefined,
   ) => void;
+  /**
+   * グループの攻撃属性の変更専用。属性が変わると許容される強度の範囲も変わるため、
+   * onFieldChange の単一フィールド更新ではなく、強度の見直しも合わせて行う専用の
+   * 更新関数（setHitBreakdownEntryAttackType）を親から渡してもらう。
+   */
+  onAttackTypeChange: (attackType: MoveAttackType | undefined) => void;
   /** 強度の入力範囲を決めるための技単位の攻撃属性。グループ側が未設定のときの基準。 */
   moveAttackType: MoveAttackType | undefined;
 }
@@ -57,12 +66,11 @@ const HitBreakdownEntryCard = ({
   canRemove,
   onRemove,
   onFieldChange,
+  onAttackTypeChange,
   moveAttackType,
 }: HitBreakdownEntryCardProps) => {
-  // 強度の範囲は攻撃属性で決まる。グループが攻撃属性を持たなければ技単位の値を基準にする。
-  const strengthRange = strengthRangeForAttackType(
-    entry.attackType ?? moveAttackType,
-  );
+  // 強度の入力可能な値は攻撃属性で決まる。グループが攻撃属性を持たなければ技単位の値を基準にする。
+  const entryAttackType = entry.attackType ?? moveAttackType;
   return (
     <Card withBorder bg="var(--surface-1)" padding="sm">
       <Stack gap="xs">
@@ -149,24 +157,22 @@ const HitBreakdownEntryCard = ({
             data={ATTACK_TYPE_OPTIONS}
             value={entry.attackType ?? null}
             onChange={(value) =>
-              onFieldChange(
-                "attackType",
-                asOptionalEnumValue(value, MOVE_ATTACK_TYPES),
-              )
+              onAttackTypeChange(asOptionalEnumValue(value, MOVE_ATTACK_TYPES))
             }
           />
-          <IntegerNumberInput
-            // 入力可能範囲は攻撃属性で決まるため、属性が変わったらこの欄だけ作り直す
-            // （非制御コンポーネントの再マウント契約。BaseNumberInput 参照）。
-            key={`strength-${entry.attackType ?? moveAttackType ?? "none"}`}
-            label="強度"
+          <StrengthField
+            fieldKey="strength"
+            attackType={entryAttackType}
             placeholder={PLACEHOLDER_NO_VALUE}
-            min={strengthRange?.min}
-            max={strengthRange?.max}
             value={entry.strength}
             onChange={(value) => onFieldChange("strength", value)}
           />
         </SimpleGrid>
+        {!hitBreakdownEntryHasAnyValue(entry) && (
+          <Alert color="red" py={6} px="md">
+            {HIT_BREAKDOWN_ENTRY_EMPTY_WARNING}
+          </Alert>
+        )}
       </Stack>
     </Card>
   );
@@ -226,6 +232,16 @@ export const HitBreakdownFields = ({
               onRemove={() => onChange(removeHitBreakdownEntry(entries, index))}
               onFieldChange={(key, value) =>
                 onChange(setHitBreakdownEntryField(entries, index, key, value))
+              }
+              onAttackTypeChange={(attackType) =>
+                onChange(
+                  setHitBreakdownEntryAttackType(
+                    entries,
+                    index,
+                    attackType,
+                    moveAttackType,
+                  ),
+                )
               }
               moveAttackType={moveAttackType}
             />

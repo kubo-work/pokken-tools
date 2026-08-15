@@ -57,11 +57,23 @@ export const PLACEHOLDER_UNCHANGED = "変化なし";
 /** ヒット内訳側で設定済みのため、この入力欄では設定できないことを示す placeholder。 */
 export const PLACEHOLDER_SET_BY_HIT_BREAKDOWN = "ヒット内訳で設定済み";
 
+/** 攻撃属性を持たない技の強度欄（disabled）に表示する placeholder。 */
+export const PLACEHOLDER_NO_STRENGTH = "強度なし";
+
 /**
  * その項目に値が無いことを示す placeholder。ヒット内訳のグループのように「未計測」でも
  * 「変化なし」でもなく、単にその打点では値を持たない欄に使う。
  */
 export const PLACEHOLDER_NO_VALUE = "なし";
+
+/**
+ * ヒット内訳のグループがヒット数以外に値を持たない（hitBreakdownEntryHasAnyValue が false）
+ * ときに、そのグループのカードに出す警告文言。schema/fields.ts の hitBreakdownEntrySchema の
+ * refine で保存時に弾かれる状態と同じ条件を指すため、保存できないことが伝わる文言にする。
+ * 攻撃属性の変更で強度が落ちて空になった場合・追加直後の空グループの両方で表示される。
+ */
+export const HIT_BREAKDOWN_ENTRY_EMPTY_WARNING =
+  "ヒット数以外の値がありません。値を入力するか、このグループを削除してください";
 
 /**
  * 合計ダメージ欄の説明文。技単位・共鳴/ジャスト入力/FP の各差分パネルで共通して使う

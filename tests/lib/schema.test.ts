@@ -6,7 +6,7 @@ import {
   moveSchema,
 } from "@/lib/schema";
 import type { Character } from "@/types/character";
-import type { Move } from "@/types/move";
+import type { Move, StrengthValue } from "@/types/move";
 
 /** moveSchema を満たす最小の有効な技。各テストはこれを部分的に上書きする。 */
 const baseMove: Move = {
@@ -460,6 +460,31 @@ describe("moveSchema: hitBreakdown の攻撃属性・強度", () => {
       hitBreakdown: [{ hitCount: 1, strength: 9 }],
     });
   });
+
+  test("ヒット内訳の強度は、そのグループの攻撃属性で記号の可否が決まる", () => {
+    expectValid({
+      ...baseMove,
+      hitBreakdown: [{ hitCount: 1, attackType: "projectile", strength: "erase" }],
+    });
+    expectInvalid({
+      ...baseMove,
+      hitBreakdown: [{ hitCount: 1, attackType: "strike", strength: "erase" }],
+    });
+  });
+
+  test("グループが攻撃属性を省略していれば技単位の攻撃属性で記号の可否が決まる", () => {
+    expectValid({
+      ...baseMove,
+      attackType: "projectile",
+      strength: 5,
+      hitBreakdown: [{ hitCount: 1, strength: "inert" }],
+    });
+    expectInvalid({
+      ...baseMove,
+      attackType: "strike",
+      hitBreakdown: [{ hitCount: 1, strength: "inert" }],
+    });
+  });
 });
 
 /** 攻撃属性を持たない有効なつかみ技。属性系の制約テストで部分上書きして使う。 */
@@ -509,9 +534,9 @@ describe("moveSchema: 攻撃属性と強度の相関", () => {
     expectInvalid({ ...baseMove, attackType: "strike", strength: 9 });
   });
 
-  test("弾の強度は 1〜8（範囲内は通り、範囲外は拒否される）", () => {
-    expectValid({ ...baseMove, attackType: "projectile", strength: 8 });
-    expectInvalid({ ...baseMove, attackType: "projectile", strength: 9 });
+  test("弾の強度は 1〜9（範囲内は通り、範囲外は拒否される）", () => {
+    expectValid({ ...baseMove, attackType: "projectile", strength: 9 });
+    expectInvalid({ ...baseMove, attackType: "projectile", strength: 10 });
   });
 
   test("攻撃属性があるのに強度が無い技は拒否される", () => {
@@ -538,6 +563,36 @@ describe("moveSchema: 攻撃属性と強度の相関", () => {
     expectInvalid({ ...baseGrabMove, strength: 1 });
     expectInvalid({ ...baseGrabMove, guardLevel: "mid" });
     expectInvalid({ ...baseGrabMove, resonanceFlinch: "strong" });
+  });
+
+  test("弾の強度は ◎・● も取れる", () => {
+    expectValid({ ...baseMove, attackType: "projectile", strength: "erase" });
+    expectValid({ ...baseMove, attackType: "projectile", strength: "inert" });
+  });
+
+  test("打撃の強度に ◎・● は設定できない", () => {
+    expectInvalid({ ...baseMove, attackType: "strike", strength: "erase" });
+    expectInvalid({ ...baseMove, attackType: "strike", strength: "inert" });
+  });
+
+  test("記号でも数値でもない強度は拒否される", () => {
+    expectInvalid({
+      ...baseMove,
+      attackType: "projectile",
+      strength: "unknown" as unknown as StrengthValue,
+    });
+  });
+
+  test("上書き層の強度も ◎・● を取れる（弾の技のみ）", () => {
+    const projectileMove: Move = { ...baseMove, attackType: "projectile" };
+    expectValid({ ...projectileMove, resonance: { strength: "erase" } });
+    expectValid({ ...projectileMove, justInput: { strength: "inert" } });
+    expectValid({
+      ...projectileMove,
+      justInput: { resonance: { strength: "erase" } },
+    });
+    expectValid({ ...projectileMove, fieldPhase: { strength: "erase" } });
+    expectInvalid({ ...baseMove, resonance: { strength: "erase" } });
   });
 });
 

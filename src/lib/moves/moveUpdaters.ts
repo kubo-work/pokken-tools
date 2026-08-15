@@ -1,10 +1,13 @@
 import type {
+  HitBreakdownEntry,
   Move,
   MoveAttackType,
   MoveCategory,
   ResonanceFlinch,
   SpecialAttribute,
+  StrengthValue,
 } from "@/types/move";
+import { isStrengthAllowedFor } from "./moveRules";
 
 /**
  * 技本体のフィールドを編集する純粋関数群。コンポーネントは onChange に新しい Move を渡すだけで
@@ -90,15 +93,101 @@ export const setMoveCategory = (
 };
 
 /**
+ * 新しい攻撃属性で許容されない強度を削除した内訳グループを返す。
+ * グループが自前の攻撃属性を持つ場合はそちらが優先されるため対象外。
+ */
+const clearDisallowedEntryStrengths = (
+  entries: HitBreakdownEntry[],
+  attackType: MoveAttackType,
+): HitBreakdownEntry[] =>
+  entries.map((entry) => {
+    if (
+      entry.attackType !== undefined ||
+      entry.strength === undefined ||
+      isStrengthAllowedFor(entry.strength, attackType)
+    ) {
+      return entry;
+    }
+    const next = { ...entry };
+    delete next.strength;
+    return next;
+  });
+
+/**
+ * 強度（と、その層のヒット内訳の強度）を持ちうる層から、新しい攻撃属性で
+ * 許容されない強度を取り除いた層を返す。resonance / justInput / fieldPhase / Move 自身は
+ * それぞれ別の型のため、union のキーで動的にプロパティへ書き込むと代入位置の型が合わない。
+ * 呼び出し側で層ごとに明示的に呼び出すことで、型を保ったまま同じロジックを共有する
+ * （Move も strength/hitBreakdown を持つため、技単位のクリアにもそのまま使える）。
+ *
+ * hitBreakdown は元々持っていたときだけ書き戻す。setOptionalMoveField が明文化している
+ * 「undefined ならキーごと削除（省略＝未計測の規約）」に反して undefined 値でキーを生やすと、
+ * resolveMove のスプレッドや Object.keys 系の判定（fieldPhaseDisplay・variantMoves）が
+ * 「hitBreakdown を持つ層」と誤認して表示が崩れるため。
+ */
+const clearDisallowedLayerStrengths = <
+  Layer extends { strength?: StrengthValue; hitBreakdown?: HitBreakdownEntry[] },
+>(
+  layer: Layer,
+  attackType: MoveAttackType,
+): Layer => {
+  const next = { ...layer };
+  if (
+    next.strength !== undefined &&
+    !isStrengthAllowedFor(next.strength, attackType)
+  ) {
+    delete next.strength;
+  }
+  if (next.hitBreakdown !== undefined) {
+    next.hitBreakdown = clearDisallowedEntryStrengths(next.hitBreakdown, attackType);
+  }
+  return next;
+};
+
+/**
+ * 新しい攻撃属性で許容されない強度を、技単位・各上書き層・各ヒット内訳から削除する。
+ * 打撃の数値入力欄は ◎ を表示できず値が消えたように見えるため、保存時の検証まで待たず
+ * 属性を変えた時点で落とす。判定基準は検証と同じ isStrengthAllowedFor。
+ * 技単位の strength / hitBreakdown のクリアは clearDisallowedLayerStrengths と同じ形
+ * （Move も同じ制約を満たす）なので、そのまま同じ関数を通して二重実装を避ける。
+ * 共鳴中のジャスト入力 (justInput.resonance) は justInput のさらに下にもう一段あるため
+ * 個別に見る。
+ */
+const clearDisallowedStrengths = (move: Move, attackType: MoveAttackType): Move => {
+  const next: Move = clearDisallowedLayerStrengths(move, attackType);
+  if (next.resonance !== undefined) {
+    next.resonance = clearDisallowedLayerStrengths(next.resonance, attackType);
+  }
+  if (next.fieldPhase !== undefined) {
+    next.fieldPhase = clearDisallowedLayerStrengths(next.fieldPhase, attackType);
+  }
+  if (next.justInput !== undefined) {
+    const nextJustInput = clearDisallowedLayerStrengths(next.justInput, attackType);
+    next.justInput =
+      nextJustInput.resonance !== undefined
+        ? {
+            ...nextJustInput,
+            resonance: clearDisallowedLayerStrengths(
+              nextJustInput.resonance,
+              attackType,
+            ),
+          }
+        : nextJustInput;
+  }
+  return next;
+};
+
+/**
  * 技本体の攻撃属性を更新する。攻撃属性を外した（undefined）技は「攻撃しない技」となり、
- * 強度・判定・共鳴怯ませ強度を持たない。
+ * 強度・判定・共鳴怯ませ強度を持たない。属性を変えた場合は、新しい属性で許容されない
+ * 強度（◎・● や範囲外の数値）を落とす。
  */
 export const setMoveAttackType = (
   move: Move,
   attackType: MoveAttackType | undefined,
 ): Move =>
   attackType !== undefined
-    ? { ...move, attackType }
+    ? clearDisallowedStrengths({ ...move, attackType }, attackType)
     : clearAttackFields(move);
 
 /**

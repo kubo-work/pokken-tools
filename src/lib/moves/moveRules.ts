@@ -3,10 +3,13 @@ import type {
   HitBreakdownEntry,
   Move,
   MoveAttackType,
+  ProjectileStrengthSymbol,
   StrengthRange,
+  StrengthValue,
 } from "@/types/move";
 import {
   HIT_BREAKDOWN_NUMERIC_KEYS,
+  PROJECTILE_STRENGTH_SYMBOLS,
   type HitBreakdownCategoricalKey,
   type HitBreakdownNumericKey,
 } from "./moveEnums";
@@ -24,7 +27,7 @@ import {
 export const MULTI_HIT_MIN_COUNT = 2;
 
 /**
- * 攻撃属性ごとの強度の入力可能範囲。打撃は 1〜8、弾は 1〜8。
+ * 攻撃属性ごとの強度の数値の入力可能範囲。打撃は 1〜8、弾は 1〜9。
  * 攻撃属性を持たない「つかみ」技は強度を持たないため、ここには含めない。
  */
 export const STRENGTH_RANGE_BY_ATTACK_TYPE: Record<
@@ -32,7 +35,44 @@ export const STRENGTH_RANGE_BY_ATTACK_TYPE: Record<
   StrengthRange
 > = {
   strike: { min: 1, max: 8 },
-  projectile: { min: 1, max: 8 },
+  projectile: { min: 1, max: 9 },
+};
+
+/**
+ * 攻撃属性ごとに許容される強度の記号。◎ / ● は弾同士の干渉を表す概念のため打撃には無い。
+ */
+export const STRENGTH_SYMBOLS_BY_ATTACK_TYPE: Record<
+  MoveAttackType,
+  readonly ProjectileStrengthSymbol[]
+> = {
+  strike: [],
+  projectile: PROJECTILE_STRENGTH_SYMBOLS,
+};
+
+/** 強度が記号か数値か。両者で扱いが分かれる箇所はすべてこれを通す。 */
+export const isStrengthSymbol = (
+  value: StrengthValue,
+): value is ProjectileStrengthSymbol => typeof value === "string";
+
+/** 指定した攻撃属性で選べる記号。攻撃属性が未設定（つかみ等）なら空。 */
+export const strengthSymbolsForAttackType = (
+  attackType: MoveAttackType | undefined,
+): readonly ProjectileStrengthSymbol[] =>
+  attackType === undefined ? [] : STRENGTH_SYMBOLS_BY_ATTACK_TYPE[attackType];
+
+/**
+ * その攻撃属性でその強度が許されるか。数値は範囲内の整数、記号はその属性が持つものだけ。
+ * スキーマ検証・入力候補の生成・攻撃属性変更時のクリア判定が同じ基準を使うための唯一の述語。
+ */
+export const isStrengthAllowedFor = (
+  value: StrengthValue,
+  attackType: MoveAttackType,
+): boolean => {
+  if (isStrengthSymbol(value)) {
+    return STRENGTH_SYMBOLS_BY_ATTACK_TYPE[attackType].includes(value);
+  }
+  const range = STRENGTH_RANGE_BY_ATTACK_TYPE[attackType];
+  return Number.isInteger(value) && value >= range.min && value <= range.max;
 };
 
 /**
@@ -58,6 +98,16 @@ export const maxChargeLevel = (childMoves: Move[]): number =>
         : max,
     0,
   );
+
+/**
+ * ヒット内訳の1グループが、ヒット数以外に何か値を持っているか。
+ * 項目を列挙して判定すると、項目が増えたときに追記漏れでその項目だけのグループが
+ * 弾かれてしまうため、hitCount 以外に undefined でない値があるかを走査する形で判定する。
+ * schema/fields.ts の refine（保存時の検証）と HitBreakdownFields（保存前の警告表示）が
+ * 同じ判断を共有するための唯一の述語。
+ */
+export const hitBreakdownEntryHasAnyValue = (entry: HitBreakdownEntry): boolean =>
+  Object.entries(entry).some(([key, value]) => key !== "hitCount" && value !== undefined);
 
 /** ヒット内訳のいずれかのグループでフィールドが設定されているか。 */
 export const hitBreakdownDefines = (

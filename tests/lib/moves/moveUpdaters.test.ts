@@ -101,6 +101,93 @@ describe("setMoveAttackType", () => {
   });
 });
 
+describe("setMoveAttackType: 新しい攻撃属性で不正になる強度を落とす", () => {
+  const projectileMove: Move = makeMove({
+    id: "test_move",
+    category: "attack",
+    attackType: "projectile",
+    guardLevel: "mid",
+    strength: "erase",
+  });
+
+  test("弾から打撃に変えると記号の強度は消える", () => {
+    expect(setMoveAttackType(projectileMove, "strike").strength).toBeUndefined();
+  });
+
+  test("弾から打撃に変えると範囲外になる数値の強度も消える", () => {
+    const move = { ...projectileMove, strength: 9 };
+    expect(setMoveAttackType(move, "strike").strength).toBeUndefined();
+  });
+
+  test("新しい属性でも有効な強度は残る", () => {
+    const move = { ...projectileMove, strength: 5 };
+    expect(setMoveAttackType(move, "strike").strength).toBe(5);
+  });
+
+  test("上書き層の強度も同じ基準で落とす", () => {
+    const move: Move = {
+      ...projectileMove,
+      strength: 5,
+      resonance: { strength: "erase" },
+      justInput: { strength: 9, resonance: { strength: "inert" } },
+      fieldPhase: { strength: 3 },
+    };
+    const next = setMoveAttackType(move, "strike");
+    expect(next.resonance?.strength).toBeUndefined();
+    expect(next.justInput?.strength).toBeUndefined();
+    expect(next.justInput?.resonance?.strength).toBeUndefined();
+    expect(next.fieldPhase?.strength).toBe(3);
+  });
+
+  test("ヒット内訳の強度も落とすが、自前の攻撃属性を持つグループは対象外", () => {
+    const move: Move = {
+      ...projectileMove,
+      strength: 5,
+      hitBreakdown: [
+        { hitCount: 1, strength: "erase" },
+        { hitCount: 1, attackType: "projectile", strength: "inert" },
+      ],
+    };
+    const next = setMoveAttackType(move, "strike");
+    expect(next.hitBreakdown?.[0].strength).toBeUndefined();
+    expect(next.hitBreakdown?.[1].strength).toBe("inert");
+  });
+
+  test("攻撃属性を外したときは従来通り強度ごと消える", () => {
+    expect(setMoveAttackType(projectileMove, undefined).strength).toBeUndefined();
+  });
+
+  test("上書き層のヒット内訳の強度も落ちる", () => {
+    const move: Move = {
+      ...projectileMove,
+      strength: 5,
+      resonance: {
+        strength: 5,
+        hitBreakdown: [
+          { hitCount: 1, strength: "erase" },
+          { hitCount: 1, attackType: "projectile", strength: "inert" },
+        ],
+      },
+    };
+    const next = setMoveAttackType(move, "strike");
+    expect(next.resonance?.hitBreakdown?.[0].strength).toBeUndefined();
+    // 自前の攻撃属性を持つグループは対象外（技単位と同じ規約）。
+    expect(next.resonance?.hitBreakdown?.[1].strength).toBe("inert");
+  });
+
+  test("hitBreakdown を持たない層に hitBreakdown キーが生えない", () => {
+    const move: Move = {
+      ...projectileMove,
+      strength: 5,
+      resonance: { strength: 9 },
+    };
+    const next = setMoveAttackType(move, "strike");
+    // undefined を明示的に代入すると setOptionalMoveField の「省略＝未計測」の規約に反するため、
+    // 元々持っていなければキー自体が生えてはならない。
+    expect("hitBreakdown" in (next.resonance ?? {})).toBe(false);
+  });
+});
+
 describe("setMoveResonanceFlinchMode", () => {
   test("null なら共鳴怯ませ強度をキーごと削除する", () => {
     const next = setMoveResonanceFlinchMode(attackMove, null, undefined);

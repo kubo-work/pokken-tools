@@ -95,7 +95,7 @@ app/routes/ ─→ src/components/ ─→ src/hooks/ ─→ src/lib/moves/ ─�
 | `moveRules.ts` | 値に対する判断（強度範囲・ため段階・ヒット内訳の合計） | ゲーム仕様が変わったとき |
 | `moveLabels.ts` | 表示文言（`*_META`, `NO_VALUE_LABEL` 等） | 文言を変えたいとき |
 | `moveFormat.ts` | 値 1 つの整形（`formatDamageValue` 等） | 見せ方を変えたいとき |
-| `moveCategoricalDisplay.ts` | 判定・空地の表示（内訳と技単位の代表値の解決を伴う） | 内訳の見せ方を変えたいとき |
+| `moveCategoricalDisplay.ts` | 判定・空地・共鳴怯ませ・攻撃属性・強度の表示（内訳と技単位の代表値の解決を伴う） | 内訳の見せ方を変えたいとき |
 | `moveUpdaters.ts` | 技本体のフィールド更新（不変条件の維持） | 技の持ちうる形が変わったとき |
 | `moveOverrideUpdaters.ts` | 条件付き差分（共鳴・ジャスト入力）の更新 | 差分の種類が増えたとき |
 | `moveHitBreakdownUpdaters.ts` | ヒット内訳の配列操作 | 内訳の構造が変わったとき |

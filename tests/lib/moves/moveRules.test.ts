@@ -2,8 +2,12 @@ import { describe, expect, test } from "bun:test";
 import {
   damageValueHitCount,
   hitBreakdownDefines,
+  hitBreakdownEntryHasAnyValue,
   hitBreakdownTotalHitCount,
   isBaseDamageMultiHit,
+  isStrengthAllowedFor,
+  isStrengthSymbol,
+  strengthSymbolsForAttackType,
 } from "@/lib/moves/moveRules";
 import type { HitBreakdownEntry } from "@/types/move";
 import { gardevoirBreakdown, meditationBreakdown } from "./testFixtures";
@@ -88,5 +92,78 @@ describe("isBaseDamageMultiHit", () => {
     expect(isBaseDamageMultiHit({ perHit: 40, hitCount: 2 }, entries)).toBe(
       false,
     );
+  });
+});
+
+describe("isStrengthSymbol", () => {
+  test("記号なら true、数値なら false", () => {
+    expect(isStrengthSymbol("erase")).toBe(true);
+    expect(isStrengthSymbol("inert")).toBe(true);
+    expect(isStrengthSymbol(5)).toBe(false);
+  });
+});
+
+describe("strengthSymbolsForAttackType", () => {
+  test("弾は ◎・● を取れる", () => {
+    expect(strengthSymbolsForAttackType("projectile")).toEqual([
+      "erase",
+      "inert",
+    ]);
+  });
+
+  test("打撃は記号を取れない", () => {
+    expect(strengthSymbolsForAttackType("strike")).toEqual([]);
+  });
+
+  test("攻撃属性を持たない技は記号を取れない", () => {
+    expect(strengthSymbolsForAttackType(undefined)).toEqual([]);
+  });
+});
+
+describe("isStrengthAllowedFor", () => {
+  test("打撃の数値は 1〜8", () => {
+    expect(isStrengthAllowedFor(1, "strike")).toBe(true);
+    expect(isStrengthAllowedFor(8, "strike")).toBe(true);
+    expect(isStrengthAllowedFor(9, "strike")).toBe(false);
+    expect(isStrengthAllowedFor(0, "strike")).toBe(false);
+  });
+
+  test("弾の数値は 1〜9", () => {
+    expect(isStrengthAllowedFor(9, "projectile")).toBe(true);
+    expect(isStrengthAllowedFor(10, "projectile")).toBe(false);
+  });
+
+  test("小数は許可しない", () => {
+    expect(isStrengthAllowedFor(1.5, "projectile")).toBe(false);
+  });
+
+  test("◎・● は弾だけが取れる", () => {
+    expect(isStrengthAllowedFor("erase", "projectile")).toBe(true);
+    expect(isStrengthAllowedFor("inert", "projectile")).toBe(true);
+    expect(isStrengthAllowedFor("erase", "strike")).toBe(false);
+    expect(isStrengthAllowedFor("inert", "strike")).toBe(false);
+  });
+});
+
+describe("hitBreakdownEntryHasAnyValue", () => {
+  test("hitCount 以外に値があれば true", () => {
+    const entry: HitBreakdownEntry = { hitCount: 3, baseDamage: 10 };
+    expect(hitBreakdownEntryHasAnyValue(entry)).toBe(true);
+  });
+
+  test("hitCount しか値が無ければ false", () => {
+    const entry: HitBreakdownEntry = { hitCount: 3 };
+    expect(hitBreakdownEntryHasAnyValue(entry)).toBe(false);
+  });
+
+  test("hitCount 以外の項目が undefined だけなら false（属性変更で強度が落ちた直後の状態）", () => {
+    const entry: HitBreakdownEntry = {
+      hitCount: 3,
+      baseDamage: undefined,
+      strength: undefined,
+      attackType: undefined,
+      guardLevel: undefined,
+    };
+    expect(hitBreakdownEntryHasAnyValue(entry)).toBe(false);
   });
 });

@@ -7,6 +7,7 @@ import {
   moveGuardLevelLines,
   moveResonanceFlinchLines,
   moveStrengthLines,
+  strengthLabelOf,
 } from "@/lib/moves/moveCategoricalDisplay";
 import { specialAttributeLabel } from "@/lib/moves/moveFormat";
 import {
@@ -103,11 +104,12 @@ const resonanceAttackTypeText = (move: Move): string | undefined =>
 
 /**
  * 共鳴の強度の表示。内訳優先、無ければ共鳴の単一値、どちらも無ければ undefined。
- * ResonanceOverride は数値もそのまま描けるため、単一値は文字列化せずに渡す。
+ * strength は数値だけでなく記号（◎/●）も取りうるため、単一値も strengthLabelOf を通して
+ * ラベル化してから渡す（記号キーが "erase"/"inert" のまま画面に出るのを防ぐ）。
  */
-const resonanceStrength = (move: Move): string | number | undefined =>
+export const resonanceStrength = (move: Move): string | undefined =>
   resonanceHitBreakdownCategoricalText(move, "strength") ??
-  move.resonance?.strength;
+  strengthLabelOf(move.resonance?.strength);
 
 /**
  * 判定・属性表の行。ため/派生のコマンドは親コマンドを基準に組み立てるが、その親コマンドは
