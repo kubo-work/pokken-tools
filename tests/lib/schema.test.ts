@@ -509,9 +509,9 @@ describe("moveSchema: 攻撃属性と強度の相関", () => {
     expectInvalid({ ...baseMove, attackType: "strike", strength: 9 });
   });
 
-  test("弾の強度は 1〜8（範囲内は通り、範囲外は拒否される）", () => {
-    expectValid({ ...baseMove, attackType: "projectile", strength: 8 });
-    expectInvalid({ ...baseMove, attackType: "projectile", strength: 9 });
+  test("弾の強度は 1〜9（範囲内は通り、範囲外は拒否される）", () => {
+    expectValid({ ...baseMove, attackType: "projectile", strength: 9 });
+    expectInvalid({ ...baseMove, attackType: "projectile", strength: 10 });
   });
 
   test("攻撃属性があるのに強度が無い技は拒否される", () => {

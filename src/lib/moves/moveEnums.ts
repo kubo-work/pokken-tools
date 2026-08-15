@@ -4,6 +4,7 @@ import type {
   MoveAttackType,
   MoveCategory,
   Phase,
+  ProjectileStrengthSymbol,
   ResonanceFlinchLevel,
   SpecialAttribute,
   UsagePhase,
@@ -16,6 +17,11 @@ import type {
 
 export const MOVE_CATEGORIES: MoveCategory[] = ["attack", "block", "grab"];
 export const MOVE_ATTACK_TYPES: MoveAttackType[] = ["strike", "projectile"];
+/** 弾だけが取れる強度の記号。Select の選択肢と、値の絞り込み（asOptionalEnumValue）に使う。 */
+export const PROJECTILE_STRENGTH_SYMBOLS: ProjectileStrengthSymbol[] = [
+  "erase",
+  "inert",
+];
 export const RESONANCE_FLINCH_LEVELS: ResonanceFlinchLevel[] = [
   "weak",
   "strong",

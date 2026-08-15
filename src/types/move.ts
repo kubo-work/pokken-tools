@@ -13,6 +13,15 @@ export interface StrengthRange {
   min: number;
   max: number;
 }
+/**
+ * 弾だけが取れる、数値で表せない強度。
+ * erase = ◎（相手の弾を一方的に消す。◎ 同士はすり抜ける）
+ * inert = ●（他の弾と一切干渉しない）
+ * 表記（◎ / ●）は moveLabels の STRENGTH_SYMBOL_META で解決し、データには英語キーを保存する。
+ */
+export type ProjectileStrengthSymbol = "erase" | "inert";
+/** 強度。打撃は 1〜8、弾は 1〜9 と ◎・●。数値と記号は排他。 */
+export type StrengthValue = number | ProjectileStrengthSymbol;
 export type GuardLevel =
   | "high"
   | "mid_high"
