@@ -43,7 +43,9 @@ const REGISTRY_BY_ID: Record<string, CharacterRegistryEntry> = Object.fromEntrie
 );
 
 export function getRegistryEntry(id: string): CharacterRegistryEntry | undefined {
-  return REGISTRY_BY_ID[id];
+  // isKnownCharacterId と同じ理由（constructor / __proto__ 等の prototype チェーン
+  // 経由の誤解決を防ぐ）で Object.hasOwn を通してから読む。
+  return Object.hasOwn(REGISTRY_BY_ID, id) ? REGISTRY_BY_ID[id] : undefined;
 }
 
 export function isKnownCharacterId(id: string): boolean {

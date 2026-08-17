@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { isKnownCharacterId } from "@/lib/characters/registry";
+import { getRegistryEntry, isKnownCharacterId } from "@/lib/characters/registry";
 
 describe("isKnownCharacterId", () => {
   test("登録済みのキャラ id は true", () => {
@@ -17,5 +17,28 @@ describe("isKnownCharacterId", () => {
     expect(isKnownCharacterId("__proto__")).toBe(false);
     expect(isKnownCharacterId("toString")).toBe(false);
     expect(isKnownCharacterId("hasOwnProperty")).toBe(false);
+  });
+});
+
+describe("getRegistryEntry", () => {
+  test("登録済みのキャラ id はエントリを返す", () => {
+    expect(getRegistryEntry("pikachu")).toEqual({
+      id: "pikachu",
+      name: "ピカチュウ",
+    });
+  });
+
+  test("未登録の id は undefined", () => {
+    expect(getRegistryEntry("not_a_character")).toBeUndefined();
+  });
+
+  test("prototype チェーン経由で解決する名前は undefined（constructor / __proto__）", () => {
+    // isKnownCharacterId と同じ理由。ここが素通しのままだと、getCharacter の
+    // 「registry にも無い ID のときだけ undefined を返す」という JSDoc 上の約束が破れ、
+    // constructor 等が Object.prototype 由来のエントリとして拾われてしまう。
+    expect(getRegistryEntry("constructor")).toBeUndefined();
+    expect(getRegistryEntry("__proto__")).toBeUndefined();
+    expect(getRegistryEntry("toString")).toBeUndefined();
+    expect(getRegistryEntry("hasOwnProperty")).toBeUndefined();
   });
 });
