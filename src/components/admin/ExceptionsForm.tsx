@@ -16,6 +16,7 @@ import type { PunishException } from "@/types/move";
 import { asEnumValue } from "@/lib/optionGuards";
 import { useExceptionsForm } from "@/hooks/admin/useExceptionsForm";
 import { IntegerNumberInput } from "./IntegerNumberInput";
+import { PublicReflectionDelayNote } from "./PublicReflectionDelayNote";
 
 const ACTION_VALUES = ["exclude", "hit"] as const satisfies readonly PunishException["action"][];
 
@@ -53,11 +54,14 @@ export const ExceptionsForm = ({
         </Button>
       </Group>
 
-      <Text size="sm" c="dimmed">
-        フレーム計算では表現できないノックバック・先端当てを上書きします。登録したペアにのみ適用され、
-        既定は「除外」です。「強制表示」はフレーム上不利でも反撃として表示します。
-        先端当ては「強制表示」を選び、ガード硬直差を上書き入力してください。
-      </Text>
+      <Stack gap="xs">
+        <Text size="sm" c="dimmed">
+          フレーム計算では表現できないノックバック・先端当てを上書きします。登録したペアにのみ適用され、
+          既定は「除外」です。「強制表示」はフレーム上不利でも反撃として表示します。
+          先端当ては「強制表示」を選び、ガード硬直差を上書き入力してください。
+        </Text>
+        <PublicReflectionDelayNote />
+      </Stack>
 
       {exceptions.length === 0 ? (
         <Text c="dimmed">例外はありません。</Text>
