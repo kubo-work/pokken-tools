@@ -55,9 +55,16 @@ export const punishExceptionSchema = z.object({
 
 export const exceptionsSchema = z.array(punishExceptionSchema);
 
+/**
+ * 一括バンドルのフォーマットバージョン。
+ * スキーマ検証とエクスポート応答の両方がこの定数を参照する。片方だけ更新されると
+ * 「自分で書き出したファイルを自分で読み込めない」壊れ方をするため、定義を1箇所に寄せる。
+ */
+export const CHARACTER_BUNDLE_VERSION = 1;
+
 export const characterBundleSchema = z
   .object({
-    version: z.literal(1),
+    version: z.literal(CHARACTER_BUNDLE_VERSION),
     exportedAt: z.string(),
     characters: z.array(characterSchema).min(1),
     exceptions: exceptionsSchema.optional(),
