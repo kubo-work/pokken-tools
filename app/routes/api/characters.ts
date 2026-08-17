@@ -88,6 +88,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
         {
           error: "例外設定の保存に失敗しました",
           savedCharacterIds,
+          failedCharacterIds: [],
           exceptionsApplied: false,
         },
         { status: 500 },

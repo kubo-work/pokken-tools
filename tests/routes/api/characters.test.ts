@@ -159,4 +159,31 @@ describe("PUT /api/admin/characters", () => {
     expect(body.savedCharacterIds).toEqual(["pikachu"]);
     expect(body.failedCharacterIds).toEqual(["lucario"]);
   });
+
+  test("exceptions の KV 書き込みが失敗すると 500 で failedCharacterIds は空配列になる", async () => {
+    const { result: response } = await runWithRecordingKvPut(
+      () =>
+        invokeAction(action, {
+          request: makeRequest({
+            version: 1,
+            exportedAt: "2026-08-17T00:00:00.000Z",
+            characters: [makeCharacter("pikachu", "ピカチュウ")],
+            exceptions: [
+              { attackerMoveId: "a", defenderMoveId: "b", action: "exclude" },
+            ],
+          }),
+        }),
+      { failKeys: new Set([KV_KEYS.exceptions]) },
+    );
+    expect(response.status).toBe(500);
+    const body = (await response.json()) as {
+      error: string;
+      savedCharacterIds: string[];
+      failedCharacterIds: string[];
+      exceptionsApplied: boolean;
+    };
+    expect(body.savedCharacterIds).toEqual(["pikachu"]);
+    expect(body.failedCharacterIds).toEqual([]);
+    expect(body.exceptionsApplied).toBe(false);
+  });
 });
