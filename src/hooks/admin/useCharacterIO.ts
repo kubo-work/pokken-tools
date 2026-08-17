@@ -10,6 +10,11 @@ export interface UseCharacterIOResult {
   importJson: (file: File | null) => Promise<void>;
 }
 
+/**
+ * Character 編集状態の JSON 入出力を担当する hook。
+ * インポート時は readJsonFile で UTF-8 の妥当性を検証したうえで characterSchema による
+ * Zod 検証を行い、結果を feedback として伝える。
+ */
 export const useCharacterIO = (
   character: Character,
   replaceCharacter: (next: Character) => void,
