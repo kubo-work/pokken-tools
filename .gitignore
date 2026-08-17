@@ -30,3 +30,6 @@ scripts/*.local.sql
 
 # Claude Code 個人用コマンド・スキル (main で管理。各ブランチで誤って add しない保険)
 .claude/*
+
+# superpowers subagent-driven-development の作業用ワークスペース（ledger・レビュー資材等）
+.superpowers/
