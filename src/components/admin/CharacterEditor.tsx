@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import {
   Affix,
   Alert,
+  Box,
   Button,
   Code,
   FileButton,
@@ -18,6 +19,7 @@ import { ACCENT_BORDER } from "@/lib/admin/surfaceTokens";
 import { PHASES } from "@/lib/moves/moveEnums";
 import { PHASE_META } from "@/lib/moves/moveLabels";
 import { PhaseMoveEditor, type PhaseMoveActions } from "./PhaseMoveEditor";
+import { PublicReflectionDelayNote } from "./PublicReflectionDelayNote";
 import { useCharacterEditor } from "@/hooks/admin/useCharacterEditor";
 
 /**
@@ -85,6 +87,9 @@ export const CharacterEditor = ({ initial }: { initial: Character }) => {
         <Text size="sm" c="dimmed" mt="sm">
           ID: <Code>{character.id}</Code>（変更不可）
         </Text>
+        <Box mt="xs">
+          <PublicReflectionDelayNote />
+        </Box>
       </Paper>
 
       <Tabs defaultValue={PHASES[0]} keepMounted={false}>
