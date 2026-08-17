@@ -14,6 +14,7 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
+import { useRef } from "react";
 import type { Character } from "@/types/character";
 import { ACCENT_BORDER } from "@/lib/admin/surfaceTokens";
 import { PHASES } from "@/lib/moves/moveEnums";
@@ -29,6 +30,8 @@ import { useCharacterEditor } from "@/hooks/admin/useCharacterEditor";
  * - 保存: PUT /api/admin/characters/{id} で KV に書き込む
  */
 export const CharacterEditor = ({ initial }: { initial: Character }) => {
+  const resetRef = useRef<() => void>(null);
+
   const {
     character,
     saving,
@@ -47,6 +50,16 @@ export const CharacterEditor = ({ initial }: { initial: Character }) => {
     getPhaseMoves,
   } = useCharacterEditor(initial);
 
+  const handleImportJson = async (file: File | null) => {
+    try {
+      await importJson(file);
+    } finally {
+      // 一括インポート側と同じ理由。selectImportFile 相当が例外を投げても
+      // リセットされるよう finally で呼ぶ（同一ファイル再選択が効かなくなるのを防ぐ）。
+      resetRef.current?.();
+    }
+  };
+
   const moveActions: PhaseMoveActions = {
     updateMove,
     addParentMove,
@@ -62,7 +75,11 @@ export const CharacterEditor = ({ initial }: { initial: Character }) => {
       <Group justify="space-between">
         <Title order={2}>{character.name} を編集</Title>
         <Group gap="xs">
-          <FileButton onChange={importJson} accept="application/json">
+          <FileButton
+            onChange={handleImportJson}
+            accept="application/json"
+            resetRef={resetRef}
+          >
             {(props) => (
               <Button variant="default" size="xs" {...props}>
                 JSON読み込み
