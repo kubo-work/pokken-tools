@@ -47,5 +47,7 @@ export function getRegistryEntry(id: string): CharacterRegistryEntry | undefined
 }
 
 export function isKnownCharacterId(id: string): boolean {
-  return REGISTRY_BY_ID[id] !== undefined;
+  // REGISTRY_BY_ID[id] !== undefined だと constructor / __proto__ など prototype
+  // チェーン経由で解決してしまい true になる。Object.hasOwn で自プロパティのみを見る。
+  return Object.hasOwn(REGISTRY_BY_ID, id);
 }
