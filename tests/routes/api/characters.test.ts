@@ -91,6 +91,37 @@ describe("PUT /api/admin/characters", () => {
     expect(puts).toHaveLength(0);
   });
 
+  test("registry に無い id を含むと 400 で KV は無変更", async () => {
+    const { result: response, puts } = await runWithRecordingKvPut(() =>
+      invokeAction(action, {
+        request: makeRequest({
+          version: 1,
+          exportedAt: "2026-08-17T00:00:00.000Z",
+          characters: [makeCharacter("not_a_character", "謎")],
+        }),
+      }),
+    );
+    expect(response.status).toBe(400);
+    expect(puts).toHaveLength(0);
+  });
+
+  test("characters 内で id が重複していると 400 で KV は無変更", async () => {
+    const { result: response, puts } = await runWithRecordingKvPut(() =>
+      invokeAction(action, {
+        request: makeRequest({
+          version: 1,
+          exportedAt: "2026-08-17T00:00:00.000Z",
+          characters: [
+            makeCharacter("pikachu", "ピカチュウ"),
+            makeCharacter("pikachu", "ピカチュウ2"),
+          ],
+        }),
+      }),
+    );
+    expect(response.status).toBe(400);
+    expect(puts).toHaveLength(0);
+  });
+
   test("成功時はファイルに含まれるキャラだけ保存し、savedCharacterIds を返す", async () => {
     const { result: response, puts } = await runWithRecordingKvPut(() =>
       invokeAction(action, {
@@ -136,8 +167,8 @@ describe("PUT /api/admin/characters", () => {
     expect(puts.map((put) => put.key)).toContain(KV_KEYS.exceptions);
   });
 
-  test("一部のキャラの KV 書き込みが失敗すると 500 で failedCharacterIds を返す", async () => {
-    const { result: response } = await runWithRecordingKvPut(
+  test("一部のキャラの KV 書き込みが失敗すると 500 で failedCharacterIds を返し、exceptions には到達しない", async () => {
+    const { result: response, puts } = await runWithRecordingKvPut(
       () =>
         invokeAction(action, {
           request: makeRequest({
@@ -147,6 +178,12 @@ describe("PUT /api/admin/characters", () => {
               makeCharacter("pikachu", "ピカチュウ"),
               makeCharacter("lucario", "ルカリオ"),
             ],
+            // exceptions も併せて送っても、キャラ保存が部分失敗した早期 return により
+            // setExceptions まで到達しないことを検証する（誰かが呼び出し順序を入れ替えたり
+            // return を落としたときに、この行の有無でテストが検知できるようにする）。
+            exceptions: [
+              { attackerMoveId: "a", defenderMoveId: "b", action: "exclude" },
+            ],
           }),
         }),
       { failKeys: new Set([KV_KEYS.character("lucario")]) },
@@ -155,9 +192,12 @@ describe("PUT /api/admin/characters", () => {
     const body = (await response.json()) as {
       savedCharacterIds: string[];
       failedCharacterIds: string[];
+      exceptionsApplied?: boolean;
     };
     expect(body.savedCharacterIds).toEqual(["pikachu"]);
     expect(body.failedCharacterIds).toEqual(["lucario"]);
+    expect(body.exceptionsApplied).toBeUndefined();
+    expect(puts.map((put) => put.key)).not.toContain(KV_KEYS.exceptions);
   });
 
   test("exceptions の KV 書き込みが失敗すると 500 で failedCharacterIds は空配列になる", async () => {

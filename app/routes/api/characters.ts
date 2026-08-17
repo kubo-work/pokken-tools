@@ -16,17 +16,22 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
     getAllCharacters(),
     getExceptions(),
   ]);
-  return Response.json({
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    characters,
-    exceptions,
-  });
+  return Response.json(
+    {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      characters,
+      exceptions,
+    },
+    { headers: { "Cache-Control": "no-store" } },
+  );
 };
 
 interface CharacterSaveSettlement {
   id: string;
   ok: boolean;
+  /** rejected 時の理由。ログ用途のみで、HTTP レスポンスには含めない。 */
+  reason?: unknown;
 }
 
 /**
@@ -42,6 +47,7 @@ const saveCharacters = async (
   return settlements.map((settlement, index) => ({
     id: characters[index].id,
     ok: settlement.status === "fulfilled",
+    reason: settlement.status === "rejected" ? settlement.reason : undefined,
   }));
 };
 
@@ -68,10 +74,19 @@ export const action = async ({ request }: Route.ActionArgs) => {
     .map((settlement) => settlement.id);
 
   if (failedCharacterIds.length > 0) {
-    console.error("character bundle save partially failed", failedCharacterIds);
+    // ここで return するため setExceptions には到達しない。exceptions は全キャラ共有の
+    // 単一 KV キーのため、一部キャラの保存に失敗した状態のまま一緒に上書きすると
+    // 「どのキャラの状態と対応する exceptions なのか」が分からなくなる。
+    const failures = settlements
+      .filter((settlement) => !settlement.ok)
+      .map((settlement) => ({ id: settlement.id, reason: settlement.reason }));
+    console.error("character bundle save partially failed", failures);
     return Response.json(
       {
-        error: `一部のキャラの保存に失敗しました: ${failedCharacterIds.join(", ")}`,
+        error:
+          `一部のキャラの保存に失敗しました。保存済み ${savedCharacterIds.length} 件 / ` +
+          `失敗 ${failedCharacterIds.length} 件（${failedCharacterIds.join(", ")}）。` +
+          "もう一度実行すれば再試行できます",
         savedCharacterIds,
         failedCharacterIds,
       },
