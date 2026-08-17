@@ -1,6 +1,9 @@
 import { mock } from "bun:test";
 import { RouterContextProvider } from "react-router";
 import type { SessionUser } from "@/auth/session.server";
+// mock.module はモジュールを丸ごと差し替えるため、差し替えない export を残す土台として実体を取り込む。
+// この静的 import はモック登録より先に評価されるので、ここには本物の実装が入る。
+import * as sessionServer from "@/auth/session.server";
 
 /**
  * API resource route（app/routes/api/*）のテスト共通ヘルパー。
@@ -16,14 +19,18 @@ export const TEST_API_USER: SessionUser = { email: "admin@example.com" };
 /**
  * requireApiUser を差し替えて認証通過済みの状態にする。
  *
- * 制約が 2 つある:
+ * 制約と注意点:
  * - static import は巻き上げられて mock 登録より先に評価されるため、これを呼んだあとに
  *   `await import(...)` でルートモジュールを動的に読み込むこと。
- * - bun の mock.module はテストプロセス全体に効く。今後 @/auth/session.server の
- *   実装そのものを検証するテストを足す場合は、このモックと同居しないよう注意する。
+ * - bun の mock.module はテストプロセス全体に効き、返したオブジェクトでモジュールを丸ごと
+ *   置き換える。requireApiUser だけを返すと他の export（getSessionUser など）が消え、
+ *   それらを import している別のテストファイルが読み込み時に SyntaxError で落ちる。
+ *   どのファイルが先に評価されるかで結果が変わる順序依存の破壊になるため、実体を展開して
+ *   差し替える export だけを上書きする。
  */
 export const mockAuthenticatedApiUser = (): void => {
   mock.module("@/auth/session.server", () => ({
+    ...sessionServer,
     requireApiUser: async (): Promise<SessionUser> => TEST_API_USER,
   }));
 };
