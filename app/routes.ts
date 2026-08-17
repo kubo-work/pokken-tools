@@ -42,6 +42,7 @@ export default [
   ...prefix("api/admin", [
     route("allowed-emails", "routes/api/allowed-emails.ts"),
     route("exceptions", "routes/api/exceptions.ts"),
+    route("characters", "routes/api/characters.ts"),
     route("characters/:id", "routes/api/character.ts"),
   ]),
 ] satisfies RouteConfig;
