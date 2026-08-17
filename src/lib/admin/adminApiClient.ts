@@ -11,7 +11,7 @@ export interface FailureMessages {
 }
 
 export interface SendJsonOptions {
-  method: "POST" | "PUT" | "DELETE";
+  method: "GET" | "POST" | "PUT" | "DELETE";
   /** JSON 化して送るボディ。DELETE のように本文が不要なら省略する。 */
   body?: unknown;
   failureMessages: FailureMessages;
