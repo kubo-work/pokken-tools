@@ -10,6 +10,7 @@ import { characterBundleSchema, type CharacterBundle } from "@/lib/schema";
 import { resolveBundleIssuePaths } from "@/lib/admin/bundleIssues";
 import { formatIssues } from "@/lib/admin/formatIssues";
 import { buildBundleFileName } from "@/lib/admin/bundleFileName";
+import { JSON_MIME_TYPE } from "@/lib/mimeTypes";
 import { useAutoDismissedFeedback } from "./useAutoDismissedFeedback";
 
 export interface CharacterBundlePendingImport {
@@ -33,10 +34,13 @@ export interface UseCharacterBundleIOResult {
   cancelImport: () => void;
 }
 
-/** PUT /api/admin/characters の成功レスポンス。 */
+/**
+ * PUT /api/admin/characters の成功レスポンスのうち、この hook が参照するフィールドだけ。
+ * サーバが返す全フィールドは app/routes/api/characters.ts を参照。
+ * 成否の判定は本文の ok ではなく sendJson の result.ok（HTTP ステータス由来）で行うため、
+ * 誤って本文側を見ないよう本文の ok はここに載せない。
+ */
 interface CharacterBundleImportResponse {
-  ok: boolean;
-  savedCharacterIds: string[];
   exceptionsApplied: boolean;
 }
 
@@ -52,7 +56,7 @@ const IMPORT_FAILURE_MESSAGES: FailureMessages = {
 
 const downloadBundleFile = (bundle: CharacterBundle): void => {
   const blob = new Blob([JSON.stringify(bundle, null, 2)], {
-    type: "application/json",
+    type: JSON_MIME_TYPE,
   });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");

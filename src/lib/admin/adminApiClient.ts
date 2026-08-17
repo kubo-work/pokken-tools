@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Feedback } from "@/lib/feedback";
+import { JSON_MIME_TYPE } from "@/lib/mimeTypes";
 import { formatIssues } from "./formatIssues";
 
 /** 失敗時の文言。API ごとに異なるので呼び出し側から渡す。 */
@@ -101,7 +102,7 @@ export const sendJson = async <Data>(
       ...(options.body === undefined
         ? {}
         : {
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": JSON_MIME_TYPE },
             body: JSON.stringify(options.body),
           }),
     });

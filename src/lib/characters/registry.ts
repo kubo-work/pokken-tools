@@ -42,14 +42,14 @@ const REGISTRY_BY_ID: Record<string, CharacterRegistryEntry> = Object.fromEntrie
   CHARACTER_REGISTRY.map((entry) => [entry.id, entry]),
 );
 
-export function getRegistryEntry(id: string): CharacterRegistryEntry | undefined {
+export const getRegistryEntry = (
+  id: string,
+): CharacterRegistryEntry | undefined =>
   // isKnownCharacterId と同じ理由（constructor / __proto__ 等の prototype チェーン
   // 経由の誤解決を防ぐ）で Object.hasOwn を通してから読む。
-  return Object.hasOwn(REGISTRY_BY_ID, id) ? REGISTRY_BY_ID[id] : undefined;
-}
+  Object.hasOwn(REGISTRY_BY_ID, id) ? REGISTRY_BY_ID[id] : undefined;
 
-export function isKnownCharacterId(id: string): boolean {
+export const isKnownCharacterId = (id: string): boolean =>
   // REGISTRY_BY_ID[id] !== undefined だと constructor / __proto__ など prototype
   // チェーン経由で解決してしまい true になる。Object.hasOwn で自プロパティのみを見る。
-  return Object.hasOwn(REGISTRY_BY_ID, id);
-}
+  Object.hasOwn(REGISTRY_BY_ID, id);

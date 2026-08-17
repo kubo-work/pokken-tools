@@ -1,7 +1,9 @@
 import type { FormattableIssue } from "./formatIssues";
 
+// 配列を除くのは、typeof [] === "object" のため配列も通ってしまい、
+// 型ガードの名前（Record）が保証する内容と実装がずれるのを防ぐため。
 const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null;
+  typeof value === "object" && value !== null && !Array.isArray(value);
 
 const characterIdAt = (raw: unknown, index: number): string | undefined => {
   if (!isRecord(raw) || !Array.isArray(raw.characters)) {

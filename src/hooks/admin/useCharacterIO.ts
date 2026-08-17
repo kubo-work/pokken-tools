@@ -4,6 +4,7 @@ import { characterSchema } from "@/lib/schema";
 import type { Feedback } from "@/lib/feedback";
 import { formatIssues } from "@/lib/admin/formatIssues";
 import { readJsonFile } from "@/lib/admin/readJsonFile";
+import { JSON_MIME_TYPE } from "@/lib/mimeTypes";
 
 export interface UseCharacterIOResult {
   exportJson: () => void;
@@ -22,7 +23,7 @@ export const useCharacterIO = (
 ): UseCharacterIOResult => {
   const exportJson = (): void => {
     const blob = new Blob([JSON.stringify(character, null, 2)], {
-      type: "application/json",
+      type: JSON_MIME_TYPE,
     });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");

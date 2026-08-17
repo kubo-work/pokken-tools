@@ -17,6 +17,7 @@ import {
 import { useRef } from "react";
 import type { Character } from "@/types/character";
 import { ACCENT_BORDER } from "@/lib/admin/surfaceTokens";
+import { JSON_MIME_TYPE } from "@/lib/mimeTypes";
 import { PHASES } from "@/lib/moves/moveEnums";
 import { PHASE_META } from "@/lib/moves/moveLabels";
 import { PhaseMoveEditor, type PhaseMoveActions } from "./PhaseMoveEditor";
@@ -77,7 +78,7 @@ export const CharacterEditor = ({ initial }: { initial: Character }) => {
         <Group gap="xs">
           <FileButton
             onChange={handleImportJson}
-            accept="application/json"
+            accept={JSON_MIME_TYPE}
             resetRef={resetRef}
           >
             {(props) => (

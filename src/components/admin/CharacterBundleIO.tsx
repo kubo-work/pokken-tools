@@ -11,6 +11,7 @@ import {
 import { useRef } from "react";
 import { useRevalidator } from "react-router";
 import { useCharacterBundleIO } from "@/hooks/admin/useCharacterBundleIO";
+import { JSON_MIME_TYPE } from "@/lib/mimeTypes";
 
 /**
  * 管理トップに置く、全キャラ一括の JSON 入出力 UI。
@@ -60,7 +61,7 @@ export const CharacterBundleIO = () => {
         <Group gap="xs">
           <FileButton
             onChange={handleSelectImportFile}
-            accept="application/json"
+            accept={JSON_MIME_TYPE}
             resetRef={resetRef}
             disabled={importing}
           >
