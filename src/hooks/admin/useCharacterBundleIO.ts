@@ -10,6 +10,7 @@ import { characterBundleSchema, type CharacterBundle } from "@/lib/schema";
 import { resolveBundleIssuePaths } from "@/lib/admin/bundleIssues";
 import { formatIssues } from "@/lib/admin/formatIssues";
 import { buildBundleFileName } from "@/lib/admin/bundleFileName";
+import { useAutoDismissedFeedback } from "./useAutoDismissedFeedback";
 
 export interface CharacterBundlePendingImport {
   characterCount: number;
@@ -27,8 +28,16 @@ export interface UseCharacterBundleIOResult {
   pendingImport: CharacterBundlePendingImport | undefined;
   exportBundle: () => Promise<void>;
   selectImportFile: (file: File | null) => Promise<void>;
-  confirmImport: () => Promise<void>;
+  /** 成功したら true を返す。呼び出し側（コンポーネント）で一覧の再検証に使う。 */
+  confirmImport: () => Promise<boolean>;
   cancelImport: () => void;
+}
+
+/** PUT /api/admin/characters の成功レスポンス。 */
+interface CharacterBundleImportResponse {
+  ok: boolean;
+  savedCharacterIds: string[];
+  exceptionsApplied: boolean;
 }
 
 const EXPORT_FAILURE_MESSAGES: FailureMessages = {
@@ -61,7 +70,7 @@ const downloadBundleFile = (bundle: CharacterBundle): void => {
 export const useCharacterBundleIO = (): UseCharacterBundleIOResult => {
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
-  const [feedback, setFeedback] = useState<Feedback | undefined>(undefined);
+  const { feedback, setFeedback } = useAutoDismissedFeedback();
   const [pendingImport, setPendingImport] = useState<
     PendingImportState | undefined
   >(undefined);
@@ -115,27 +124,35 @@ export const useCharacterBundleIO = (): UseCharacterBundleIOResult => {
     });
   };
 
-  const confirmImport = async (): Promise<void> => {
+  const confirmImport = async (): Promise<boolean> => {
     if (pendingImport === undefined) {
-      return;
+      return false;
     }
     const { bundle, characterCount } = pendingImport;
+    setFeedback(undefined);
     setImporting(true);
-    const result = await sendJson(ADMIN_API_ENDPOINTS.characterBundle, {
-      method: "PUT",
-      body: bundle,
-      failureMessages: IMPORT_FAILURE_MESSAGES,
-    });
+    const result = await sendJson<CharacterBundleImportResponse>(
+      ADMIN_API_ENDPOINTS.characterBundle,
+      {
+        method: "PUT",
+        body: bundle,
+        failureMessages: IMPORT_FAILURE_MESSAGES,
+      },
+    );
     setImporting(false);
     setPendingImport(undefined);
     if (!result.ok) {
       setFeedback({ ok: false, message: result.message });
-      return;
+      return false;
     }
+    const exceptionsApplied = result.data?.exceptionsApplied === true;
     setFeedback({
       ok: true,
-      message: `${characterCount}キャラを読み込みました`,
+      message: exceptionsApplied
+        ? `${characterCount}キャラと例外設定を上書きしました`
+        : `${characterCount}キャラを上書きしました`,
     });
+    return true;
   };
 
   const cancelImport = (): void => {
