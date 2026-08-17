@@ -81,6 +81,29 @@ describe("characterBundleSchema", () => {
     }
   });
 
+  test("複数キャラが同時に不正な場合は各キャラ分の issue を集約して返す", () => {
+    const result = characterBundleSchema.safeParse({
+      version: 1,
+      exportedAt: "2026-08-17T00:00:00.000Z",
+      characters: [
+        makeCharacter("not_a_character", "謎1"),
+        makeCharacter("also_unknown", "謎2"),
+      ],
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const idIssues = result.error.issues.filter(
+        (candidate) =>
+          candidate.path[0] === "characters" && candidate.path[2] === "id",
+      );
+      expect(idIssues).toHaveLength(2);
+      expect(idIssues.map((issue) => issue.path)).toEqual([
+        ["characters", 0, "id"],
+        ["characters", 1, "id"],
+      ]);
+    }
+  });
+
   test("characters 内で id が重複していれば弾く", () => {
     const result = characterBundleSchema.safeParse({
       version: 1,
