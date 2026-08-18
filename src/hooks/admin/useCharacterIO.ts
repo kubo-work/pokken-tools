@@ -3,6 +3,8 @@ import type { Character } from "@/types/character";
 import { characterSchema } from "@/lib/schema";
 import type { Feedback } from "@/lib/feedback";
 import { formatIssues } from "@/lib/admin/formatIssues";
+import { readJsonFile } from "@/lib/admin/readJsonFile";
+import { JSON_MIME_TYPE } from "@/lib/mimeTypes";
 
 export interface UseCharacterIOResult {
   exportJson: () => void;
@@ -11,7 +13,8 @@ export interface UseCharacterIOResult {
 
 /**
  * Character 編集状態の JSON 入出力を担当する hook。
- * インポート時の Zod 検証もここで完結し、結果を feedback として伝える。
+ * インポート時は readJsonFile で UTF-8 の妥当性を検証したうえで characterSchema による
+ * Zod 検証を行い、結果を feedback として伝える。
  */
 export const useCharacterIO = (
   character: Character,
@@ -20,7 +23,7 @@ export const useCharacterIO = (
 ): UseCharacterIOResult => {
   const exportJson = (): void => {
     const blob = new Blob([JSON.stringify(character, null, 2)], {
-      type: "application/json",
+      type: JSON_MIME_TYPE,
     });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
@@ -34,33 +37,27 @@ export const useCharacterIO = (
     if (file === null) {
       return;
     }
-    try {
-      const text = await file.text();
-      const parsed = JSON.parse(text) as unknown;
-      const result = characterSchema.safeParse(parsed);
-      if (!result.success) {
-        console.error("character JSON validation failed", result.error.issues);
-        const detail = formatIssues(result.error.issues);
-        setFeedback({ ok: false, message: `JSONの内容が不正です: ${detail}` });
-        return;
-      }
-      if (result.data.id !== character.id) {
-        setFeedback({
-          ok: false,
-          message: `ID不一致。期待: ${character.id} / 実際: ${result.data.id}`,
-        });
-        return;
-      }
-      replaceCharacter(result.data);
-      setFeedback({ ok: true, message: "読み込みました（保存ボタンで反映）" });
-    } catch (error) {
-      console.error("character JSON import failed", error);
-      const message = error instanceof Error ? error.message : String(error);
+    const read = await readJsonFile(file);
+    if (!read.ok) {
+      setFeedback({ ok: false, message: read.message });
+      return;
+    }
+    const result = characterSchema.safeParse(read.value);
+    if (!result.success) {
+      console.error("character JSON validation failed", result.error.issues);
+      const detail = formatIssues(result.error.issues);
+      setFeedback({ ok: false, message: `JSONの内容が不正です: ${detail}` });
+      return;
+    }
+    if (result.data.id !== character.id) {
       setFeedback({
         ok: false,
-        message: `JSONのパースに失敗しました: ${message}`,
+        message: `ID不一致。期待: ${character.id} / 実際: ${result.data.id}`,
       });
+      return;
     }
+    replaceCharacter(result.data);
+    setFeedback({ ok: true, message: "読み込みました（保存ボタンで反映）" });
   };
 
   return { exportJson, importJson };

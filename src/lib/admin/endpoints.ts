@@ -9,4 +9,5 @@ export const ADMIN_API_ENDPOINTS = {
   exceptions: "/api/admin/exceptions",
   character: (characterId: string): string =>
     `/api/admin/characters/${characterId}`,
+  characterBundle: "/api/admin/characters",
 } as const;

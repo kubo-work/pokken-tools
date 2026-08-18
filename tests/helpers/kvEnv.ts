@@ -41,3 +41,32 @@ export const runWithRecordingKv = async <Result>(
   const result = await cloudflareEnvStorage.run(env, run);
   return { result, gets };
 };
+
+export interface RecordedKvPut {
+  key: string;
+  value: string;
+}
+
+/**
+ * put の呼び出しを記録する偽 KV を env に載せて run を実行する。
+ * failKeys に含まれる key への put は例外を投げる（KV 書き込み障害時の分岐を再現するため）。
+ */
+export const runWithRecordingKvPut = async <Result>(
+  run: () => Promise<Result>,
+  options: { failKeys?: ReadonlySet<string> } = {},
+): Promise<{ result: Result; puts: RecordedKvPut[] }> => {
+  const puts: RecordedKvPut[] = [];
+  const env = {
+    FRAME_DATA_KV: {
+      get: async () => null,
+      put: async (key: string, value: string) => {
+        if (options.failKeys?.has(key) === true) {
+          throw new Error(`KV put failed for ${key}`);
+        }
+        puts.push({ key, value });
+      },
+    },
+  } as unknown as CloudflareEnv;
+  const result = await cloudflareEnvStorage.run(env, run);
+  return { result, puts };
+};

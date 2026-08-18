@@ -77,6 +77,22 @@ describe("sendJson", () => {
     expect(calls[0]?.init?.body).toBe(JSON.stringify([{ id: "a" }]));
   });
 
+  test("GET はボディなしで送り、成功時は応答本文を data として返す", async () => {
+    const calls = stubFetch(() =>
+      jsonResponse({ version: 1, characters: [] }),
+    );
+    const result = await sendJson(ADMIN_API_ENDPOINTS.characterBundle, {
+      method: "GET",
+      failureMessages: FAILURE_MESSAGES,
+    });
+    expect(calls[0]?.init?.method).toBe("GET");
+    expect(calls[0]?.init?.body).toBeUndefined();
+    expect(result).toEqual({
+      ok: true,
+      data: { version: 1, characters: [] },
+    });
+  });
+
   test("body 省略時は Content-Type もボディも付けない", async () => {
     const calls = stubFetch(() => jsonResponse({ ok: true }));
     await sendJson(ADMIN_API_ENDPOINTS.allowedEmails, {

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { PHASES } from "@/lib/moves/moveEnums";
 import { getMovesByPhase } from "@/lib/moves/phaseMoves";
 import { PHASE_MOVES_KEYS } from "@/types/character";
+import { isKnownCharacterId } from "@/lib/characters/registry";
 import { moveObjectSchema } from "./moveObject";
 import { validateMove } from "./moveRefinements";
 
@@ -53,6 +54,43 @@ export const punishExceptionSchema = z.object({
 });
 
 export const exceptionsSchema = z.array(punishExceptionSchema);
+
+/**
+ * 一括バンドルのフォーマットバージョン。
+ * スキーマ検証とエクスポート応答の両方がこの定数を参照する。片方だけ更新されると
+ * 「自分で書き出したファイルを自分で読み込めない」壊れ方をするため、定義を1箇所に寄せる。
+ */
+export const CHARACTER_BUNDLE_VERSION = 1;
+
+export const characterBundleSchema = z
+  .object({
+    version: z.literal(CHARACTER_BUNDLE_VERSION),
+    exportedAt: z.string(),
+    characters: z.array(characterSchema).min(1),
+    exceptions: exceptionsSchema.optional(),
+  })
+  .superRefine((bundle, ctx) => {
+    const seenIds = new Set<string>();
+    bundle.characters.forEach((character, index) => {
+      if (!isKnownCharacterId(character.id)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["characters", index, "id"],
+          message: `未知のキャラID: ${character.id}`,
+        });
+      }
+      if (seenIds.has(character.id)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["characters", index, "id"],
+          message: `キャラID ${character.id} が重複しています`,
+        });
+      }
+      seenIds.add(character.id);
+    });
+  });
+
+export type CharacterBundle = z.infer<typeof characterBundleSchema>;
 
 export const emailSchema = z
   .string()

@@ -78,3 +78,38 @@ export const errorMessageOf = async (response: Response): Promise<string> => {
   const body = (await response.json()) as { error: string };
   return body.error;
 };
+
+/**
+ * resource route の loader が受け取る引数。invokeAction の Args と同じ形。
+ */
+interface ResourceRouteLoaderArgs<Params> {
+  request: Request;
+  url: URL;
+  params: Params;
+  pattern: string;
+  context: Readonly<RouterContextProvider>;
+}
+
+/**
+ * resource route の loader を呼び、throw された Response も戻り値として受け取る。
+ * invokeAction と同じ理由（requireApiUser 等が Response を throw する）で必要になる。
+ */
+export const invokeLoader = async <Params extends Record<string, string>>(
+  loader: (args: ResourceRouteLoaderArgs<Params>) => Promise<Response>,
+  args: { request: Request; params?: Params; pattern?: string },
+): Promise<Response> => {
+  try {
+    return await loader({
+      request: args.request,
+      url: new URL(args.request.url),
+      params: args.params ?? ({} as Params),
+      pattern: args.pattern ?? "",
+      context: new RouterContextProvider(),
+    });
+  } catch (thrown) {
+    if (thrown instanceof Response) {
+      return thrown;
+    }
+    throw thrown;
+  }
+};
