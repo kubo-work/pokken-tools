@@ -165,6 +165,8 @@ bun run db:seed:remote
 
 空のままだと誰もログインできず管理画面に永久に入れなくなるので必須。
 
+セットアップ後にアドレスを追加・削除する手順は [管理画面 allowlist の運用](#管理画面-allowlist-の運用) を参照。
+
 ### 5. KV seed（キャラ・例外データ投入）
 
 ```bash
@@ -238,6 +240,41 @@ bun run deploy
 - 技は **FP**（フィールド）/ **DP**（デュエル）/ **共通** の3区分（`fieldMoves` / `duelMoves` / `commonMoves`）
 - 共鳴状態は別技ではなく `resonance` 差分で表現。共鳴専用技は `resonanceOnly: true`
 - 確定反撃の例外（ノックバック・先端当て）は登録ペアのみ。`action` 既定は `"exclude"`
+
+## 管理画面 allowlist の運用
+
+`allowed_emails` テーブル（管理画面にログインできるメールアドレスの許可リスト）は、初期 seed 後も随時追加・削除できる。
+
+### 管理画面から追加する（通常はこちら）
+
+すでにログインできる人がいるなら、`/admin/allowed-emails` の画面から追加・削除するのが早い。CLI が必要なのは「まだ誰もログインできない」初期状態か、管理画面自体が動かないときだけ。
+
+### CLI から追加する
+
+本番 D1 を操作するので wrangler の認証が必要。認証トークンは期限切れになるため、`Not logged in. Your auth token has expired` が出たら再ログインする。
+
+```bash
+# 認証（対話ターミナルで実行。ブラウザが開く）
+bunx wrangler login
+
+# 本番
+bun run db:allowlist:list:remote                   # 登録一覧
+bun run db:allowlist:add:remote foo@example.com    # 1件追加
+
+# ローカル
+bun run db:allowlist:list:local
+bun run db:allowlist:add:local foo@example.com
+```
+
+中身は `scripts/allowlist.ts` が `wrangler d1 execute DB --remote --command` を呼んでいるだけ。`INSERT ... ON CONFLICT (email) DO NOTHING` なので同じアドレスを二重に追加しても安全。追加した時点で、そのアドレスの Google アカウントで管理画面にログインできるようになる。
+
+削除用の npm スクリプトは用意していないので、管理画面から消すか、直接 SQL を叩く。
+
+```bash
+bunx wrangler d1 execute DB --remote --command "DELETE FROM allowed_emails WHERE email = 'foo@example.com'"
+```
+
+作業後に認証を切るなら `bunx wrangler logout`。ローカル D1 の操作（`--local`）は認証不要なので影響しない。
 
 ## キャラの追加・削除について
 
