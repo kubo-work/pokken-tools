@@ -31,10 +31,3 @@
   font-weight: 700;
   text-align: center;
 }
-
-.char-tile__meta {
-  font-size: 11px;
-  color: var(--text-dim);
-  display: flex;
-  gap: 8px;
-}

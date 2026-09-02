@@ -1,7 +1,6 @@
 import { Link } from "react-router";
 import type { Route } from "./+types/home";
-import { getAllCharacters } from "@/lib/kv/getCharacters";
-import { buildCharacterTiles } from "@/lib/characterTiles";
+import { CHARACTER_REGISTRY } from "@/lib/characters/registry";
 
 /**
  * トップページだけは検索に載せる。root の既定 noindex を index 許可へ上書きする。
@@ -19,16 +18,12 @@ export const meta: Route.MetaFunction = () => [
 
 /**
  * トップ: 23 キャラのテキストタイル選択グリッド。
- * KV に投入済みの技数も小さく表示する（未投入のキャラは 0/0）。
+ *
+ * 描画するのは registry のキャラ名だけで、KV は一切読まない。技数など KV 由来の可変な値を
+ * 載せないことでページ内容がビルド時に確定し、react-router.config.ts の prerender で
+ * 静的 HTML として出力できる（技数は管理画面トップで確認する）。
  */
-export async function loader() {
-  const tiles = buildCharacterTiles(await getAllCharacters());
-  return { tiles };
-}
-
-export default function HomePage({ loaderData }: Route.ComponentProps) {
-  const { tiles } = loaderData;
-
+export default function HomePage() {
   return (
     <>
       <div className="page-head">
@@ -38,18 +33,13 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
         </p>
       </div>
       <div className="char-grid">
-        {tiles.map((tile) => (
+        {CHARACTER_REGISTRY.map((character) => (
           <Link
-            key={tile.id}
-            to={`/characters/${tile.id}`}
+            key={character.id}
+            to={`/characters/${character.id}`}
             className="char-tile"
           >
-            <span className="char-tile__name">{tile.name}</span>
-            <span className="char-tile__meta">
-              <span>FP {tile.field}</span>
-              <span>DP {tile.duel}</span>
-              <span>共通 {tile.common}</span>
-            </span>
+            <span className="char-tile__name">{character.name}</span>
           </Link>
         ))}
       </div>
