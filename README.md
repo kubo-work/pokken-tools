@@ -23,6 +23,33 @@
 > Node.js は **22.22 以上**が必要（`react-router` CLI の要件。`.node-version` は 24.18.0 を指定）。
 > 本番は Cloudflare Workers（workerd）で実行されるため、Node が要るのはローカル/CI のビルド時のみ。
 
+### レンダリング方式
+
+既定は全ページ SSR。フレームデータを KV / D1 から loader で読むため、大半のページは
+リクエスト時にしか内容が確定しない。
+
+例外として、**loader を持たない 2 ページだけ** `react-router.config.ts` の `prerender` で
+ビルド時に静的 HTML を生成している。
+
+| パス | 方式 | 内容 |
+|---|---|---|
+| `/` | プリレンダ | `CHARACTER_REGISTRY` のキャラ名を並べるタイル一覧 |
+| `/disclaimer` | プリレンダ | 免責・著作権表記（静的な文面のみ） |
+| 上記以外 | SSR | KV / D1 を loader で読む |
+
+プリレンダ結果は `build/client` に出て ASSETS 経由で配信されるため、この 2 ページは
+Worker を起動せずエッジキャッシュから返る（Worker のレスポンスは、キャッシュが Worker の
+背後にある都合でエッジに載らない）。トップは唯一 `robots: index, follow` を持つページなので、
+ここだけでも配信経路を変える意味がある。
+
+**`prerender` に KV を読むルートを追加してはならない。** ビルド時の値が焼き込まれ、
+管理画面の保存が再デプロイまで反映されなくなる。公開トップが技数を表示しないのはこのため
+（技数は `/admin` で確認する）。
+
+あわせて `wrangler.toml` の `[assets]` で `html_handling = "drop-trailing-slash"` を指定して
+いる。既定の `auto-trailing-slash` では `/disclaimer` が `/disclaimer/` へ 307 リダイレクト
+され、`SiteFooter` のリンク（`to="/disclaimer"`）が毎回 1 往復増えるため。
+
 ### ディレクトリ
 
 ```
@@ -70,7 +97,7 @@ pokken/
     │   ├── cloudflare.ts          # getEnv()（AsyncLocalStorage 経由で env 取得）
     │   ├── characters/registry.ts # 23キャラ固定レジストリ
     │   ├── parseJsonBody.ts       # API resource route 共通の JSON 検証
-    │   └── characterTiles.ts      # キャラタイル集計（公開/管理トップ共通）
+    │   └── characterTiles.ts      # 管理トップのキャラタイル集計（技数つき）
     ├── styles/                    # グローバル CSS（トークン→ベース→機能別で分割）
     └── types/                     # 型定義
 ```
@@ -229,6 +256,7 @@ bun run deploy
 | `/characters/{id}` | 技一覧 | 不要 |
 | `/characters/{id}/punish` | キャラ別 確定反撃検索 | 不要 |
 | `/punish` | グローバル 確定反撃検索 | 不要 |
+| `/disclaimer` | 免責事項・著作権表記 | 不要 |
 | `/admin` | キャラ編集一覧 | 必要 |
 | `/admin/characters/{id}` | キャラの技編集 | 必要 |
 | `/admin/exceptions` | 例外編集 | 必要 |
