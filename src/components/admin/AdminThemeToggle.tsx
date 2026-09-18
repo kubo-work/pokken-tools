@@ -1,6 +1,6 @@
 import { ActionIcon, useMantineColorScheme } from "@mantine/core";
 import { IconMoon, IconSun } from "@tabler/icons-react";
-import { THEME } from "@/lib/theme";
+import { THEME, THEME_TOGGLE_LABEL } from "@/lib/theme";
 
 /**
  * admin 側のライト/ダーク切替ボタン。
@@ -12,14 +12,17 @@ import { THEME } from "@/lib/theme";
 export function AdminThemeToggle() {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const isDark = colorScheme === THEME.DARK;
+  const toggleLabel = isDark
+    ? THEME_TOGGLE_LABEL.TO_LIGHT
+    : THEME_TOGGLE_LABEL.TO_DARK;
 
   return (
     <ActionIcon
       variant="default"
       size="lg"
       onClick={() => setColorScheme(isDark ? THEME.LIGHT : THEME.DARK)}
-      aria-label={isDark ? "ライトモードに切り替える" : "ダークモードに切り替える"}
-      title={isDark ? "ライトモードに切り替える" : "ダークモードに切り替える"}
+      aria-label={toggleLabel}
+      title={toggleLabel}
     >
       {isDark ? <IconSun size={18} /> : <IconMoon size={18} />}
     </ActionIcon>

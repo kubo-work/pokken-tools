@@ -142,7 +142,7 @@ app/routes/ ─→ src/components/ ─→ src/hooks/ ─→ src/lib/moves/ ─�
 
 ### 0. 前提
 
-- パッケージマネージャ / ランタイムに [bun](https://bun.sh/)（`packageManager` で `bun@1.2.15` を指定）
+- パッケージマネージャ / ランタイムに [bun](https://bun.sh/)（`packageManager` で `bun@1.4.0` を指定）
 - Node.js **22.22 以上**（`.node-version` は 24.18.0）。nodebrew 等でインストールする:
   ```bash
   nodebrew install v24.18.0 && nodebrew use v24.18.0

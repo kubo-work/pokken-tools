@@ -11,3 +11,9 @@ export const THEME = {
 } as const;
 
 export type Theme = (typeof THEME)[keyof typeof THEME];
+
+/** テーマ切替ボタンの aria-label / title。公開側・admin 側で文言を揃える。 */
+export const THEME_TOGGLE_LABEL = {
+  TO_LIGHT: "ライトモードに切り替える",
+  TO_DARK: "ダークモードに切り替える",
+} as const;
