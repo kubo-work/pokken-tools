@@ -22,6 +22,7 @@ import { PHASES } from "@/lib/moves/moveEnums";
 import { PHASE_META } from "@/lib/moves/moveLabels";
 import { PhaseMoveEditor, type PhaseMoveActions } from "./PhaseMoveEditor";
 import { PublicReflectionDelayNote } from "./PublicReflectionDelayNote";
+import { UnsavedChangesModal } from "./UnsavedChangesModal";
 import { useCharacterEditor } from "@/hooks/admin/useCharacterEditor";
 
 /**
@@ -49,6 +50,7 @@ export const CharacterEditor = ({ initial }: { initial: Character }) => {
     importJson,
     save,
     getPhaseMoves,
+    navigationBlocker,
   } = useCharacterEditor(initial);
 
   const handleImportJson = async (file: File | null) => {
@@ -159,6 +161,8 @@ export const CharacterEditor = ({ initial }: { initial: Character }) => {
           </Button>
         </Group>
       </Affix>
+
+      <UnsavedChangesModal blocker={navigationBlocker} saving={saving} />
     </Stack>
   );
 };
