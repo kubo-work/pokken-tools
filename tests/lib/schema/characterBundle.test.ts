@@ -121,4 +121,23 @@ describe("characterBundleSchema", () => {
       expect(issue?.path).toEqual(["characters", 1, "id"]);
     }
   });
+
+  test("キャラ内で技 id が重複していれば弾く", () => {
+    const result = characterBundleSchema.safeParse({
+      version: 1,
+      exportedAt: "2026-08-17T00:00:00.000Z",
+      characters: [
+        {
+          ...makeCharacter("pikachu", "ピカチュウ"),
+          duelMoves: [validMove, validMove],
+        },
+      ],
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.map((issue) => issue.path)).toEqual([
+        ["characters", 0, "duelMoves", 1, "id"],
+      ]);
+    }
+  });
 });
