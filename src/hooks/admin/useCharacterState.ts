@@ -10,8 +10,8 @@ import {
   reorderParentGroups,
 } from "@/lib/moves/grouping";
 
-const replaceAt = (moves: Move[], index: number, move: Move): Move[] =>
-  moves.map((entry, position) => (position === index ? move : entry));
+const replaceById = (moves: Move[], moveId: string, move: Move): Move[] =>
+  moves.map((entry) => (entry.id === moveId ? move : entry));
 
 const removeGroupByParentId = (moves: Move[], parentId: string): Move[] => {
   const groups = groupMovesByParent(moves);
@@ -38,7 +38,11 @@ export interface UseCharacterStateResult {
   /** import JSON など、Character 丸ごと差し替える用途。 */
   replaceCharacter: (next: Character) => void;
   setCharacterName: (name: string) => void;
-  updateMove: (phase: Phase, index: number, move: Move) => void;
+  /**
+   * id で技を置き換える。setCharacter にしか依存しないため React Compiler 下で参照が
+   * 安定し、子技エディタへ渡すコールバックを作り直さずに済む。
+   */
+  updateMove: (phase: Phase, moveId: string, move: Move) => void;
   /** 追加した親技の id を返す（呼び出し側が直後に選択できるようにするため）。 */
   addParentMove: (phase: Phase) => string;
   addChildMove: (
@@ -85,12 +89,12 @@ export const useCharacterState = (
     setCharacter((current) => ({ ...current, name }));
   };
 
-  const updateMove = (phase: Phase, index: number, move: Move): void => {
+  const updateMove = (phase: Phase, moveId: string, move: Move): void => {
     setCharacter((current) =>
       withMovesByPhase(
         current,
         phase,
-        replaceAt(getMovesByPhase(current, phase), index, move),
+        replaceById(getMovesByPhase(current, phase), moveId, move),
       ),
     );
   };
