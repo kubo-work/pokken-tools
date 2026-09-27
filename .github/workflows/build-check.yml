@@ -54,6 +54,11 @@ jobs:
       - name: Run tests
         run: bun test
 
+      # React Compiler はルール違反のコンポーネントを黙って最適化対象から外すため、
+      # フックと React Compiler の規則を ESLint で検査する（eslint.config.js）。
+      - name: Lint
+        run: bun run lint
+
       # cloudflare-env.d.ts は .gitignore 対象（自動生成）でリポジトリに無いため、
       # 型チェックが通るよう wrangler.toml から再生成する。
       - name: Generate Cloudflare types
