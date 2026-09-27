@@ -122,6 +122,27 @@ describe("PUT /api/admin/characters", () => {
     expect(puts).toHaveLength(0);
   });
 
+  test("キャラ内で技 id が重複していると 400 で KV は無変更", async () => {
+    const { result: response, puts } = await runWithRecordingKvPut(() =>
+      invokeAction(action, {
+        request: makeRequest({
+          version: 1,
+          exportedAt: "2026-08-17T00:00:00.000Z",
+          characters: [
+            makeCharacter("pikachu", "ピカチュウ"),
+            {
+              ...makeCharacter("lucario", "ルカリオ"),
+              duelMoves: [validMove, validMove],
+            },
+          ],
+        }),
+      }),
+    );
+    expect(response.status).toBe(400);
+    expect(await errorMessageOf(response)).toBe("Validation failed");
+    expect(puts).toHaveLength(0);
+  });
+
   test("成功時はファイルに含まれるキャラだけ保存し、savedCharacterIds を返す", async () => {
     const { result: response, puts } = await runWithRecordingKvPut(() =>
       invokeAction(action, {

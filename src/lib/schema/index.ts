@@ -1,13 +1,53 @@
 import { z } from "zod";
 import { PHASES } from "@/lib/moves/moveEnums";
 import { getMovesByPhase } from "@/lib/moves/phaseMoves";
-import { PHASE_MOVES_KEYS } from "@/types/character";
+import {
+  PHASE_MOVES_KEYS,
+  type Character,
+  type PhaseMovesKey,
+} from "@/types/character";
 import { isKnownCharacterId } from "@/lib/characters/registry";
 import { moveObjectSchema } from "./moveObject";
 import { validateMove } from "./moveRefinements";
 
 /** 技のスキーマ。形（moveObject）＋フィールド同士の整合性（moveRefinements）。 */
 export const moveSchema = moveObjectSchema.superRefine(validateMove);
+
+/**
+ * 技 id がキャラ内（全フェイズ）で一意であることを検証する。
+ * 技の更新・並び替え・詳細ページの検索はこの一意性を前提に動く。
+ * 重複を初出のフェイズと併せて報告するため、id ごとに最初に現れたフェイズのキーを覚えておき、
+ * 2つ目以降の技の id に issue を付ける。
+ */
+const reportDuplicateMoveIds = (
+  character: Character,
+  ctx: z.RefinementCtx,
+): void => {
+  const firstMovesKeyById = new Map<string, PhaseMovesKey>();
+  const locatedMoves = PHASES.flatMap((phase) =>
+    getMovesByPhase(character, phase).map((move, index) => ({
+      move,
+      index,
+      movesKey: PHASE_MOVES_KEYS[phase],
+    })),
+  );
+  for (const { move, index, movesKey } of locatedMoves) {
+    const firstMovesKey = firstMovesKeyById.get(move.id);
+    if (firstMovesKey === undefined) {
+      firstMovesKeyById.set(move.id, movesKey);
+      continue;
+    }
+    const location =
+      firstMovesKey === movesKey
+        ? `${movesKey} 内`
+        : `${firstMovesKey} と ${movesKey}`;
+    ctx.addIssue({
+      code: "custom",
+      path: [movesKey, index, "id"],
+      message: `技 id ${move.id} が重複しています（${location}）`,
+    });
+  }
+};
 
 export const characterSchema = z
   .object({
@@ -18,6 +58,7 @@ export const characterSchema = z
     commonMoves: z.array(moveSchema).default([]),
   })
   .superRefine((character, ctx) => {
+    reportDuplicateMoveIds(character, ctx);
     for (const phase of PHASES) {
       const key = PHASE_MOVES_KEYS[phase];
       const moves = getMovesByPhase(character, phase);

@@ -75,6 +75,19 @@ describe("PUT /api/admin/characters/:id", () => {
     expect(await errorMessageOf(response)).toBe("Validation failed");
   });
 
+  test("技 id が重複していると 400", async () => {
+    const response = await invokeAction(action, {
+      request: makeRequest({
+        ...validCharacter,
+        duelMoves: [validMove],
+        commonMoves: [validMove],
+      }),
+      params: { id: "pikachu" },
+    });
+    expect(response.status).toBe(400);
+    expect(await errorMessageOf(response)).toBe("Validation failed");
+  });
+
   test("path の id と body の id が食い違うと 400", async () => {
     const response = await invokeAction(action, {
       request: makeRequest({ ...validCharacter, id: "lucario" }),

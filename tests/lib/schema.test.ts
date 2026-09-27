@@ -941,6 +941,65 @@ describe("characterSchema", () => {
       fieldMoves: [{ ...baseMove, fieldPhase: { startup: 8 } }],
     });
   });
+
+  test("技 id が全フェイズを通して一意なら通る", () => {
+    expectCharacterValid({
+      ...baseCharacter,
+      duelMoves: [baseMove],
+      fieldMoves: [{ ...baseMove, id: "field_move" }],
+      commonMoves: [{ ...baseMove, id: "common_move" }],
+    });
+  });
+
+  test("同じフェイズ内で技 id が重複すると、後から出た技の id に issue が付く", () => {
+    const result = characterSchema.safeParse({
+      ...baseCharacter,
+      duelMoves: [baseMove, { ...baseMove, name: "別の技" }],
+    });
+    expect(result.success).toBe(false);
+    if (result.success) {
+      return;
+    }
+    expect(result.error.issues).toHaveLength(1);
+    expect(result.error.issues[0]?.path).toEqual(["duelMoves", 1, "id"]);
+    expect(result.error.issues[0]?.message).toBe(
+      "技 id test_move が重複しています（duelMoves 内）",
+    );
+  });
+
+  test("フェイズを跨いで技 id が重複しても拒否され、両方のフェイズがメッセージに出る", () => {
+    const result = characterSchema.safeParse({
+      ...baseCharacter,
+      duelMoves: [baseMove],
+      commonMoves: [baseMove],
+    });
+    expect(result.success).toBe(false);
+    if (result.success) {
+      return;
+    }
+    expect(result.error.issues).toHaveLength(1);
+    expect(result.error.issues[0]?.path).toEqual(["commonMoves", 0, "id"]);
+    expect(result.error.issues[0]?.message).toBe(
+      "技 id test_move が重複しています（duelMoves と commonMoves）",
+    );
+  });
+
+  test("3つ以上重複すると、初出以外のすべてに issue が付く", () => {
+    const result = characterSchema.safeParse({
+      ...baseCharacter,
+      duelMoves: [baseMove],
+      fieldMoves: [baseMove],
+      commonMoves: [baseMove],
+    });
+    expect(result.success).toBe(false);
+    if (result.success) {
+      return;
+    }
+    expect(result.error.issues.map((issue) => issue.path)).toEqual([
+      ["fieldMoves", 0, "id"],
+      ["commonMoves", 0, "id"],
+    ]);
+  });
 });
 
 describe("exceptionsSchema", () => {
