@@ -66,8 +66,19 @@ export const PhaseMoveEditor = ({
     reorderChildren,
   });
 
-  const findMoveIndex = (id: string): number =>
-    moves.findIndex((move) => move.id === id);
+  // 子技向けのコールバックは、groupMovesByParent が毎回作り直す selectedGroup ではなく
+  // 文字列の親技 id だけに依存させる。子技が変わっていない入力で参照が変わらなくなり、
+  // React Compiler のメモ化で子技エディタの再レンダリングが止まる。
+  const selectedParentMoveId = selectedGroup?.parent.id;
+
+  const handleChildChange = (childMoveId: string, updatedChild: Move): void => {
+    updateMove(phase, childMoveId, updatedChild);
+  };
+
+  const handleChildRemove = (childMoveId: string): void => {
+    if (selectedParentMoveId === undefined) return;
+    removeChildMove(phase, selectedParentMoveId, childMoveId);
+  };
 
   const handleAdd = (): void => {
     setSelectedParentId(addParentMove(phase));
@@ -111,11 +122,7 @@ export const PhaseMoveEditor = ({
               phase={phase}
               rootBg={SURFACE.card}
               onChange={(updated) =>
-                updateMove(
-                  phase,
-                  findMoveIndex(selectedGroup.parent.id),
-                  updated,
-                )
+                updateMove(phase, selectedGroup.parent.id, updated)
               }
               onRemove={() =>
                 removeParentGroup(phase, selectedGroup.parent.id)
@@ -124,14 +131,8 @@ export const PhaseMoveEditor = ({
               <ChildMoveList
                 childMoves={selectedGroup.children}
                 phase={phase}
-                onChildChange={(childId, updatedChild) => {
-                  const childIndex = findMoveIndex(childId);
-                  if (childIndex === -1) return;
-                  updateMove(phase, childIndex, updatedChild);
-                }}
-                onChildRemove={(childId) =>
-                  removeChildMove(phase, selectedGroup.parent.id, childId)
-                }
+                onChildChange={handleChildChange}
+                onChildRemove={handleChildRemove}
                 onAddCharge={() =>
                   addChildMove(phase, selectedGroup.parent.id, "charge")
                 }

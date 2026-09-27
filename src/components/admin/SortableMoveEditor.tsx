@@ -10,8 +10,12 @@ export interface SortableMoveEditorProps {
   move: Move;
   index: number;
   phase: Phase;
-  onChange: (move: Move) => void;
-  onRemove: () => void;
+  /**
+   * id を引数で受け取る。呼び出し側（ChildMoveList の map）で子技ごとにクロージャを
+   * 作ると毎回参照が変わり、MoveEditor のメモ化が効かなくなるため、id の結び付けはここで行う。
+   */
+  onChange: (moveId: string, move: Move) => void;
+  onRemove: (moveId: string) => void;
 }
 
 /**
@@ -35,6 +39,9 @@ export const SortableMoveEditor = ({
     isDragging,
   } = useSortable({ id: move.id });
 
+  const handleChange = (updated: Move): void => onChange(move.id, updated);
+  const handleRemove = (): void => onRemove(move.id);
+
   const rootStyle: CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -49,8 +56,8 @@ export const SortableMoveEditor = ({
       index={index}
       isChild
       phase={phase}
-      onChange={onChange}
-      onRemove={onRemove}
+      onChange={handleChange}
+      onRemove={handleRemove}
       dragHandle={
         <MoveDragHandle
           setActivatorNodeRef={setActivatorNodeRef}

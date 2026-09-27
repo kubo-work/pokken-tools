@@ -54,8 +54,8 @@ export const ChildMoveList = ({
                 move={child}
                 index={childIndex}
                 phase={phase}
-                onChange={(updated) => onChildChange(child.id, updated)}
-                onRemove={() => onChildRemove(child.id)}
+                onChange={onChildChange}
+                onRemove={onChildRemove}
               />
             ))}
           </Stack>
