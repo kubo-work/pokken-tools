@@ -15,7 +15,7 @@
     "preview": "bun run build && vite preview",
     "deploy": "bun run build && wrangler deploy",
     "typecheck": "react-router typegen && tsc",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings 0",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
     "db:migrate:remote": "wrangler d1 migrations apply DB --remote",

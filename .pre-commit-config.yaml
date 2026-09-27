@@ -4,6 +4,8 @@
 #   brew install pre-commit
 # 初回のみフックを有効化:
 #   pre-commit install
+# ESLint フックはリポジトリの node_modules を使うため、事前に bun install が必要
+# （worktree で作業する場合はその worktree でも実行しておく）。
 #
 # 各フックのバージョン(rev)はここで固定する。更新は手動で:
 #   pre-commit autoupdate
@@ -31,3 +33,16 @@ repos:
           # - "--config=p/nextjs"
           - "--error"               # 検出があれば exit code 1（コミットをブロック）
           - "--skip-unknown-extensions"
+
+  # フックと React Compiler の規則の検査（設定は eslint.config.js）。
+  # コミット対象の TS/TSX だけを検査し、CI と同じく警告も失敗扱いにする。
+  # --no-warn-ignored: ignores 対象のファイルを名指しで渡したときの警告を出さない
+  # （--max-warnings 0 と組み合わせると、無視しただけのファイルで失敗してしまうため）。
+  - repo: local
+    hooks:
+      - id: eslint
+        name: eslint (react-hooks)
+        entry: ./node_modules/.bin/eslint --max-warnings 0 --no-warn-ignored
+        language: system
+        files: \.(ts|tsx)$
+        exclude: \.d\.ts$
