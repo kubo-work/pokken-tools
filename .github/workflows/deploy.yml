@@ -37,16 +37,16 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
 
       - name: Setup Bun
         # バージョンは package.json の packageManager から解決させる（単一ソース化）。
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@v2.2.0
 
       - name: Setup Node
         # React Router v8 は Node >=22.22 を要求する。バージョンは .node-version を単一ソースにする。
         # `react-router build` は node シェバンで動くため、ランナー既定 Node ではなくここで固定する。
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v7.1.0
         with:
           node-version-file: ".node-version"
           # setup-node v5 以降は package.json の packageManager を見て自動キャッシュを行うが、
