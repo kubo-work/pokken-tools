@@ -20,7 +20,7 @@
 - **locator.js**: 開発時のみ `@locator/babel-jsx` で JSX にソース位置を埋め込み、
   ブラウザ上の要素を Option+クリックでエディタで開ける
 
-> Node.js は **22.22 以上**が必要（`react-router` CLI の要件。`.node-version` は 24.18.0 を指定）。
+> Node.js は **22.22 以上**が必要（`react-router` CLI の要件。`.node-version` は 26.13.0 を指定）。
 > 本番は Cloudflare Workers（workerd）で実行されるため、Node が要るのはローカル/CI のビルド時のみ。
 
 ### レンダリング方式
@@ -143,9 +143,9 @@ app/routes/ ─→ src/components/ ─→ src/hooks/ ─→ src/lib/moves/ ─�
 ### 0. 前提
 
 - パッケージマネージャ / ランタイムに [bun](https://bun.sh/)（`packageManager` で `bun@1.4.4` を指定）
-- Node.js **22.22 以上**（`.node-version` は 24.18.0）。nodebrew 等でインストールする:
+- Node.js **22.22 以上**（`.node-version` は 26.13.0）。nodebrew 等でインストールする:
   ```bash
-  nodebrew install v24.18.0 && nodebrew use v24.18.0
+  nodebrew install v26.13.0 && nodebrew use v26.13.0
   ```
 
 ### 1. 依存インストール
