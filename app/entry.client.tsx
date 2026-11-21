@@ -10,10 +10,18 @@ import { HydratedRouter } from "react-router/dom";
  * 要素の位置情報は vite.config.ts の @locator/babel-jsx が JSX に埋め込み、
  * ここで読み込む runtime がそれを使う。
  * import.meta.env.DEV の分岐は静的に解決されるため、本番バンドルには含まれない。
+ *
+ * setup() は設定に誤りがあると例外を投げず、何も適用しないまま { ok: false, errors } を返す。
+ * 戻り値を見ないと「動かないのにエラーも出ない」状態になるため、失敗時は内容を出力する。
  */
 if (import.meta.env.DEV) {
   import("@locator/runtime")
-    .then((locatorRuntime) => locatorRuntime.default())
+    .then(({ setup }) => {
+      const setupResult = setup();
+      if (!setupResult.ok) {
+        console.error("locator.js の設定が不正なため初期化されませんでした", setupResult.errors);
+      }
+    })
     .catch((error: unknown) => {
       console.error("locator.js の初期化に失敗しました", error);
     });
